@@ -1,0 +1,17 @@
+{
+    "servers": {
+        "mise": {
+            "type": "stdio",
+            "command": "mise",
+            "args": [
+                "--cd",
+                "${workspaceFolder}",
+                "mcp"
+            ],
+            "env": {
+                "MISE_EXPERIMENTAL": "1"
+            }
+        }
+    },
+    "inputs": []
+}

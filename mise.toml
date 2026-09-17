@@ -1,0 +1,23 @@
+[settings]
+lockfile = true
+
+[tools]
+# languages
+go = "latest"
+python = "3.14.4"
+node = "lts"
+
+# tools
+uv = "latest"
+pnpm = "latest"
+
+helm = "latest"
+helmfile = "latest"
+kind = "latest"
+kubectl = "latest"
+
+"go:sigs.k8s.io/cloud-provider-kind" = "latest"
+
+[tasks.create-cluster]
+description = "Create a kind cluster"
+run = "kind create cluster --config cluster.yaml"
