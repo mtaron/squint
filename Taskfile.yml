@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+tasks:
+  create-cluster:
+    desc: Create kind cluster
+    cmds:
+      - kind create cluster --config cluster.yaml
+    silent: true

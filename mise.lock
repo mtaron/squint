@@ -25,6 +25,16 @@ specifiers = ["latest"]
 checksum = "sha256:86584a54def73570558f66f5111cc53dfed56689637ae32c1201205d494f54fb"
 url = "https://get.helm.sh/helm-v4.3.0-linux-amd64.tar.gz"
 
+[[tools.helm-diff]]
+version = "3.15.13"
+backend = "github:databus23/helm-diff"
+specifiers = ["latest"]
+
+[tools.helm-diff."platforms.linux-x64"]
+checksum = "sha256:c004219c405e5be665e0b573378cf07f0182f2da7466a4c5a580a3c7162e7ae8"
+url = "https://github.com/databus23/helm-diff/releases/download/v3.15.13/helm-diff-linux-amd64.tgz"
+url_api = "https://api.github.com/repos/databus23/helm-diff/releases/assets/556544769"
+
 [[tools.helmfile]]
 version = "1.8.0"
 backend = "aqua:helmfile/helmfile"
@@ -83,6 +93,16 @@ specifiers = ["3.14.4"]
 checksum = "sha256:fe9a9c32d13870af632cbac3dfc7528ae53597e94472aa4c7d6a42e8166136cd"
 url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260414/cpython-3.14.4+20260414-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
+
+[[tools.task]]
+version = "3.53.1"
+backend = "aqua:go-task/task"
+specifiers = ["latest"]
+
+[tools.task."platforms.linux-x64"]
+checksum = "sha256:a54a408f6861ff921f6e87774180db31bacd8c1e7c944ca696db9fea49a82fc7"
+url = "https://github.com/go-task/task/releases/download/v3.53.1/task_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/go-task/task/releases/assets/519645449"
 
 [[tools.uv]]
 version = "0.12.15"

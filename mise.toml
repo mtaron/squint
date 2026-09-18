@@ -4,20 +4,18 @@ lockfile = true
 [tools]
 # languages
 go = "latest"
-python = "3.14.4"
+python = "3.14.4"  # this should track version of python in ubuntu:26.04
 node = "lts"
 
 # tools
 uv = "latest"
 pnpm = "latest"
-
+task = "latest"
 helm = "latest"
 helmfile = "latest"
+helm-diff = { version = "latest", depends = ["helm"], postinstall = "helm plugin install $MISE_TOOL_INSTALL_PATH/diff" }
 kind = "latest"
 kubectl = "latest"
 
 "go:sigs.k8s.io/cloud-provider-kind" = "latest"
 
-[tasks.create-cluster]
-description = "Create a kind cluster"
-run = "kind create cluster --config cluster.yaml"
