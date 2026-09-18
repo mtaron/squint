@@ -6,5 +6,5 @@ tasks:
   create-cluster:
     desc: Create kind cluster
     cmds:
-      - kind create cluster --config cluster.yaml
+      - kind create cluster --config infrastructure/cluster.yaml
     silent: true

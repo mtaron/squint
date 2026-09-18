@@ -5,7 +5,9 @@ name: squint
 #
 # While these will not add more real compute capacity and
 # have limited isolation, this can be useful for testing
-# rolling updates etc.
+# rolling updates etc. They also allow cloud-provider-kind
+# to work out of the box without relabeling the control plane
+# to allow load balancers.
 #
 # The API-server and other control plane components will be
 # on the control-plane node.
