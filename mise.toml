@@ -11,6 +11,7 @@ node = "lts"
 uv = "latest"
 pnpm = "latest"
 task = "latest"
+yq = "latest"
 helm = "latest"
 helmfile = "latest"
 helm-diff = { version = "latest", depends = ["helm"], postinstall = "helm plugin install $MISE_TOOL_INSTALL_PATH/diff" }

@@ -5,5 +5,5 @@ version: '3'
 includes:
   infrastructure:
     taskfile: ./infrastructure/Taskfile.yaml
-    flatten: true
     dir: ./infrastructure
+    flatten: true

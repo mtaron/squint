@@ -2,20 +2,31 @@
 
 version: '3'
 
-env:
+vars:
   GATEWAY_API_VERSION: 1.6.2
+  GATEWAY_API_INFERENCE_EXTENSION_VERSION: 1.6.2
 
 tasks:
   create-dev-cluster:
-    desc: Create kind cluster
-    cmds:
-      - kind create cluster --config cluster.yaml
+    desc: Create local development cluster
+    cmd: kind create cluster --config cluster.yaml
     silent: true
 
-  install-crds:
-    desc: Install custom resources
-    cmds:
-      - kubectl apply --context {{.CONTEXT}} --server-side --force-conflicts -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v$GATEWAY_API_VERSION/standard-install.yaml
+  delete-dev-cluster:
+    desc: Delete local development cluster
+    cmd: kind delete cluster --name squint
     silent: true
-    vars:
-      CONTEXT: kind-squint
+
+  vendor-crds:
+    desc: Download vendored custom resource definitions
+    silent: true
+    cmds:
+      # gateway-api
+      - curl --show-error --silent --fail --location https://github.com/kubernetes-sigs/gateway-api/releases/download/v{{.GATEWAY_API_VERSION}}/standard-install.yaml --output ./gateway-api/templates/crds.yaml
+      - yq '.version = {{.GATEWAY_API_VERSION | quote}}' --inplace ./gateway-api/Chart.yaml
+      # gateway-api-inference-extension
+      - curl --show-error --silent --fail --location https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/download/v{{.GATEWAY_API_INFERENCE_EXTENSION_VERSION}}/v1-manifests.yaml --output ./gateway-api-inference-extension/templates/crds.yaml
+      - yq '.version = {{.GATEWAY_API_INFERENCE_EXTENSION_VERSION | quote}}' --inplace ./gateway-api-inference-extension/Chart.yaml
+
+  deploy:
+    cmd: helmfile apply
