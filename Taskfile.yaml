@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+includes:
+  infrastructure:
+    taskfile: ./infrastructure/Taskfile.yaml
+    flatten: true
+    dir: ./infrastructure

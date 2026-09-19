@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+env:
+  GATEWAY_API_VERSION: 1.6.2
+
+tasks:
+  create-dev-cluster:
+    desc: Create kind cluster
+    cmds:
+      - kind create cluster --config cluster.yaml
+    silent: true
+
+  install-crds:
+    desc: Install custom resources
+    cmds:
+      - kubectl apply --context {{.CONTEXT}} --server-side --force-conflicts -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v$GATEWAY_API_VERSION/standard-install.yaml
+    silent: true
+    vars:
+      CONTEXT: kind-squint
