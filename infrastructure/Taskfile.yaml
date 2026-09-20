@@ -3,14 +3,16 @@
 version: '3'
 
 vars:
-  GATEWAY_API_VERSION: 1.6.2
-  GATEWAY_API_INFERENCE_EXTENSION_VERSION: 1.6.2
+  GATEWAY_API_VERSION: "1.6.2"
+  GATEWAY_API_INFERENCE_EXTENSION_VERSION: "1.6.2"
 
 tasks:
   create-dev-cluster:
     desc: Create local development cluster
     cmd: kind create cluster --config cluster.yaml
     silent: true
+    status:
+      - kind get kubeconfig --name squint
 
   delete-dev-cluster:
     desc: Delete local development cluster
@@ -29,4 +31,5 @@ tasks:
       - yq '.version = {{.GATEWAY_API_INFERENCE_EXTENSION_VERSION | quote}}' --inplace ./gateway-api-inference-extension/Chart.yaml
 
   deploy:
+    desc: Apply the helmfile to the current cluster
     cmd: helmfile apply

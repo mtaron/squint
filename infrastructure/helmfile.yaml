@@ -1,0 +1,44 @@
+releases:
+  - name: gateway-api-crds
+    namespace: default
+    chart: ./gateway-api
+
+  - name: gateway-api-inference-extension-crds
+    namespace: default
+    chart: ./gateway-api-inference-extension
+
+  - name: node-feature-discovery
+    namespace: node-feature-discovery
+    createNamespace: true
+    chart: oci://registry.k8s.io/nfd/charts/node-feature-discovery
+    version: "0.19.0"
+
+  - name: gpu-operator
+    namespace: gpu-operator
+    createNamespace: true
+    chart: oci://nvcr.io/nvidia/cloud-native-charts/gpu-operator
+    version: "v26.7.0"
+    disableValidationOnInstall: true  # required because CRDs are bundled in the chart
+    needs:
+      - node-feature-discovery/node-feature-discovery
+    values:
+      - nfd:
+          enabled: false
+
+  - name: agentgateway-crds
+    namespace: agentgateway-system
+    createNamespace: true
+    chart: oci://cr.agentgateway.dev/charts/agentgateway-crds
+    version: "v1.5.0"
+
+  - name: agentgateway
+    namespace: agentgateway-system
+    chart: oci://cr.agentgateway.dev/charts/agentgateway
+    version: "v1.5.0"
+    needs:
+      - default/gateway-api-crds
+      - default/gateway-api-inference-extension-crds
+      - agentgateway-system/agentgateway-crds
+    values:
+      - inferenceExtension:
+          enabled: true
