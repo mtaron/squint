@@ -1,7 +1,13 @@
 # squint
-A self-hostable, vision-first document processing pipeline
+A self-hostable, vision-first document processing pipeline.
 
-## Local development cluster
+## Components
+- hosted Neon for the database
+- self-hosted Temporal: https://github.com/temporalio/helm-charts
+- embeddings: https://huggingface.co/blog/Hcompany/neomme
+- self-hosted milvus: https://github.com/milvus-io/milvus
+
+## Local development
 
 Development runs on a local [kind](https://kind.sigs.k8s.io/) cluster with GPU access, created with [nvkind](https://github.com/NVIDIA/nvkind).
 

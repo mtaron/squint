@@ -78,6 +78,15 @@ specifiers = ["lts"]
 checksum = "sha256:6e1db87ef58b8819e5d5402eff1536491b18edd8eb7bee5ef7897876e88dc5ff"
 url = "https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64.tar.gz"
 
+[[tools."npm:neon"]]
+version = "5.0.0"
+aube = { path = ".mise/locks/npm-neon/5.0.0~6fb02951", digest = "sha256:4576fa1c26f6fa4ff88738c1e69f0d19a0b7ce8fe3fa93a74c5dffb3cf1ffb44" }
+backend = "npm:neon"
+specifiers = ["latest"]
+
+[tools."npm:neon".options]
+allow_builds = '["esbuild"]'
+
 [[tools.pnpm]]
 version = "12.4.2"
 backend = "aqua:pnpm/pnpm"
