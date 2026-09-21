@@ -1,18 +1,15 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: squint
-# One control plane node and three "workers".
-#
-# While these will not add more real compute capacity and
-# have limited isolation, this can be useful for testing
-# rolling updates etc. They also allow cloud-provider-kind
-# to work out of the box without relabeling the control plane
-# to allow load balancers.
+# One control plane node and a worker that mounts all local GPUs.
 #
 # The API-server and other control plane components will be
-# on the control-plane node.
+# on the control-plane node. Having a seperate worker node
+# allows cloud-provider-kind to work out of the box without
+# relabeling the control plane to allow load balancers.
 nodes:
 - role: control-plane
 - role: worker
-- role: worker
-- role: worker
+  extraMounts:
+    - hostPath: /dev/null
+      containerPath: /var/run/nvidia-container-devices/all

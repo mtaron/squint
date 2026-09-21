@@ -19,4 +19,4 @@ kind = "latest"
 kubectl = "latest"
 
 "go:sigs.k8s.io/cloud-provider-kind" = "latest"
-
+"go:github.com/NVIDIA/nvkind/cmd/nvkind" = "latest"
