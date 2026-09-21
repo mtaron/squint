@@ -27,14 +27,7 @@ releases:
       - driver:
           enabled: false
       - toolkit:
-          env:
-            # kind nodes ship a version 2 containerd config. By default the
-            # toolkit reads the (migrated, version 4) output of `containerd
-            # config dump` and writes a version 4 drop-in, which containerd
-            # refuses to load next to a version 2 root config. Reading the
-            # root config file keeps the drop-in at version 2.
-            - name: RUNTIME_CONFIG_SOURCE
-              value: file
+          enabled: false
 
   - name: agentgateway-crds
     namespace: agentgateway-system

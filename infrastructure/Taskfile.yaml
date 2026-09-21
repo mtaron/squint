@@ -9,7 +9,7 @@ vars:
 tasks:
   create-dev-cluster:
     desc: Create local development cluster
-    cmd: kind create cluster --config cluster.yaml
+    cmd: nvkind cluster create --name squint --config-template cluster.yaml
     silent: true
     status:
       - kind get kubeconfig --name squint

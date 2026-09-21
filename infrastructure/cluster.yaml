@@ -1,15 +1,17 @@
+# This is a nvkind-flavor templated kind configuration
+# https://github.com/NVIDIA/nvkind/blob/main/examples/one-worker-per-gpu.yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
-name: squint
-# One control plane node and a worker that mounts all local GPUs.
-#
-# The API-server and other control plane components will be
-# on the control-plane node. Having a seperate worker node
-# allows cloud-provider-kind to work out of the box without
-# relabeling the control plane to allow load balancers.
 nodes:
 - role: control-plane
+{{- range $gpu := until numGPUs }}
 - role: worker
+  labels:
+    nvidia.com/gpu.present: "true"
   extraMounts:
+    # Inject all NVIDIA GPUs using the nvidia-container-runtime.
+    # This requires `accept-nvidia-visible-devices-as-volume-mounts = true` be set
+    # in `/etc/nvidia-container-runtime/config.toml`
     - hostPath: /dev/null
-      containerPath: /var/run/nvidia-container-devices/all
+      containerPath: /var/run/nvidia-container-devices/{{ $gpu }}
+{{- end }}
