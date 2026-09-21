@@ -1,0 +1,10 @@
+# Development environment values
+# These values are available in helmfile.yaml as {{ .Values }}
+gpu-operator:
+  values:
+    # nvkind uses the host's GPU driver and installs the container toolkit
+    # into the kind nodes itself.
+    - driver:
+        enabled: false
+    - toolkit:
+        enabled: false

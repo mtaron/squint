@@ -1,10 +1,11 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 
-version: '3'
+version: "3"
 
 vars:
   GATEWAY_API_VERSION: "1.6.2"
   GATEWAY_API_INFERENCE_EXTENSION_VERSION: "1.6.2"
+  ENVIRONMENT: '{{default "development" .ENVIRONMENT}}'
 
 tasks:
   create-dev-cluster:
@@ -31,5 +32,9 @@ tasks:
       - yq '.version = {{.GATEWAY_API_INFERENCE_EXTENSION_VERSION | quote}}' --inplace ./gateway-api-inference-extension/Chart.yaml
 
   deploy:
-    desc: Apply the helmfile to the current cluster
-    cmd: helmfile apply
+    desc: Apply the helmfile
+    cmd: helmfile --environment {{.ENVIRONMENT}} apply
+    requires:
+      vars:
+        - name: ENVIRONMENT
+          enum: [development, staging, production]

@@ -1,3 +1,12 @@
+environments:
+  default:
+    values:
+      - environments/default.yaml
+  development:
+    values:
+      - environments/development.yaml
+
+---
 releases:
   - name: gateway-api-crds
     namespace: default
@@ -24,10 +33,9 @@ releases:
     values:
       - nfd:
           enabled: false
-      - driver:
-          enabled: false
-      - toolkit:
-          enabled: false
+      {{- with .Values | get "gpu-operator.values" nil }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
 
   - name: agentgateway-crds
     namespace: agentgateway-system
