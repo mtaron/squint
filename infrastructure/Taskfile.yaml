@@ -6,6 +6,11 @@ vars:
   GATEWAY_API_VERSION: "1.6.2"
   GATEWAY_API_INFERENCE_EXTENSION_VERSION: "1.6.2"
   ENVIRONMENT: '{{default "development" .ENVIRONMENT}}'
+  KUBE_CONTEXTS:
+    map:
+      development: kind-squint
+      staging: ""
+      production: ""
 
 tasks:
   create-dev-cluster:
@@ -33,8 +38,10 @@ tasks:
 
   deploy:
     desc: Apply the helmfile
-    cmd: helmfile --environment {{.ENVIRONMENT}} apply
+    vars:
+      KUBE_CONTEXT: '{{index .KUBE_CONTEXTS .ENVIRONMENT}}'
     requires:
       vars:
         - name: ENVIRONMENT
           enum: [development, staging, production]
+    cmd: helmfile --environment {{.ENVIRONMENT}} --kube-context {{.KUBE_CONTEXT}} apply
