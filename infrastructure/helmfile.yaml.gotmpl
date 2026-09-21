@@ -54,3 +54,11 @@ releases:
     values:
       - inferenceExtension:
           enabled: true
+
+  - name: squint
+    namespace: squint
+    createNamespace: true
+    chart: ./squint
+    needs:
+      - gpu-operator/gpu-operator
+      - agentgateway-system/agentgateway
