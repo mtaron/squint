@@ -31,7 +31,12 @@ tasks:
 
   get-dev-ingress-ip:
     desc: Get the IP address of the dev cluster load balancer. `lb-dev-cluster` must be running.
-    cmd: kubectl get svc --namespace squint agentgateway-proxy -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}"
+    cmd: kubectl get svc --namespace squint agentgateway-proxy -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}" ; echo
+    silent: true
+
+  get-grafana-admin-password:
+    desc: Get the admin password for Grafana
+    cmd: kubectl get secret --namespace monitoring -l app.kubernetes.io/component=admin-secret -o jsonpath="{.items[0].data.admin-password}" | base64 --decode ; echo
     silent: true
 
   vendor-crds:

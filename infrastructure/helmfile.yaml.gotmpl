@@ -73,6 +73,9 @@ releases:
               memory: 128Mi
             limits:
               memory: 512Mi
+          {{- with .Values | get "kube-prometheus-stack.grafana" nil }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
 
   - name: gpu-operator
     namespace: gpu-operator
@@ -118,3 +121,8 @@ releases:
     needs:
       - gpu-operator/gpu-operator
       - agentgateway-system/agentgateway
+      - monitoring/kube-prometheus-stack
+    values:
+      {{- with .Values | get "squint.values" nil }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
