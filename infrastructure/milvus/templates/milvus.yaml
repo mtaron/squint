@@ -1,0 +1,20 @@
+apiVersion: milvus.io/v1beta1
+kind: Milvus
+metadata:
+  name: squint
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: milvus
+spec:
+  mode: cluster
+  components:
+    image: milvusdb/milvus:v3.0.2
+  dependencies:
+    msgStreamType: woodpecker
+  config:
+    common:
+      storage:
+        useLoonFFI: true
+    dataNode:
+      storage:
+        format: vortex
