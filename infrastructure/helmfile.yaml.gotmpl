@@ -7,6 +7,13 @@ environments:
       - environments/development.yaml
 
 ---
+helmDefaults:
+  wait: true
+  waitForJobs: true
+  atomic: true
+  cleanupOnFail: true
+  historyMax: 5
+
 releases:
   - name: gateway-api-crds
     namespace: default
