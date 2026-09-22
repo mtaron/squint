@@ -1,6 +1,9 @@
 [settings]
 lockfile = true
 
+[settings.npm]
+package_manager = "pnpm"
+
 [tools]
 # languages
 go = "latest"

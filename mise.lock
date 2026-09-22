@@ -80,7 +80,6 @@ url = "https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64.tar.gz"
 
 [[tools."npm:neon"]]
 version = "5.0.0"
-aube = { path = ".mise/locks/npm-neon/5.0.0~6fb02951", digest = "sha256:4576fa1c26f6fa4ff88738c1e69f0d19a0b7ce8fe3fa93a74c5dffb3cf1ffb44" }
 backend = "npm:neon"
 specifiers = ["latest"]
 
