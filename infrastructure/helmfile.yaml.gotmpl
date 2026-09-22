@@ -29,6 +29,51 @@ releases:
     chart: oci://registry.k8s.io/nfd/charts/node-feature-discovery
     version: "0.19.0"
 
+  - name: kube-prometheus-stack
+    namespace: monitoring
+    createNamespace: true
+    disableValidationOnInstall: true
+    chart: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
+    version: "91.4.1"
+    values:
+      - prometheus:
+          prometheusSpec:
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            probeSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+            retention: 15d
+            resources:
+              requests:
+                cpu: 200m
+                memory: 512Mi
+              limits:
+                memory: 1Gi
+        alertmanager:
+          alertmanagerSpec:
+            resources:
+              requests:
+                cpu: 50m
+                memory: 64Mi
+              limits:
+                memory: 128Mi
+        kubeControllerManager:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        kubeProxy:
+          enabled: false
+        kubeEtcd:
+          enabled: false
+        grafana:
+          defaultDashboardsEnabled: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+
   - name: gpu-operator
     namespace: gpu-operator
     createNamespace: true
@@ -37,6 +82,7 @@ releases:
     disableValidationOnInstall: true  # required because CRDs are bundled in the chart
     needs:
       - node-feature-discovery/node-feature-discovery
+      - monitoring/kube-prometheus-stack
     values:
       - nfd:
           enabled: false
@@ -58,8 +104,11 @@ releases:
       - default/gateway-api-crds
       - default/gateway-api-inference-extension-crds
       - agentgateway-system/agentgateway-crds
+      - monitoring/kube-prometheus-stack
     values:
       - inferenceExtension:
+          enabled: true
+      - monitoring:
           enabled: true
 
   - name: squint

@@ -1,2 +1,2 @@
-# Default environment values
+# Default environment values (not wired up yet)
 # These values are available in helmfile.yaml as {{ .Values }}
