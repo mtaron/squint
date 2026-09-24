@@ -2,14 +2,16 @@ environments:
   development:
     values:
       - environments/development.yaml
+    kubeContext: kind-squint
 
 ---
 repositories:
   - name: milvus-operator
     url: https://zilliztech.github.io/milvus-operator/
-
   - name: cnpg
     url: https://cloudnative-pg.github.io/charts
+  - name: temporal
+    url: https://go.temporal.io/helm-charts/
 
 helmDefaults:
   wait: true
@@ -110,6 +112,12 @@ releases:
     createNamespace: true
     chart: cnpg/cluster
     version: "0.8.1"
+    {{- if eq .Environment.Name "development" }}
+    hooks:
+      - events: ["presync"]
+        command: bash
+        args: ["hooks/dev-postgres-temporal-role-secret.sh"]
+    {{- end }}
     needs:
       - cnpg-system/cnpg
       - monitoring/kube-prometheus-stack
@@ -117,6 +125,49 @@ releases:
       - cluster:
           monitoring:
             enabled: true
+          roles:
+            - name: temporal
+              ensure: present
+              login: true
+              createdb: true
+              passwordSecret:
+                name: temporal-db-secret
+
+  - name: temporal
+    namespace: temporal
+    createNamespace: true
+    chart: temporal/temporal
+    version: "1.7.0"
+    {{- if eq .Environment.Name "development" }}
+    hooks:
+      - events: ["presync"]
+        command: bash
+        args: ["hooks/dev-temporal-db-secret.sh"]
+    {{- end }}
+    needs:
+      - postgres/postgres
+      - monitoring/kube-prometheus-stack
+    values:
+      - server:
+          metrics:
+            serviceMonitor:
+              enabled: true
+          config:
+            persistence:
+              datastores:
+                default:
+                  sql: &temporalSql
+                    pluginName: postgres12_pgx
+                    driverName: postgres12_pgx
+                    databaseName: temporal
+                    connectAddr: postgres-cluster-rw.postgres.svc.cluster.local:5432
+                    connectProtocol: tcp
+                    user: temporal
+                    existingSecret: temporal-db-secret
+                visibility:
+                  sql:
+                    <<: *temporalSql
+                    databaseName: temporal_visibility
 
   - name: gpu-operator
     namespace: gpu-operator
