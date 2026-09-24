@@ -12,6 +12,8 @@ repositories:
     url: https://cloudnative-pg.github.io/charts
   - name: temporal
     url: https://go.temporal.io/helm-charts/
+  - name: valkey
+    url: https://valkey.io/valkey-helm/
 
 helmDefaults:
   wait: true
@@ -194,6 +196,32 @@ releases:
     needs:
       - temporal/temporal
       - default/temporal-worker-controller-crds
+
+  - name: valkey-operator
+    namespace: valkey-operator
+    createNamespace: true
+    chart: valkey/valkey-operator
+    version: "0.6.0"
+    needs:
+      - monitoring/kube-prometheus-stack
+    values:
+      - metrics:
+          serviceMonitor:
+            enabled: true
+
+  - name: valkey
+    namespace: valkey
+    chart: valkey/valkey-resources
+    disableValidationOnInstall: true
+    version: "0.2.0"
+    needs:
+      - valkey-operator/valkey-operator
+      - monitoring/kube-prometheus-stack
+    values:
+      - fullnameOverride: "squint"
+      - metrics:
+          podMonitor:
+            enabled: true
 
   - name: gpu-operator
     namespace: gpu-operator

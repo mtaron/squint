@@ -24,4 +24,3 @@ kubectl = "latest"
 "go:sigs.k8s.io/cloud-provider-kind" = "latest"
 "go:github.com/NVIDIA/nvkind/cmd/nvkind" = "latest"
 
-"npm:neon" = { version = "latest", allow_builds = ["esbuild"] }

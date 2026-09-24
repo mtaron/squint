@@ -26,6 +26,9 @@ tasks:
     desc: Run the dev cluster load balancer
     cmd: cloud-provider-kind --gateway-channel disabled # Gateway API CRDs are installed manually
 
+  port-forward-valkey:
+    cmd: kubectl port-forward svc/valkey-squint 6379
+
   grafana:
     desc: Print the Grafana URL
     cmd: echo "http://{{.DEV_LOAD_BALANCER_IP}}/grafana"
