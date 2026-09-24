@@ -179,6 +179,22 @@ releases:
                     <<: *temporalSql
                     databaseName: temporal_visibility
 
+  # Temporal Worker Controller
+  # Manages worker versioning, traffic routing, and progressive rollout
+  # https://github.com/temporalio/temporal-worker-controller
+  - name: temporal-worker-controller-crds
+    chart: oci://docker.io/temporalio/temporal-worker-controller-crds
+    namespace: default
+    version: "0.30.0"
+
+  - name: temporal-worker-controller
+    chart: oci://docker.io/temporalio/temporal-worker-controller
+    namespace: temporal
+    version: "0.30.0"
+    needs:
+      - temporal/temporal
+      - default/temporal-worker-controller-crds
+
   - name: gpu-operator
     namespace: gpu-operator
     createNamespace: true
