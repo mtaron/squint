@@ -35,6 +35,16 @@ releases:
     chart: oci://registry.k8s.io/nfd/charts/node-feature-discovery
     version: "0.19.0"
 
+  - name: cert-manager
+    namespace: cert-manager
+    createNamespace: true
+    disableValidationOnInstall: true
+    chart: oci://quay.io/jetstack/charts/cert-manager
+    version: "1.21.2"
+    values:
+      - crds:
+          enabled: true
+
   - name: kube-prometheus-stack
     namespace: monitoring
     createNamespace: true
