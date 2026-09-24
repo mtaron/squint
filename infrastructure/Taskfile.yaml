@@ -11,6 +11,8 @@ vars:
       development: kind-squint
       staging: ""
       production: ""
+  DEV_LOAD_BALANCER_IP:
+    sh: kubectl get svc --namespace squint agentgateway-proxy -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}" ; echo
 
 tasks:
   create-dev-cluster:
@@ -27,16 +29,11 @@ tasks:
 
   lb-dev-cluster:
     desc: Run the dev cluster load balancer
-    cmd: cloud-provider-kind --gateway-channel disabled  # Gateway API CRDs are installed manually
+    cmd: cloud-provider-kind --gateway-channel disabled # Gateway API CRDs are installed manually
 
-  get-dev-ingress-ip:
-    desc: Get the IP address of the dev cluster load balancer. `lb-dev-cluster` must be running.
-    cmd: kubectl get svc --namespace squint agentgateway-proxy -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}" ; echo
-    silent: true
-
-  get-grafana-admin-password:
-    desc: Get the admin password for Grafana
-    cmd: kubectl get secret --namespace monitoring -l app.kubernetes.io/component=admin-secret -o jsonpath="{.items[0].data.admin-password}" | base64 --decode ; echo
+  grafana:
+    desc: Print the Grafana URL
+    cmd: echo "http://{{.DEV_LOAD_BALANCER_IP}}/grafana"
     silent: true
 
   vendor-crds:
