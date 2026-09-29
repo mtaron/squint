@@ -1,3 +1,5 @@
 node_modules
 .mise
 .venv
+__pycache__
+.ruff_cache

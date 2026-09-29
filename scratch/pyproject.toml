@@ -5,6 +5,10 @@ description = "Exploration code for squint"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "hf>=2.0.0",
-    "huggingface-hub>=2.0.0",
+    "accelerate>=1.15.0",
+    "huggingface-hub",
+    "lightkube>=1.0.1",
+    "pillow>=12.3.0",
+    "pymilvus>=3.0.2",
+    "sentence-transformers>=6.1.0",
 ]

@@ -10,6 +10,17 @@
 	"settings": {
 		"yaml.schemas": {
 			"https://www.schemastore.org/kind-cluster.json": "infrastructure/cluster.yaml"
+		},
+		"files.exclude": {
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/.jj": true,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true,
+			"**/__pycache__": true,
+			"**/.venv": true,
+			"**/.ruff_cache": true
 		}
 	}
 }
