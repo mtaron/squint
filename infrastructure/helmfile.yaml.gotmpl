@@ -12,8 +12,6 @@ repositories:
     url: https://cloudnative-pg.github.io/charts
   - name: temporal
     url: https://go.temporal.io/helm-charts/
-  - name: valkey
-    url: https://valkey.io/valkey-helm/
 
 helmDefaults:
   wait: true
@@ -40,7 +38,6 @@ releases:
   - name: cert-manager
     namespace: cert-manager
     createNamespace: true
-    disableValidationOnInstall: true
     chart: oci://quay.io/jetstack/charts/cert-manager
     version: "1.21.2"
     values:
@@ -50,7 +47,6 @@ releases:
   - name: kube-prometheus-stack
     namespace: monitoring
     createNamespace: true
-    disableValidationOnInstall: true
     chart: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
     version: "91.4.1"
     values:
@@ -98,7 +94,6 @@ releases:
   - name: milvus-operator
     namespace: milvus-operator
     createNamespace: true
-    disableValidationOnInstall: true  # required because CRDs are bundled in the chart
     chart: milvus-operator/milvus-operator
     version: "1.3.10"
     needs:
@@ -197,38 +192,31 @@ releases:
       - temporal/temporal
       - default/temporal-worker-controller-crds
 
-  - name: valkey-operator
-    namespace: valkey-operator
+  - name: dragonfly-operator
+    namespace: dragonfly-operator
     createNamespace: true
-    chart: valkey/valkey-operator
-    version: "0.6.0"
+    chart: oci://ghcr.io/dragonflydb/dragonfly-operator/helm/dragonfly-operator
+    version: "v1.7.0"
     needs:
       - monitoring/kube-prometheus-stack
     values:
-      - metrics:
-          serviceMonitor:
-            enabled: true
+      - serviceMonitor:
+          enabled: true
+      - grafanaDashboard:
+          enabled: true
 
-  - name: valkey
-    namespace: valkey
-    chart: valkey/valkey-resources
-    disableValidationOnInstall: true
-    version: "0.2.0"
+  - name: dragonfly
+    namespace: dragonfly
+    createNamespace: true
+    chart: ./dragonfly
     needs:
-      - valkey-operator/valkey-operator
-      - monitoring/kube-prometheus-stack
-    values:
-      - fullnameOverride: "squint"
-      - metrics:
-          podMonitor:
-            enabled: true
+      - dragonfly-operator/dragonfly-operator
 
   - name: gpu-operator
     namespace: gpu-operator
     createNamespace: true
     chart: oci://nvcr.io/nvidia/cloud-native-charts/gpu-operator
     version: "v26.7.1"
-    disableValidationOnInstall: true  # required because CRDs are bundled in the chart
     needs:
       - node-feature-discovery/node-feature-discovery
       - monitoring/kube-prometheus-stack

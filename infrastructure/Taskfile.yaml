@@ -26,8 +26,8 @@ tasks:
     desc: Run the dev cluster load balancer
     cmd: cloud-provider-kind --gateway-channel disabled # Gateway API CRDs are installed manually
 
-  port-forward-valkey:
-    cmd: kubectl port-forward svc/valkey-squint 6379
+  port-forward-dragonfly:
+    cmd: kubectl port-forward --namespace dragonfly svc/squint 6379
 
   grafana:
     desc: Print the Grafana URL
@@ -51,4 +51,4 @@ tasks:
       vars:
         - name: ENVIRONMENT
           enum: [development, staging, production]
-    cmd: helmfile --environment {{.ENVIRONMENT}} apply
+    cmd: helmfile --environment {{.ENVIRONMENT}} apply --skip-diff-on-install
