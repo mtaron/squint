@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "scratch"
+		}
+	],
+	"settings": {
+		"yaml.schemas": {
+			"https://www.schemastore.org/kind-cluster.json": "infrastructure/cluster.yaml"
+		}
+	}
+}
