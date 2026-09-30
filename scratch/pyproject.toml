@@ -10,5 +10,6 @@ dependencies = [
     "lightkube>=1.0.1",
     "pillow>=12.3.0",
     "pymilvus>=3.0.2",
+    "pypdfium2>=5.13.0",
     "sentence-transformers>=6.1.0",
 ]
