@@ -10,3 +10,4 @@ ViDoRe dataset: https://huggingface.co/collections/vidore/vidore-benchmark-v3
 Papers:
 - ColPali `hf papers read 2407.01449`
 - NeoMME `https://arxiv.org/html/2609.01657v1`
+- jdeskew `hf papers read 2603.05942`

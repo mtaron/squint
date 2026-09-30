@@ -1,21 +1,17 @@
-from collections import defaultdict
 from collections.abc import Iterator
-from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-from statistics import fmean, median
+from typing import Any, Literal
 
+import cv2
+import numpy as np
 import pypdfium2 as pdfium
+import requests
+import torch
 from huggingface_hub import snapshot_download
 from lightkube import Client
 from lightkube.resources.core_v1 import Service
 from pymilvus import MilvusClient
-from typing import Any, Literal
-
-import requests
-import torch
-from PIL import Image
 from sentence_transformers.util import cos_sim, mean_maxsim
-
 from transformers import BatchFeature, NeoMMEForRetrieval, NeoMMEProcessor
 
 DATASETS_DIR = Path(__file__).parent / "datasets"
@@ -28,9 +24,6 @@ INK_THRESHOLD = 250
 # Pages with little content (a lone page number, a short last line) would otherwise be
 # blown up far past the text sizes the model trained on.
 MAX_DPI = 300
-# A content crop keeping less than this share of the CropBox area counts as smaller
-# (the probe's one-pixel padding keeps full-bleed pages just under 100%).
-SMALLER_THRESHOLD = 0.99
 
 DATASETS = [
     "vidore/vidore_v3_hr",
@@ -42,6 +35,7 @@ DATASETS = [
     "vidore/vidore_v3_physics",
     "vidore/vidore_v3_finance_fr",
     "allenai/olmOCR-bench",
+    "phamquiluan/DISE-2021",  # skew correction
 ]
 
 
@@ -65,17 +59,18 @@ def content_crop(page: pdfium.PdfPage, max_side_length: int) -> tuple[float, ...
     """
 
     # Use a quarter of the max size length for the probe render
-    max_side_length=max_side_length // 4
+    max_side_length = max_side_length // 4
 
     width, height = page.get_width(), page.get_height()
     scale = max_side_length / max(width, height)
-    probe = page.render(scale=scale, grayscale=True).to_pil()
-    bbox = probe.point(lambda v: 255 if v < INK_THRESHOLD else 0).getbbox()
-    if bbox is None:  # blank page
+    probe = page.render(scale=scale, grayscale=True).to_numpy()
+    _, ink = cv2.threshold(probe, INK_THRESHOLD - 1, 255, cv2.THRESH_BINARY_INV)
+    x, y, w, h = cv2.boundingRect(ink)
+    if w == 0:  # blank page
         return (0, 0, 0, 0)
 
     # Pad by a probe pixel so faint anti-aliased edges aren't clipped.
-    left, top, right, bottom = (bbox[0] - 1, bbox[1] - 1, bbox[2] + 1, bbox[3] + 1)
+    left, top, right, bottom = (x - 1, y - 1, x + w + 1, y + h + 1)
     return (
         max(0, left / scale),
         max(0, height - bottom / scale),
@@ -96,17 +91,16 @@ def render_scale(
     return min((max_side_length - 1) / long_side, MAX_DPI / 72)
 
 
-def rasterize_pdf(path: Path, max_side_length: int = MAX_SIDE_LENGTH) -> Iterator[Image.Image]:
-    """Render each page cropped to its content, with the longest side at max_side pixels."""
-    pdf = pdfium.PdfDocument(path)
-    try:
+def rasterize_pdf(
+    path: Path, max_side_length: int = MAX_SIDE_LENGTH
+) -> Iterator[np.ndarray]:
+    with pdfium.PdfDocument(path) as pdf:
         pdf.init_forms()  # render filled-in form fields
         for page in pdf:
             crop = content_crop(page, max_side_length)
             scale = render_scale(page, crop, max_side_length)
-            yield page.render(scale=scale, crop=crop, rev_byteorder=True).to_pil()
-    finally:
-        pdf.close()
+            yield page.render(scale=scale, crop=crop, rev_byteorder=True).to_numpy()
+
 
 def gateway_address() -> str | None:
     """Load balancer address of the gateway proxy, or None if not assigned yet."""
@@ -152,7 +146,15 @@ def model_test():
         "https://github.com/tonywu71/colpali-cookbooks/blob/6ef1332da6bcb48c7ef1f19b25bfa555be7031a8/examples/data/shift_kazakhstan.jpg?raw=true",
         "https://github.com/tonywu71/colpali-cookbooks/blob/6ef1332da6bcb48c7ef1f19b25bfa555be7031a8/examples/data/energy_electricity_generation.jpg?raw=true",
     ]
-    documents = [Image.open(requests.get(url, stream=True).raw) for url in image_urls]
+    documents = [
+        cv2.cvtColor(
+            cv2.imdecode(
+                np.frombuffer(requests.get(url).content, np.uint8), cv2.IMREAD_COLOR
+            ),
+            cv2.COLOR_BGR2RGB,
+        )
+        for url in image_urls
+    ]
 
     # Queries
     queries = [
@@ -160,13 +162,11 @@ def model_test():
         "Which hour of the day had the highest overall electricity generation in 2019?",
     ]
 
-    document_messages = [
-        [{"role": "user", "content": [{"type": "image", "image": document}]}]
-        for document in documents
-    ]
     query_messages = [[{"role": "user", "content": query}] for query in queries]
 
-    inputs_documents = encode(document_messages, "document").to(model.device)
+    inputs_documents = processor(
+        images=documents, return_tensors="pt", padding="longest"
+    ).to(model.device)
     inputs_text = encode(query_messages, "query").to(model.device)
 
     with torch.inference_mode():
