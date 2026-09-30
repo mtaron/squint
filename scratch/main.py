@@ -7,7 +7,6 @@ import numpy as np
 import pypdfium2 as pdfium
 import requests
 import torch
-from huggingface_hub import snapshot_download
 from lightkube import Client
 from lightkube.resources.core_v1 import Service
 from pymilvus import MilvusClient
@@ -24,31 +23,6 @@ INK_THRESHOLD = 250
 # Pages with little content (a lone page number, a short last line) would otherwise be
 # blown up far past the text sizes the model trained on.
 MAX_DPI = 300
-
-DATASETS = [
-    "vidore/vidore_v3_hr",
-    "vidore/vidore_v3_finance_en",
-    "vidore/vidore_v3_industrial",
-    "vidore/vidore_v3_pharmaceuticals",
-    "vidore/vidore_v3_computer_science",
-    "vidore/vidore_v3_energy",
-    "vidore/vidore_v3_physics",
-    "vidore/vidore_v3_finance_fr",
-    "allenai/olmOCR-bench",
-    "phamquiluan/DISE-2021",  # skew correction
-]
-
-
-def download_datasets():
-    for repo_id in DATASETS:
-        local_dir = DATASETS_DIR / repo_id.split("/")[-1]
-        done_marker = local_dir / ".complete"
-        if done_marker.exists():
-            continue
-
-        print(f"Downloading {repo_id} -> {local_dir}")
-        snapshot_download(repo_id=repo_id, repo_type="dataset", local_dir=local_dir)
-        done_marker.touch()
 
 
 def content_crop(page: pdfium.PdfPage, max_side_length: int) -> tuple[float, ...]:
@@ -189,7 +163,6 @@ def model_test():
 
 def main():
     check_milvus()
-    download_datasets()
     model_test()
 
 

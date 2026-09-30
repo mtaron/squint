@@ -7,3 +7,19 @@ includes:
     taskfile: ./infrastructure/Taskfile.yaml
     dir: ./infrastructure
     flatten: true
+
+tasks:
+  download-datasets:
+    cmds:
+      - for:
+          - "vidore/vidore_v3_hr"
+          - "vidore/vidore_v3_finance_en"
+          - "vidore/vidore_v3_industrial"
+          - "vidore/vidore_v3_pharmaceuticals"
+          - "vidore/vidore_v3_computer_science"
+          - "vidore/vidore_v3_energy"
+          - "vidore/vidore_v3_physics"
+          - "vidore/vidore_v3_finance_fr"
+          - "allenai/olmOCR-bench"
+          - "phamquiluan/DISE-2021"
+        cmd: hf download --type dataset --local-dir datasets/{{ .ITEM | quote }} {{ .ITEM | quote }}

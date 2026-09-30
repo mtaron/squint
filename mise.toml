@@ -21,6 +21,8 @@ helm-diff = { version = "latest", depends = ["helm"], postinstall = "helm plugin
 kind = "latest"
 kubectl = "latest"
 
+"pypi:hf" = "latest"
+
 "go:sigs.k8s.io/cloud-provider-kind" = "latest"
 "go:github.com/NVIDIA/nvkind/cmd/nvkind" = "latest"
 
