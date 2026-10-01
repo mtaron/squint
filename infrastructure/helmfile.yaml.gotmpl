@@ -299,6 +299,9 @@ releases:
       - agentgateway-system/agentgateway
       - monitoring/kube-prometheus-stack
       - milvus/milvus
+    values:
+      # Expose Milvus and Temporal gRPC through the gateway for local access
+      - devListeners: {{ eq .Environment.Name "development" | toYaml }}
 
   - name: squint-dev
     namespace: squint

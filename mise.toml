@@ -17,13 +17,12 @@ task = "latest"
 yq = "latest"
 helm = "latest"
 helmfile = "latest"
-helm-diff = { version = "latest", depends = ["helm"], postinstall = "helm plugin install $MISE_TOOL_INSTALL_PATH/diff" }
+helm-diff = { version = "latest", depends = ["helm"], postinstall = "helm plugin uninstall diff >/dev/null 2>&1 || true; helm plugin install $MISE_TOOL_INSTALL_PATH/diff" }
 kind = "latest"
 kubectl = "latest"
-temporal = "latest"
+"github:temporalio/cli" = "latest"
 
 "pypi:hf" = "latest"
 
 "go:sigs.k8s.io/cloud-provider-kind" = "latest"
 "go:github.com/NVIDIA/nvkind/cmd/nvkind" = "latest"
-

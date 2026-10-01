@@ -12,6 +12,7 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+    {{- if .Values.devListeners }}
     - protocol: HTTP
       port: 19530
       name: milvus-grpc
@@ -20,3 +21,12 @@ spec:
           from: All
         kinds:
           - kind: GRPCRoute
+    - protocol: HTTP
+      port: 7233
+      name: temporal-grpc
+      allowedRoutes:
+        namespaces:
+          from: All
+        kinds:
+          - kind: GRPCRoute
+    {{- end }}

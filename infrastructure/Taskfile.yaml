@@ -34,6 +34,11 @@ tasks:
     cmd: echo "http://{{.DEV_LOAD_BALANCER_IP}}/grafana"
     silent: true
 
+  temporal:
+    desc: Print the Temporal address
+    cmd: echo "{{.DEV_LOAD_BALANCER_IP}}:7233"
+    silent: true
+
   vendor-crds:
     desc: Download vendored custom resource definitions
     silent: true
