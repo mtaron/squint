@@ -11,6 +11,13 @@ spec:
     image: milvusdb/milvus:v3.0.2
   dependencies:
     msgStreamType: woodpecker
+    {{- if .Values.objectStorage.external.enabled }}
+    storage:
+      external: true
+      type: S3
+      endpoint: {{ .Values.objectStorage.external.endpoint }}
+      secretRef: {{ .Values.objectStorage.external.secretRef }}
+    {{- end }}
   config:
     common:
       storage:
@@ -18,3 +25,9 @@ spec:
     dataNode:
       storage:
         format: vortex
+    {{- if .Values.objectStorage.external.enabled }}
+    minio:
+      bucketName: {{ .Values.objectStorage.external.bucketName }}
+      rootPath: milvus/squint
+      useSSL: {{ .Values.objectStorage.external.useSSL }}
+    {{- end }}

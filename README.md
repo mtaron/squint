@@ -2,12 +2,11 @@
 A self-hostable, vision-first document processing pipeline.
 
 ## Components
-- hosted Neon for the database
 - self-hosted Temporal: https://github.com/temporalio/helm-charts
 - embeddings: https://huggingface.co/blog/Hcompany/neomme
 - self-hosted milvus: https://github.com/milvus-io/milvus
   - https://milvus.io/docs/search-with-embedding-lists.md#ColPali-document-retrieval-system
-- test dataset: https://huggingface.co/collections/vidore/vidore-benchmark-v3
+
 ## Local development
 
 Development runs on a local [kind](https://kind.sigs.k8s.io/) cluster with GPU access, created with [nvkind](https://github.com/NVIDIA/nvkind).

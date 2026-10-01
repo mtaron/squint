@@ -1,0 +1,7 @@
+objectStorage:
+  external:
+    enabled: false
+    endpoint: ""
+    bucketName: ""
+    secretRef: ""
+    useSSL: false

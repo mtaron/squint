@@ -21,5 +21,4 @@ tasks:
           - "vidore/vidore_v3_physics"
           - "vidore/vidore_v3_finance_fr"
           - "allenai/olmOCR-bench"
-          - "phamquiluan/DISE-2021"
         cmd: hf download --type dataset --local-dir datasets/{{ .ITEM | quote }} {{ .ITEM | quote }}

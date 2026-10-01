@@ -95,7 +95,7 @@ releases:
     namespace: milvus-operator
     createNamespace: true
     chart: milvus-operator/milvus-operator
-    version: "1.3.10"
+    version: "1.3.11"
     needs:
       - monitoring/kube-prometheus-stack
     values:
@@ -248,10 +248,33 @@ releases:
       - monitoring:
           enabled: true
 
+  - name: versitygw
+    namespace: versitygw
+    installed: {{ eq .Environment.Name "development" | toYaml }}
+    createNamespace: true
+    chart: oci://ghcr.io/versity/versitygw/charts/versitygw
+    version: "0.4.4"
+    hooks:
+      - events: ["presync"]
+        command: bash
+        args: ["hooks/dev-versitygw-root-secret.sh"]
+    needs:
+      - agentgateway-system/agentgateway
+      - cert-manager/cert-manager
+    values:
+      - auth:
+          existingSecret: versitygw-root-secret
+      - gateway:
+          backend:
+            type: posix
+      - persistence:
+          enabled: true
+
   - name: milvus
     namespace: milvus
     createNamespace: true
     chart: ./milvus
+    forceConflicts: true
     needs:
       - milvus-operator/milvus-operator
 
