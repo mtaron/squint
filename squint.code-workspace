@@ -5,6 +5,12 @@
 		},
 		{
 			"path": "scratch"
+		},
+		{
+			"path": "squint/ingest"
+		},
+		{
+			"path": "squint/packages/squint-core"
 		}
 	],
 	"settings": {
