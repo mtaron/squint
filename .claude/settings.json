@@ -1,5 +1,20 @@
 {
-  "enabledPlugins": {
-    "temporal@temporal-marketplace": true
-  }
+	"extraKnownMarketplaces": {
+		"svelte": {
+			"source": {
+				"source": "github",
+				"repo": "sveltejs/ai-tools"
+			}
+		},
+		"temporal-marketplace": {
+			"source": {
+				"source": "github",
+				"repo": "temporalio/claude-temporal-plugin"
+			}
+		}
+	},
+	"enabledPlugins": {
+		"svelte@svelte": true,
+		"temporal@temporal-marketplace": true
+	}
 }

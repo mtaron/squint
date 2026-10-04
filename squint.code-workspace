@@ -22,5 +22,13 @@
 			"**/.venv": true,
 			"**/.ruff_cache": true
 		}
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-python.python",
+			"ms-kubernetes-tools.vscode-kubernetes-tools",
+			"charliermarsh.ruff",
+			"task.vscode-task"
+		]
 	}
 }
