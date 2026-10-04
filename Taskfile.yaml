@@ -7,6 +7,10 @@ includes:
     taskfile: ./infrastructure/Taskfile.yaml
     dir: ./infrastructure
     flatten: true
+  squint:
+    taskfile: ./squint/Taskfile.yaml
+    dir: ./squint
+    flatten: true
 
 tasks:
   download-datasets:

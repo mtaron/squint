@@ -6,38 +6,40 @@ vars:
   GATEWAY_API_VERSION: "1.6.2"
   GATEWAY_API_INFERENCE_EXTENSION_VERSION: "1.6.2"
   ENVIRONMENT: '{{default "development" .ENVIRONMENT}}'
-  DEV_LOAD_BALANCER_IP:
-    sh: kubectl get svc --namespace squint agentgateway-proxy -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}" ; echo
 
 tasks:
   create-dev-cluster:
     desc: Create local development cluster
-    cmd: nvkind cluster create --name squint --config-template cluster.yaml
+    cmds:
+      - nvkind cluster create --name squint --config-template cluster.yaml
+      # A new cluster has none of the dev images, whatever the image checksums say
+      - "{{.TASK_EXE}} --dir {{.ROOT_DIR}} --force images"
+    env:
+      SQUINT_SOURCE_DIR: "{{.ROOT_DIR}}/squint"
     silent: true
     status:
       - kind get kubeconfig --name squint
+
+  lb-dev-cluster:
+    desc: Run the dev cluster load balancer
+    cmd: cloud-provider-kind --gateway-channel disabled # Gateway API CRDs are installed manually
+
+  get-lb-ip:
+    desc: Get the load balancer IP for the dev cluster
+    cmd: kubectl get svc --namespace squint agentgateway-proxy -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}" ; echo
 
   delete-dev-cluster:
     desc: Delete local development cluster
     cmd: kind delete cluster --name squint
     silent: true
 
-  lb-dev-cluster:
-    desc: Run the dev cluster load balancer
-    cmd: cloud-provider-kind --gateway-channel disabled # Gateway API CRDs are installed manually
-
-  port-forward-dragonfly:
-    cmd: kubectl port-forward --namespace dragonfly svc/squint 6379
-
   grafana:
-    desc: Print the Grafana URL
-    cmd: echo "http://{{.DEV_LOAD_BALANCER_IP}}/grafana"
-    silent: true
+    desc: Forward Grafana to http://localhost:3000
+    cmd: kubectl port-forward --namespace monitoring svc/kube-prometheus-stack-grafana 3000:80
 
-  temporal:
-    desc: Print the Temporal address
-    cmd: echo "{{.DEV_LOAD_BALANCER_IP}}:7233"
-    silent: true
+  temporal-ui:
+    desc: Forward the Temporal UI to http://localhost:8080
+    cmd: kubectl port-forward --namespace temporal svc/temporal-web 8080
 
   vendor-crds:
     desc: Download vendored custom resource definitions

@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // Restarts the ingest pod in the kind cluster and attaches to it.
+            // Code runs from the source mounted into the cluster, so edits only
+            // need a restart; the image is rebuilt when dependencies change.
+            "name": "ingest (kind)",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/squint",
+                    "remoteRoot": "/app"
+                }
+            ],
+            "redirectOutput": true,
+            "preLaunchTask": "debug: ingest",
+            "postDebugTask": "debug: stop ingest"
+        }
+    ]
+}

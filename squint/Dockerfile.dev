@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+FROM ubuntu:26.04
+
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends python3.14 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
+    UV_PYTHON=python3.14 \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH=/opt/venv/bin:$PATH
+
+ARG APP
+COPY . /app
+
+# Third-party dependencies only; local packages are imported from the mounted
+# source tree through a .pth file instead of being installed.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --project "/app/${APP}" --frozen --no-install-project --no-install-local \
+    && uv pip install --python /opt/venv/bin/python debugpy \
+    && for pyproject in /app/packages/*/pyproject.toml; do \
+         echo "$(dirname "$pyproject")/src"; \
+       done > "$(/opt/venv/bin/python -c 'import sysconfig; print(sysconfig.get_path("purelib"))')/squint-packages.pth"
+
+WORKDIR /app/${APP}

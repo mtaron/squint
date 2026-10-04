@@ -1,5 +1,0 @@
-apiVersion: v2
-name: squint-dev
-description: Development-only manifests for squint.
-type: application
-version: 0.1.0

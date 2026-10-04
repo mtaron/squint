@@ -294,18 +294,20 @@ releases:
     namespace: squint
     createNamespace: true
     chart: ./squint
+    hooks:
+      - events: ["presync"]
+        command: bash
+        args: ["hooks/squint-secrets.sh"]
     needs:
       - gpu-operator/gpu-operator
       - agentgateway-system/agentgateway
       - monitoring/kube-prometheus-stack
       - milvus/milvus
+      - postgres/postgres
+      - temporal/temporal
+      - dragonfly/dragonfly
+      - versitygw/versitygw
     values:
-      # Expose Milvus and Temporal gRPC through the gateway for local access
-      - devListeners: {{ eq .Environment.Name "development" | toYaml }}
-
-  - name: squint-dev
-    namespace: squint
-    installed: {{ eq .Environment.Name "development" | toYaml }}
-    chart: ./squint-dev
-    needs:
-      - squint/squint
+      # Run apps from the source mounted into the kind nodes, under debugpy
+      - dev:
+          enabled: {{ eq .Environment.Name "development" | toYaml }}

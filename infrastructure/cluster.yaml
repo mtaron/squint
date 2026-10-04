@@ -14,4 +14,8 @@ nodes:
     # in `/etc/nvidia-container-runtime/config.toml`
     - hostPath: /dev/null
       containerPath: /var/run/nvidia-container-devices/{{ $gpu }}
+    # Application source, mounted into pods by the squint chart in development.
+    - hostPath: {{ env "SQUINT_SOURCE_DIR" }}
+      containerPath: /squint
+      readOnly: true
 {{- end }}

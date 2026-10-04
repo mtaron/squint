@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+vars:
+  APPS: [ingest]
+  NAMESPACE: squint
+
+tasks:
+  image:
+    desc: Build an app's dev image and load it into the dev cluster, if its dependencies changed
+    # Up to date only tracks sources, so a new cluster needs --force; create-dev-cluster does that.
+    label: image-{{.APP}}
+    requires:
+      vars: [APP]
+    sources:
+      - Dockerfile.dev
+      - Dockerfile.dev.dockerignore
+      - "{{.APP}}/pyproject.toml"
+      - "{{.APP}}/uv.lock"
+      - packages/*/pyproject.toml
+    cmds:
+      - docker build --file Dockerfile.dev --build-arg APP={{.APP}} --tag squint-{{.APP}}:dev .
+      - kind load docker-image squint-{{.APP}}:dev --name squint
+
+  images:
+    desc: Build and load the dev images for all apps
+    cmds:
+      - for: { var: APPS }
+        task: image
+        vars: { APP: "{{.ITEM}}" }
+
+  restart:
+    desc: Restart an app's deployment in the dev cluster
+    requires:
+      vars: [APP]
+    cmds:
+      - task: image
+        vars: { APP: "{{.APP}}" }
+      - kubectl --namespace {{.NAMESPACE}} rollout restart deployment/{{.APP}}
+      - kubectl --namespace {{.NAMESPACE}} rollout status deployment/{{.APP}}
+
+  debug:
+    desc: Restart an app and forward its debugpy port to localhost
+    requires:
+      vars: [APP]
+    vars:
+      LOCAL_PORT: '{{default "5678" .LOCAL_PORT}}'
+    cmds:
+      - task: restart
+        vars: { APP: "{{.APP}}" }
+      - kubectl --namespace {{.NAMESPACE}} port-forward deployment/{{.APP}} {{.LOCAL_PORT}}:5678
