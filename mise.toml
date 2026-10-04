@@ -22,6 +22,10 @@ kind = "latest"
 kubectl = "latest"
 "github:temporalio/cli" = "latest"
 
+# python
+ty = "latest"
+ruff = "latest"
+
 "pypi:hf" = "latest"
 
 "go:sigs.k8s.io/cloud-provider-kind" = "latest"

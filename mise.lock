@@ -115,6 +115,17 @@ checksum = "sha256:fe9a9c32d13870af632cbac3dfc7528ae53597e94472aa4c7d6a42e816613
 url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260414/cpython-3.14.4+20260414-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
+[[tools.ruff]]
+version = "0.16.10"
+backend = "aqua:astral-sh/ruff"
+specifiers = ["latest"]
+
+[tools.ruff."platforms.linux-x64"]
+checksum = "sha256:9567ff1201e2fb3da31ff04c35587d768c66d6cb42dfa84de474e2bfe360b608"
+url = "https://github.com/astral-sh/ruff/releases/download/0.16.10/ruff-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/ruff/releases/assets/603827060"
+provenance = "github-attestations"
+
 [[tools.task]]
 version = "3.53.1"
 backend = "aqua:go-task/task"
@@ -124,6 +135,17 @@ specifiers = ["latest"]
 checksum = "sha256:a54a408f6861ff921f6e87774180db31bacd8c1e7c944ca696db9fea49a82fc7"
 url = "https://github.com/go-task/task/releases/download/v3.53.1/task_linux_amd64.tar.gz"
 url_api = "https://api.github.com/repos/go-task/task/releases/assets/519645449"
+
+[[tools.ty]]
+version = "0.0.84"
+backend = "aqua:astral-sh/ty"
+specifiers = ["latest"]
+
+[tools.ty."platforms.linux-x64"]
+checksum = "sha256:336bb36b7e917d844b8b16925d373b4614b326e452c881ff4ed6bc5904b65185"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.84/ty-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/ty/releases/assets/585999537"
+provenance = "github-attestations"
 
 [[tools.uv]]
 version = "0.12.21"

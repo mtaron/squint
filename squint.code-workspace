@@ -21,14 +21,20 @@
 			"**/__pycache__": true,
 			"**/.venv": true,
 			"**/.ruff_cache": true
-		}
+		},
+		"[python]": {
+			"editor.formatOnSave": true,
+			"editor.defaultFormatter": "charliermarsh.ruff"
+		},
+		"python.languageServer": "None"
 	},
 	"extensions": {
 		"recommendations": [
 			"ms-python.python",
 			"ms-kubernetes-tools.vscode-kubernetes-tools",
 			"charliermarsh.ruff",
-			"task.vscode-task"
+			"task.vscode-task",
+			"astral-sh.ty"
 		]
 	}
 }

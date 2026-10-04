@@ -1,0 +1,10 @@
+[project]
+name = "ingest"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "opencv-python-headless>=5.0.0.93",
+    "pypdfium2>=5.13.0"
+]
