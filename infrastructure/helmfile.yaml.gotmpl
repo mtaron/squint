@@ -27,10 +27,6 @@ releases:
     namespace: default
     chart: ./gateway-api
 
-  - name: gateway-api-inference-extension-crds
-    namespace: default
-    chart: ./gateway-api-inference-extension
-
   - name: node-feature-discovery
     namespace: node-feature-discovery
     createNamespace: true
@@ -315,12 +311,9 @@ releases:
     version: "v1.5.0"
     needs:
       - default/gateway-api-crds
-      - default/gateway-api-inference-extension-crds
       - agentgateway-system/agentgateway-crds
       - monitoring/kube-prometheus-stack
     values:
-      - inferenceExtension:
-          enabled: true
       - monitoring:
           enabled: true
 

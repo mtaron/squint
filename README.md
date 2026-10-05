@@ -39,5 +39,4 @@ mise install --locked
 
 ```sh
 task create-dev-cluster
-task deploy
 ```

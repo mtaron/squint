@@ -30,3 +30,8 @@ tasks:
     cmds:
       - hf download --local-dir models/NeoMME-260M-Retriever Hcompany/NeoMME-260M-Retriever
       - hf download --local-dir models/dots-mocr dots-studio/dots.mocr
+
+  gpu-usage:
+    desc: Show where local GPU memory is allocated
+    cmds:
+      - nvidia-smi --query-compute-apps=used_memory,pid,process_name --format=csv,nounits | (read -r h; echo "$h"; sort -t, -k1,1 -nr) | bat --language=csv
