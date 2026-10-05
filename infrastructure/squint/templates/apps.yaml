@@ -29,7 +29,7 @@ spec:
           {{- if $.Values.dev.enabled }}
           image: squint-{{ $name }}:dev
           imagePullPolicy: Never
-          workingDir: /app/{{ $name }}
+          workingDir: /app/apps/{{ $name }}
           args:
             {{- if $.Values.dev.waitForClient }}
             - --wait-for-client

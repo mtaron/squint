@@ -1,8 +1,7 @@
 # Run apps from source mounted into the kind nodes, under debugpy.
 dev:
   enabled: false
-  # Node path where the kind cluster mounts the repository's squint/ folder; see cluster.yaml
-  sourcePath: /squint
+  sourcePath: /squint/python
   # Hold each app at startup until a debugger attaches
   waitForClient: true
 
@@ -10,7 +9,6 @@ image:
   repository: squint
   tag: latest
 
-# One Deployment per app. Each key is a folder under squint/.
 apps:
   ingest:
     script: main.py

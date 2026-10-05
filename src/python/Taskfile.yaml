@@ -7,27 +7,28 @@ vars:
   NAMESPACE: squint
 
 tasks:
-  image:
-    desc: Build an app's dev image and load it into the dev cluster, if its dependencies changed
-    # Up to date only tracks sources, so a new cluster needs --force; create-dev-cluster does that.
+  build:
+    desc: Build and load a Python dev image
     label: image-{{.APP}}
     requires:
       vars: [APP]
     sources:
       - Dockerfile.dev
       - Dockerfile.dev.dockerignore
-      - "{{.APP}}/pyproject.toml"
-      - "{{.APP}}/uv.lock"
+      - "apps/{{.APP}}/pyproject.toml"
+      - "apps/{{.APP}}/uv.lock"
       - packages/*/pyproject.toml
+    status:
+      - docker exec squint-worker crictl inspecti --quiet docker.io/library/squint-{{.APP}}:dev
     cmds:
       - docker build --file Dockerfile.dev --build-arg APP={{.APP}} --tag squint-{{.APP}}:dev .
-      - kind load docker-image squint-{{.APP}}:dev --name squint
+      - kind load docker-image squint-{{.APP}}:dev --name squint --nodes squint-worker
 
-  images:
-    desc: Build and load the dev images for all apps
+  build-all:
+    desc: Build and load the Python dev images for all apps
     cmds:
       - for: { var: APPS }
-        task: image
+        task: build
         vars: { APP: "{{.ITEM}}" }
 
   restart:
@@ -35,7 +36,7 @@ tasks:
     requires:
       vars: [APP]
     cmds:
-      - task: image
+      - task: build
         vars: { APP: "{{.APP}}" }
       - kubectl --namespace {{.NAMESPACE}} rollout restart deployment/{{.APP}}
       - kubectl --namespace {{.NAMESPACE}} rollout status deployment/{{.APP}}

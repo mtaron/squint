@@ -9,24 +9,26 @@ vars:
 
 tasks:
   create-dev-cluster:
-    desc: Create local development cluster
+    desc: Create local development cluster. This should take about five minutes.
     cmds:
       - nvkind cluster create --name squint --config-template cluster.yaml
-      # A new cluster has none of the dev images, whatever the image checksums say
-      - "{{.TASK_EXE}} --dir {{.ROOT_DIR}} --force images"
+      - task: python-dev:build-all
+      - task: deploy
     env:
-      SQUINT_SOURCE_DIR: "{{.ROOT_DIR}}/squint"
+      SQUINT_SOURCE_DIR: "{{.ROOT_DIR}}/src"
     silent: true
     status:
       - kind get kubeconfig --name squint
 
   lb-dev-cluster:
     desc: Run the dev cluster load balancer
+    if: "! pgrep --full '(^|/)cloud-provider-kind( |$)'"  # Run only a single instance
     cmd: cloud-provider-kind --gateway-channel disabled # Gateway API CRDs are installed manually
 
-  get-lb-ip:
+  get-dev-lb-ip:
     desc: Get the load balancer IP for the dev cluster
     cmd: kubectl get svc --namespace squint agentgateway-proxy -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}" ; echo
+    silent: true
 
   delete-dev-cluster:
     desc: Delete local development cluster

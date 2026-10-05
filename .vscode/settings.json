@@ -1,7 +1,7 @@
 {
     "files.exclude": {
         "scratch": true,
-        "squint/ingest": true,
-        "squint/packages/squint-core": true
+        "src/python/apps/ingest": true,
+        "src/python/packages/squint-core": true
     }
 }

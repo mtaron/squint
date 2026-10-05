@@ -84,7 +84,7 @@ dependencies = [
 requires-dist = [
     { name = "opencv-python-headless", specifier = ">=5.0.0.93" },
     { name = "pypdfium2", specifier = ">=5.13.0" },
-    { name = "squint-core", editable = "../packages/squint-core" },
+    { name = "squint-core", editable = "../../packages/squint-core" },
 ]
 
 [[package]]
@@ -238,7 +238,7 @@ wheels = [
 [[package]]
 name = "squint-core"
 version = "0.1.0"
-source = { editable = "../packages/squint-core" }
+source = { editable = "../../packages/squint-core" }
 dependencies = [
     { name = "asyncpg" },
     { name = "capo-s3" },

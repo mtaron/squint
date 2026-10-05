@@ -11,5 +11,5 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-squint-core = { path = "../packages/squint-core", editable = true }
+squint-core = { path = "../../packages/squint-core", editable = true }
 

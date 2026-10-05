@@ -12,22 +12,13 @@ checksum = "sha256:09a0326a51db84d02735e53542b9ebd8c4758daf47482a9ab0abce15844e6
 url = "https://github.com/temporalio/cli/releases/download/v1.9.1/temporal_cli_1.9.1_linux_amd64.tar.gz"
 url_api = "https://api.github.com/repos/temporalio/cli/releases/assets/564294919"
 
-[[tools.go]]
-version = "1.27.1"
-backend = "core:go"
-specifiers = ["latest"]
-
-[tools.go."platforms.linux-x64"]
-checksum = "sha256:63d339f0da5ab53635a56f2490a7984dfe12dfcff22ad749f63edaf590168445"
-url = "https://dl.google.com/go/go1.27.1.linux-amd64.tar.gz"
-
 [[tools."go:github.com/NVIDIA/nvkind/cmd/nvkind"]]
 version = "0.0.0-20260630043359-c57050497cff"
 backend = "go:github.com/NVIDIA/nvkind/cmd/nvkind"
 specifiers = ["latest"]
 
 [[tools."go:sigs.k8s.io/cloud-provider-kind"]]
-version = "0.11.1"
+version = "0.12.0"
 backend = "go:sigs.k8s.io/cloud-provider-kind"
 specifiers = ["latest"]
 
@@ -89,21 +80,21 @@ checksum = "sha256:6e1db87ef58b8819e5d5402eff1536491b18edd8eb7bee5ef7897876e88dc
 url = "https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64.tar.gz"
 
 [[tools.pnpm]]
-version = "12.8.1"
+version = "12.9.1"
 backend = "aqua:pnpm/pnpm"
 specifiers = ["latest"]
 
 [tools.pnpm."platforms.linux-x64"]
-checksum = "sha256:db3906881f63e41b655e3b97d473603dc26326c2470d0b1b8083689e1bcbd1e8"
-url = "https://github.com/pnpm/pnpm/releases/download/v12.8.1/pnpm-linux-x64.tar.gz"
-url_api = "https://api.github.com/repos/pnpm/pnpm/releases/assets/595935887"
+checksum = "sha256:b4f58449ac02d9d24023ac89e17e05e8331f8ddc12ca1f489cf231bc2bb2bce1"
+url = "https://github.com/pnpm/pnpm/releases/download/v12.9.1/pnpm-linux-x64.tar.gz"
+url_api = "https://api.github.com/repos/pnpm/pnpm/releases/assets/608496438"
 provenance = "github-attestations"
 
 [[tools."pypi:hf"]]
-version = "2.0.0"
+version = "2.1.1"
 backend = "pypi:hf"
 specifiers = ["latest"]
-uv = { path = ".mise/locks/pypi-hf/2.0.0", digest = "sha256:1e23ab91fca6f3cc94783ffca8bd70fc670af2066bd2652141ed17ba31a65df2" }
+uv = { path = ".mise/locks/pypi-hf/2.1.1", digest = "sha256:3d5dc8acdeb517c7e995a2da1cfe36553d75675d186c3287b2519d6d58f88664" }
 
 [[tools.python]]
 version = "3.14.4"
@@ -127,14 +118,14 @@ url_api = "https://api.github.com/repos/astral-sh/ruff/releases/assets/603827060
 provenance = "github-attestations"
 
 [[tools.task]]
-version = "3.53.1"
+version = "3.54.0"
 backend = "aqua:go-task/task"
 specifiers = ["latest"]
 
 [tools.task."platforms.linux-x64"]
-checksum = "sha256:a54a408f6861ff921f6e87774180db31bacd8c1e7c944ca696db9fea49a82fc7"
-url = "https://github.com/go-task/task/releases/download/v3.53.1/task_linux_amd64.tar.gz"
-url_api = "https://api.github.com/repos/go-task/task/releases/assets/519645449"
+checksum = "sha256:680859dbb4d881a9c72d4d9a8f510825450849af8567deacd7302c01124416fb"
+url = "https://github.com/go-task/task/releases/download/v3.54.0/task_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/go-task/task/releases/assets/604090073"
 
 [[tools.ty]]
 version = "0.0.84"
@@ -148,14 +139,14 @@ url_api = "https://api.github.com/repos/astral-sh/ty/releases/assets/585999537"
 provenance = "github-attestations"
 
 [[tools.uv]]
-version = "0.12.21"
+version = "0.12.23"
 backend = "aqua:astral-sh/uv"
 specifiers = ["latest"]
 
 [tools.uv."platforms.linux-x64"]
-checksum = "sha256:23f02075b652bb1df64178cfae41b5caf160822e720e2663568f3f5d63bc52c0"
-url = "https://github.com/astral-sh/uv/releases/download/0.12.21/uv-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/599238020"
+checksum = "sha256:9167d72b3319674b6303c4cbe071854bba13ebdf3d76b1a7cbdc175471fb66d6"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.23/uv-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/608232628"
 provenance = "github-attestations"
 
 [[tools.yq]]

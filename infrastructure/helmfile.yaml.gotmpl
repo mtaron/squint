@@ -16,8 +16,8 @@ repositories:
 helmDefaults:
   wait: true
   waitForJobs: true
-  atomic: true
-  cleanupOnFail: true
+  atomic: {{ ne .Environment.Name "development" | toYaml }}
+  cleanupOnFail: {{ ne .Environment.Name "development" | toYaml }}
   historyMax: 5
 
 releases:
@@ -294,6 +294,7 @@ releases:
     namespace: squint
     createNamespace: true
     chart: ./squint
+    wait: {{ ne .Environment.Name "development" | toYaml }}
     hooks:
       - events: ["presync"]
         command: bash

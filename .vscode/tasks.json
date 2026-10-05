@@ -2,11 +2,26 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "cluster: load balancer",
+            "type": "shell",
+            "command": "task lb-dev-cluster",
+            "isBackground": true,
+            "problemMatcher": [],
+            "runOptions": {
+                "runOn": "folderOpen",
+                "instanceLimit": 1
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated"
+            }
+        },
+        {
             // Rebuilds the image if dependencies changed, restarts the pod, then
             // forwards debugpy. Ready once the port-forward is listening.
             "label": "debug: ingest",
             "type": "shell",
-            "command": "task debug APP=ingest LOCAL_PORT=5678",
+            "command": "task python-dev:debug APP=ingest LOCAL_PORT=5678",
             "isBackground": true,
             "problemMatcher": {
                 "owner": "squint-debug",

@@ -5,9 +5,8 @@ lockfile = true
 package_manager = "pnpm"
 
 [tools]
-# languages
-go = "latest"
-python = "3.14.4"  # this should track version of python in ubuntu:26.04
+# Python should track the version in ubuntu:26.04 image
+python = { version = "3.14.4", postinstall = "mise sync python --uv" }
 node = "lts"
 
 # tools

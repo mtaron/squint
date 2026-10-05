@@ -7,10 +7,10 @@
 			"path": "scratch"
 		},
 		{
-			"path": "squint/ingest"
+			"path": "src/python/apps/ingest"
 		},
 		{
-			"path": "squint/packages/squint-core"
+			"path": "src/python/packages/squint-core"
 		}
 	],
 	"settings": {
@@ -26,7 +26,8 @@
 			"**/Thumbs.db": true,
 			"**/__pycache__": true,
 			"**/.venv": true,
-			"**/.ruff_cache": true
+			"**/.ruff_cache": true,
+			"**/.task": true
 		},
 		"[python]": {
 			"editor.formatOnSave": true,

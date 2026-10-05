@@ -41,8 +41,3 @@ mise install --locked
 task create-dev-cluster
 task deploy
 ```
-
-The cluster mounts this repository's `squint/` folder into its nodes, and in development each app's Deployment runs from that mounted source under [debugpy](https://github.com/microsoft/debugpy). Apps reach cluster services by their in-cluster names; nothing is exposed to the host.
-
-To debug an app, pick its `(kind)` configuration in VS Code and press F5. That restarts the pod and attaches the debugger. The pod waits at startup until the debugger attaches. Code changes only need another F5. The dev image (`squint/Dockerfile.dev`) contains just the dependencies, so `task image APP=<app>` rebuilds it only when a `pyproject.toml` or `uv.lock` changes.
-
