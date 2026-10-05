@@ -25,3 +25,8 @@ tasks:
           - "vidore/vidore_v3_finance_fr"
           - "allenai/olmOCR-bench"
         cmd: hf download --type dataset --local-dir datasets/{{ .ITEM | quote }} {{ .ITEM | quote }}
+
+  download-models:
+    cmds:
+      - hf download --local-dir models/NeoMME-260M-Retriever Hcompany/NeoMME-260M-Retriever
+      - hf download --local-dir models/dots-mocr dots-studio/dots.mocr
