@@ -30,14 +30,7 @@ spec:
           image: squint-{{ $name }}:dev
           imagePullPolicy: Never
           workingDir: /app/{{ $name }}
-          command:
-            - python
-            # Frozen stdlib modules can make debugpy miss breakpoints
-            - -Xfrozen_modules=off
-            - -m
-            - debugpy
-            - --listen
-            - 0.0.0.0:5678
+          args:
             {{- if $.Values.dev.waitForClient }}
             - --wait-for-client
             {{- end }}

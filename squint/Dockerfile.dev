@@ -19,13 +19,20 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
 ARG APP
 COPY . /app
 
-# Third-party dependencies only; local packages are imported from the mounted
-# source tree through a .pth file instead of being installed.
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --project "/app/${APP}" --frozen --no-install-project --no-install-local \
-    && uv pip install --python /opt/venv/bin/python debugpy \
+    && uv pip install --python /opt/venv/bin/python debugpy
+
+# Stand-in for editable installs of the local packages: put each package's
+# src directory on sys.path, which is all an editable install would do.
+RUN site_packages="$(python -c 'import sysconfig; print(sysconfig.get_path("purelib"))')" \
     && for pyproject in /app/packages/*/pyproject.toml; do \
          echo "$(dirname "$pyproject")/src"; \
-       done > "$(/opt/venv/bin/python -c 'import sysconfig; print(sysconfig.get_path("purelib"))')/squint-packages.pth"
+       done > "$site_packages/squint-packages.pth"
 
 WORKDIR /app/${APP}
+
+EXPOSE 5678
+
+# Frozen stdlib modules can make debugpy miss breakpoints
+ENTRYPOINT ["python", "-Xfrozen_modules=off", "-m", "debugpy", "--listen", "0.0.0.0:5678"]
