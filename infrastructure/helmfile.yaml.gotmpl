@@ -12,6 +12,8 @@ repositories:
     url: https://cloudnative-pg.github.io/charts
   - name: temporal
     url: https://go.temporal.io/helm-charts/
+  - name: vllm
+    url: https://vllm-project.github.io/production-stack
 
 helmDefaults:
   wait: true
@@ -238,6 +240,68 @@ releases:
       {{- with .Values | get "gpu-operator.values" nil }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
+
+  - name: dots-mocr
+    namespace: vllm
+    createNamespace: true
+    chart: vllm/vllm-stack
+    version: "0.1.13"
+    timeout: 1200
+    needs:
+      - gpu-operator/gpu-operator
+      - monitoring/kube-prometheus-stack
+    values:
+      - servingEngineSpec:
+          runtimeClassName: ""
+          labels:
+            environment: null
+            release: null
+          strategy:
+            type: Recreate
+          serviceMonitor:
+            enabled: true
+          modelSpec:
+            - name: vllm
+              repository: vllm/vllm-openai
+              tag: v0.31.0
+              modelURL: /mnt/models/dots-mocr
+              replicaCount: 1
+              requestCPU: 4
+              requestMemory: 12Gi
+              requestGPU: 1
+              vllmConfig:
+                # Up to 14.4k image tokens (11.3 MP max) plus up to 16k of output
+                maxModelLen: 32768
+                # The dev GPU also drives the desktop, which holds ~3 GiB
+                gpuMemoryUtilization: {{ eq .Environment.Name "development" | ternary 0.7 0.85 }}
+                extraArgs:
+                  - --served-model-name
+                  - dots-mocr
+                  # vLLM has no built-in dots_ocr config; it loads configuration_dots.py from the model dir
+                  - --trust-remote-code
+                  - --chat-template-content-format
+                  - string
+                  {{- if eq .Environment.Name "development" }}
+                  # Cap images at 5120 visual tokens (a 200 dpi A4/letter page fits unscaled) so
+                  # encoder profiling leaves room for KV cache on the shared desktop GPU
+                  - --mm-processor-kwargs
+                  - '{"max_pixels": 4014080}'
+                  {{- end }}
+              {{- if eq .Environment.Name "development" }}
+              extraVolumes:
+                - name: models
+                  hostPath:
+                    path: /mnt/models
+                    type: Directory
+              extraVolumeMounts:
+                - name: models
+                  mountPath: /mnt/models
+                  readOnly: true
+              {{- end }}
+      - routerSpec:
+          enableRouter: false
+      - grafanaDashboards:
+          enabled: true
 
   - name: agentgateway-crds
     namespace: agentgateway-system
