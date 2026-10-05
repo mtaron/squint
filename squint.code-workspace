@@ -10,6 +10,12 @@
 			"path": "src/python/apps/ingest"
 		},
 		{
+			"path": "src/python/apps/embed"
+		},
+		{
+			"path": "src/python/apps/extract"
+		},
+		{
 			"path": "src/python/packages/squint-core"
 		}
 	],

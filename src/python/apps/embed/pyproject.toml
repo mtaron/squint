@@ -1,0 +1,35 @@
+[project]
+name = "embed"
+version = "0.1.0"
+description = "squint embedding worker"
+readme = "README.md"
+requires-python = ">=3.14.4"
+dependencies = [
+    "pymilvus>=3.0.2",
+    "squint-core",
+    "torch>=2.14.1",
+    "torchvision>=0.29.1",
+    "transformers>=5.18.0",
+]
+
+[tool.uv.sources]
+squint-core = { path = "../../packages/squint-core", editable = true }
+
+torch = [
+  { index = "pytorch-cpu", marker = "sys_platform != 'linux'" },
+  { index = "pytorch-cu130", marker = "sys_platform == 'linux'" },
+]
+torchvision = [
+  { index = "pytorch-cpu", marker = "sys_platform != 'linux'" },
+  { index = "pytorch-cu130", marker = "sys_platform == 'linux'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true

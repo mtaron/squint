@@ -1,0 +1,13 @@
+[project]
+name = "extract"
+version = "0.1.0"
+description = "squint extraction worker"
+readme = "README.md"
+requires-python = ">=3.14.4"
+dependencies = [
+    "pymilvus>=3.0.2",
+    "squint-core",
+]
+
+[tool.uv.sources]
+squint-core = { path = "../../packages/squint-core", editable = true }
