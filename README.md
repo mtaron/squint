@@ -35,8 +35,9 @@ sudo systemctl restart docker
 mise install --locked
 ```
 
-### Cluster
+### Dev Cluster
 
 ```sh
+task install-local-certs
 task create-dev-cluster
 ```

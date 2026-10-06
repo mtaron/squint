@@ -20,4 +20,10 @@ nodes:
     - hostPath: {{ env "MODEL_DIR" }}
       containerPath: /mnt/models
       readOnly: true
+    - hostPath: ./registry-hosts.toml
+      containerPath: /etc/containerd/certs.d/registry.localhost/hosts.toml
+      readOnly: true
+    - hostPath: {{ env "CERT_DIR" }}/rootCA.pem
+      containerPath: /etc/containerd/certs.d/registry.localhost/rootCA.pem
+      readOnly: true
 {{- end }}

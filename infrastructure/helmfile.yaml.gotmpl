@@ -347,7 +347,13 @@ releases:
     needs:
       - milvus-operator/milvus-operator
 
+  - name: local-registry
+    namespace: kube-public
+    installed: {{ eq .Environment.Name "development" | toYaml }}
+    chart: ./local-registry
+
   - name: squint
+    installed: false
     namespace: squint
     createNamespace: true
     chart: ./squint

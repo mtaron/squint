@@ -1,0 +1,3 @@
+# Mounted into the kind nodes as containerd's hosts.toml for the local registry.
+[host."https://kind-registry:5000"]
+  ca = "rootCA.pem"

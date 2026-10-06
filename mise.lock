@@ -70,6 +70,15 @@ specifiers = ["latest"]
 checksum = "sha256:65691ff77eb6fa44c908b77a1082c9f092c3b9733b5cefabec0d1104890e21a8"
 url = "https://dl.k8s.io/v1.37.1/bin/linux/amd64/kubectl"
 
+[[tools.mkcert]]
+version = "1.4.4"
+backend = "aqua:FiloSottile/mkcert"
+specifiers = ["latest"]
+
+[tools.mkcert."platforms.linux-x64"]
+url = "https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-linux-amd64"
+url_api = "https://api.github.com/repos/FiloSottile/mkcert/releases/assets/63709955"
+
 [[tools.node]]
 version = "24.21.0"
 backend = "core:node"

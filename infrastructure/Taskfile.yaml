@@ -6,30 +6,68 @@ vars:
   GATEWAY_API_VERSION: "1.6.2"
   GATEWAY_API_INFERENCE_EXTENSION_VERSION: "1.6.2"
   ENVIRONMENT: '{{default "development" .ENVIRONMENT}}'
+  REPO_DIR: "{{dir .TASKFILE_DIR}}"
+  CERT_DIR: "{{.REPO_DIR}}/.certs"
+  REGISTRY_NAME: kind-registry
+  REGISTRY_HOST: registry.localhost
 
 tasks:
   create-dev-cluster:
-    desc: Create local development cluster. This should take about five minutes.
+    desc: Create local development cluster. This should take about twelve minutes.
     cmds:
+      - task: install-local-certs
+      - task: dev-registry
       - nvkind cluster create --name squint --config-template cluster.yaml
-      - task: python-dev:build-all
+      - task: connect-registry-network
       - task: deploy
     env:
-      SQUINT_SOURCE_DIR: "{{.ROOT_DIR}}/src"
-      MODEL_DIR: "{{.ROOT_DIR}}/models"
+      SQUINT_SOURCE_DIR: "{{.REPO_DIR}}/src"
+      MODEL_DIR: "{{.REPO_DIR}}/models"
+      CERT_DIR: "{{.CERT_DIR}}"
     silent: true
     status:
       - kind get kubeconfig --name squint
 
-  dev-registry:
-    desc: Start the local container registry on localhost:5001 if it is not running
+  install-local-certs:
+    desc: Install the mkcert CA and generate a locally trusted dev certificate
     vars:
-      REG_NAME: kind-registry
-      REG_PORT: "5001"
-    cmd: docker run --detach --restart=always --publish 127.0.0.1:{{.REG_PORT}}:5000 --network bridge --name {{.REG_NAME}} registry:3
+      # The registry container name is used by containerd inside the kind network
+      HOSTS: localhost 127.0.0.1 ::1 {{.REGISTRY_HOST}} {{.REGISTRY_NAME}}
+    cmds:
+      - mkcert -install
+      - mkdir -p {{.CERT_DIR}}
+      - cp "$(mkcert -CAROOT)/rootCA.pem" {{.CERT_DIR}}/rootCA.pem
+      - mkcert -cert-file {{.CERT_DIR}}/dev.pem -key-file {{.CERT_DIR}}/dev-key.pem {{.HOSTS}}
+      # The Docker daemon only reads the system CA store at startup, so trust the CA for the registry explicitly
+      - sudo install -D --mode 644 {{.CERT_DIR}}/rootCA.pem /etc/docker/certs.d/{{.REGISTRY_HOST}}/ca.crt
     status:
-      - test "$(docker inspect --format '{{"{{.State.Running}}"}}' {{.REG_NAME}} 2>/dev/null)" = true
+      - test -f {{.CERT_DIR}}/rootCA.pem
     silent: true
+
+  dev-registry:
+    desc: Start the local container registry on https://registry.localhost if it is not running
+    deps: [install-local-certs]
+    cmd: >-
+      docker run --detach --restart=always
+      --publish 127.0.0.1:443:5000
+      --network bridge
+      --name {{.REGISTRY_NAME}}
+      --volume {{.CERT_DIR}}:/certs:ro
+      --volume {{.REGISTRY_NAME}}-data:/var/lib/registry
+      --env REGISTRY_HTTP_TLS_CERTIFICATE=/certs/dev.pem
+      --env REGISTRY_HTTP_TLS_KEY=/certs/dev-key.pem
+      registry:3
+    status:
+      - test "$(docker inspect --format '{{"{{.State.Running}}"}}' {{.REGISTRY_NAME}} 2>/dev/null)" = true
+    silent: true
+
+  connect-registry-network:
+    desc: Attach the registry to the kind network so the nodes can resolve it by name
+    cmd: docker network connect kind {{.REGISTRY_NAME}}
+    status:
+      - test "$(docker inspect --format '{{"{{json .NetworkSettings.Networks.kind}}"}}' {{.REGISTRY_NAME}})" != null
+    silent: true
+    internal: true
 
   lb-dev-cluster:
     desc: Run the dev cluster load balancer
