@@ -21,6 +21,16 @@ tasks:
     status:
       - kind get kubeconfig --name squint
 
+  dev-registry:
+    desc: Start the local container registry on localhost:5001 if it is not running
+    vars:
+      REG_NAME: kind-registry
+      REG_PORT: "5001"
+    cmd: docker run --detach --restart=always --publish 127.0.0.1:{{.REG_PORT}}:5000 --network bridge --name {{.REG_NAME}} registry:3
+    status:
+      - test "$(docker inspect --format '{{"{{.State.Running}}"}}' {{.REG_NAME}} 2>/dev/null)" = true
+    silent: true
+
   lb-dev-cluster:
     desc: Run the dev cluster load balancer
     if: "! pgrep --full '(^|/)cloud-provider-kind( |$)'"  # Run only a single instance
