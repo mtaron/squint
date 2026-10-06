@@ -2,19 +2,6 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "cluster: registry",
-            "type": "shell",
-            "command": "task dev-registry",
-            "problemMatcher": [],
-            "runOptions": {
-                "runOn": "folderOpen"
-            },
-            "presentation": {
-                "reveal": "silent",
-                "panel": "dedicated"
-            }
-        },
-        {
             "label": "cluster: load balancer",
             "type": "shell",
             "command": "task lb-dev-cluster",
