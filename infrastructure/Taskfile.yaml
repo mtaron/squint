@@ -4,7 +4,6 @@ version: "3"
 
 vars:
   GATEWAY_API_VERSION: "1.6.2"
-  GATEWAY_API_INFERENCE_EXTENSION_VERSION: "1.6.2"
   ENVIRONMENT: '{{default "development" .ENVIRONMENT}}'
   REPO_DIR: "{{dir .TASKFILE_DIR}}"
   CERT_DIR: "{{.REPO_DIR}}/.certs"

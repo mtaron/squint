@@ -1,0 +1,5 @@
+apiVersion: v2
+name: networking
+description: Creates the agentgateway proxy
+type: application
+version: 0.1.0

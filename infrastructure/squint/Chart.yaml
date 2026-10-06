@@ -1,5 +1,0 @@
-apiVersion: v2
-name: squint
-description: The squint application.
-type: application
-version: 0.1.0

@@ -317,6 +317,12 @@ releases:
       - monitoring:
           enabled: true
 
+  - name: networking
+    namespace: agentgateway-system
+    chart: ./networking
+    needs:
+      - agentgateway-system/agentgateway
+
   - name: versitygw
     namespace: versitygw
     installed: {{ eq .Environment.Name "development" | toYaml }}
@@ -352,26 +358,3 @@ releases:
     installed: {{ eq .Environment.Name "development" | toYaml }}
     chart: ./local-registry
 
-  - name: squint
-    installed: false
-    namespace: squint
-    createNamespace: true
-    chart: ./squint
-    wait: {{ ne .Environment.Name "development" | toYaml }}
-    hooks:
-      - events: ["presync"]
-        command: bash
-        args: ["hooks/squint-secrets.sh"]
-    needs:
-      - gpu-operator/gpu-operator
-      - agentgateway-system/agentgateway
-      - monitoring/kube-prometheus-stack
-      - milvus/milvus
-      - postgres/postgres
-      - temporal/temporal
-      - dragonfly/dragonfly
-      - versitygw/versitygw
-    values:
-      # Run apps from the source mounted into the kind nodes, under debugpy
-      - dev:
-          enabled: {{ eq .Environment.Name "development" | toYaml }}
