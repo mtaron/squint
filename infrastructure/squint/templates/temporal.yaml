@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: temporal
+  namespace: {{ .Release.Namespace }}
+data:
+  TEMPORAL_ADDRESS: {{ printf "%s:%v" .Values.temporal.host .Values.temporal.port | quote }}

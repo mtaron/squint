@@ -4,6 +4,6 @@ metadata:
   name: s3
   namespace: {{ .Release.Namespace }}
 data:
-  AWS_ENDPOINT_URL: {{ .Values.s3.endpoint | quote }}
+  AWS_ENDPOINT_URL: {{ printf "https://%s:%v" .Values.s3.host .Values.s3.port | quote }}
   AWS_REGION: {{ required "s3.region is required" .Values.s3.region | quote }}
   AWS_CA_BUNDLE: {{ .Values.caBundlePath | quote }}

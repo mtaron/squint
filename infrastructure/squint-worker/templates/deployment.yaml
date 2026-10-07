@@ -21,8 +21,9 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or .Values.s3.enabled .Values.dragonfly.enabled .Values.milvus.enabled .Values.postgres.enabled }}
           envFrom:
+            - configMapRef:
+                name: temporal
             {{- if .Values.s3.enabled }}
             - configMapRef:
                 name: s3
@@ -43,7 +44,6 @@ spec:
             - secretRef:
                 name: postgres
             {{- end }}
-          {{- end }}
           volumeMounts:
             - name: squint-ca
               mountPath: /etc/squint/ca
