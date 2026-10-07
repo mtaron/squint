@@ -4,6 +4,7 @@
         "src/python/apps/ingest": true,
         "src/python/apps/embed": true,
         "src/python/apps/extract": true,
-        "src/python/packages/squint-core": true
+        "src/python/packages/squint-core": true,
+        "src/python/packages/squint-vector": true
     }
 }

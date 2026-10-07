@@ -1,0 +1,17 @@
+[project]
+name = "squint-vector"
+version = "0.1.0"
+description = "Vector database client for squint"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "pymilvus>=3.0.2",
+    "squint-core",
+]
+
+[tool.uv.sources]
+squint-core = { path = "../squint-core", editable = true }
+
+[build-system]
+requires = ["uv_build>=0.12.21,<0.13.0"]
+build-backend = "uv_build"

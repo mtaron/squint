@@ -17,6 +17,9 @@
 		},
 		{
 			"path": "src/python/packages/squint-core"
+		},
+		{
+			"path": "src/python/packages/squint-vector"
 		}
 	],
 	"settings": {

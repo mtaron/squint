@@ -5,9 +5,10 @@ description = "squint extraction worker"
 readme = "README.md"
 requires-python = ">=3.14.4"
 dependencies = [
-    "pymilvus>=3.0.2",
     "squint-core",
+    "squint-vector",
 ]
 
 [tool.uv.sources]
 squint-core = { path = "../../packages/squint-core", editable = true }
+squint-vector = { path = "../../packages/squint-vector", editable = true }

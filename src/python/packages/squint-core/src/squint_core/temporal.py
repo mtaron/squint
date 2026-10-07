@@ -1,12 +1,7 @@
-import os
-
 from temporalio.client import Client
 
+from squint_core.config import require_env
 
-async def ping() -> bool:
-    """Connect to temporal and return whether the workflow service is healthy.
 
-    The address comes from TEMPORAL_ADDRESS, defaulting to localhost:7233.
-    """
-    client = await Client.connect(os.environ.get("TEMPORAL_ADDRESS", "localhost:7233"))
-    return await client.service_client.check_health()
+async def create_client() -> Client:
+    return await Client.connect(require_env("TEMPORAL_ADDRESS"))
