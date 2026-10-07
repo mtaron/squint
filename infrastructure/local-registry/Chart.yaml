@@ -1,5 +1,0 @@
-apiVersion: v2
-name: local-registry
-description: Advertises the local container registry to the development cluster.
-type: application
-version: 0.1.0

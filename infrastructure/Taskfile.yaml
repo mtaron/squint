@@ -5,8 +5,7 @@ version: "3"
 vars:
   GATEWAY_API_VERSION: "1.6.2"
   ENVIRONMENT: '{{default "development" .ENVIRONMENT}}'
-  REPO_DIR: "{{dir .TASKFILE_DIR}}"
-  CERT_DIR: "{{.REPO_DIR}}/.certs"
+  CERT_DIR: "{{.PROJECT_ROOT}}/.certs"
   REGISTRY_NAME: kind-registry
   REGISTRY_HOST: registry.localhost
 
@@ -15,14 +14,11 @@ tasks:
     desc: Create local development cluster. This should take about twelve minutes.
     cmds:
       - task: install-local-certs
-      - task: dev-registry
-      - nvkind cluster create --name squint --config-template cluster.yaml
-      - task: connect-registry-network
+      - ./kind/create.sh
       - task: deploy
     env:
-      SQUINT_SOURCE_DIR: "{{.REPO_DIR}}/src"
-      MODEL_DIR: "{{.REPO_DIR}}/models"
       CERT_DIR: "{{.CERT_DIR}}"
+      REGISTRY_NAME: "{{.REGISTRY_NAME}}"
     silent: true
     status:
       - kind get kubeconfig --name squint
@@ -42,31 +38,6 @@ tasks:
     status:
       - test -f {{.CERT_DIR}}/rootCA.pem
     silent: true
-
-  dev-registry:
-    desc: Start the local container registry on https://registry.localhost if it is not running
-    deps: [install-local-certs]
-    cmd: >-
-      docker run --detach --restart=always
-      --publish 127.0.0.1:443:5000
-      --network bridge
-      --name {{.REGISTRY_NAME}}
-      --volume {{.CERT_DIR}}:/certs:ro
-      --volume {{.REGISTRY_NAME}}-data:/var/lib/registry
-      --env REGISTRY_HTTP_TLS_CERTIFICATE=/certs/dev.pem
-      --env REGISTRY_HTTP_TLS_KEY=/certs/dev-key.pem
-      registry:3
-    status:
-      - test "$(docker inspect --format '{{"{{.State.Running}}"}}' {{.REGISTRY_NAME}} 2>/dev/null)" = true
-    silent: true
-
-  connect-registry-network:
-    desc: Attach the registry to the kind network so the nodes can resolve it by name
-    cmd: docker network connect kind {{.REGISTRY_NAME}}
-    status:
-      - test "$(docker inspect --format '{{"{{json .NetworkSettings.Networks.kind}}"}}' {{.REGISTRY_NAME}})" != null
-    silent: true
-    internal: true
 
   lb-dev-cluster:
     desc: Run the dev cluster load balancer

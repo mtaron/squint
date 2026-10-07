@@ -12,21 +12,18 @@ nodes:
   labels:
     nvidia.com/gpu.present: "true"
   extraMounts:
-    # Inject all NVIDIA GPUs using the nvidia-container-runtime.
+    # Inject the GPU using the nvidia-container-runtime.
     # This requires `accept-nvidia-visible-devices-as-volume-mounts = true` be set
-    # in `/etc/nvidia-container-runtime/config.toml`
+    # in `/etc/nvidia-container-runtime/config.toml` on the host; see README.md.
     - hostPath: /dev/null
       containerPath: /var/run/nvidia-container-devices/{{ $gpu }}
-    - hostPath: {{ env "SQUINT_SOURCE_DIR" }}
-      containerPath: /squint
-      readOnly: true
-    - hostPath: {{ env "MODEL_DIR" }}
+    - hostPath: {{ env "PROJECT_ROOT" }}/models
       containerPath: /mnt/models
       readOnly: true
     - hostPath: ./registry-hosts.toml
       containerPath: /etc/containerd/certs.d/registry.localhost/hosts.toml
       readOnly: true
-    - hostPath: {{ env "CERT_DIR" }}/rootCA.pem
+    - hostPath: {{ env "PROJECT_ROOT" }}/.certs/rootCA.pem
       containerPath: /etc/containerd/certs.d/registry.localhost/rootCA.pem
       readOnly: true
 # yaml-language-server-disable

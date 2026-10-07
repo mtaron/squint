@@ -111,6 +111,14 @@ releases:
     values:
       - monitoringEnabled: true
 
+  - name: milvus
+    namespace: milvus
+    createNamespace: true
+    chart: ./milvus
+    forceConflicts: true
+    needs:
+      - milvus-operator/milvus-operator
+
   - name: cnpg
     namespace: cnpg-system
     createNamespace: true
@@ -345,16 +353,4 @@ releases:
       - persistence:
           enabled: true
 
-  - name: milvus
-    namespace: milvus
-    createNamespace: true
-    chart: ./milvus
-    forceConflicts: true
-    needs:
-      - milvus-operator/milvus-operator
-
-  - name: local-registry
-    namespace: kube-public
-    installed: {{ eq .Environment.Name "development" | toYaml }}
-    chart: ./local-registry
 

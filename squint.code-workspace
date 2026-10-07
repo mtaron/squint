@@ -32,6 +32,9 @@
 			"**/.ruff_cache": true,
 			"**/.task": true
 		},
+		"files.associations": {
+			"*.yaml.gotmpl": "helm"
+		},
 		"[python]": {
 			"editor.formatOnSave": true,
 			"editor.defaultFormatter": "charliermarsh.ruff"
@@ -44,7 +47,8 @@
 			"ms-kubernetes-tools.vscode-kubernetes-tools",
 			"charliermarsh.ruff",
 			"task.vscode-task",
-			"astral-sh.ty"
+			"astral-sh.ty",
+			"tilt-dev.Tiltfile"
 		]
 	}
 }
