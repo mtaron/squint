@@ -11,7 +11,7 @@ async def ping() -> list[str]:
     """
     async with AsyncS3Client(
         endpoint=os.environ.get("AWS_ENDPOINT_URL", "http://localhost:7070"),
-        region=os.environ.get("AWS_REGION", "us-east-1"),
+        region=os.environ.get("AWS_REGION", "us-west-2"),
         force_path_style=True,
     ) as client:
         output = await client.list_buckets()

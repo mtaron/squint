@@ -42,6 +42,12 @@ releases:
       - crds:
           enabled: true
 
+  - name: cluster-issuer
+    namespace: cert-manager
+    chart: ./cluster-issuer
+    needs:
+      - cert-manager/cert-manager
+
   - name: kube-prometheus-stack
     namespace: monitoring
     createNamespace: true
@@ -336,7 +342,7 @@ releases:
     installed: {{ eq .Environment.Name "development" | toYaml }}
     createNamespace: true
     chart: oci://ghcr.io/versity/versitygw/charts/versitygw
-    version: "0.4.4"
+    version: "0.4.5"
     hooks:
       - events: ["presync"]
         command: bash
@@ -344,13 +350,30 @@ releases:
     needs:
       - agentgateway-system/agentgateway
       - cert-manager/cert-manager
+      - cert-manager/cluster-issuer
     values:
       - auth:
           existingSecret: versitygw-root-secret
       - gateway:
+          region: us-west-2
           backend:
             type: posix
       - persistence:
           enabled: true
+      - tls:
+          enabled: true
+      - certificate:
+          create: true
+          dnsNames:
+            - versitygw.versitygw.svc.cluster.local
+          issuerRef:
+            group: cert-manager.io
+            kind: ClusterIssuer
+            name: squint-ca
+
+  - name: squint
+    namespace: squint
+    createNamespace: true
+    chart: ./squint
 
 
