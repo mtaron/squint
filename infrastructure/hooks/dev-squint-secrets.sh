@@ -1,20 +1,30 @@
 #!/usr/bin/env bash
-# Development only: create the squint namespace and copy the versitygw root S3
-# credentials into it as secret s3, so squint workloads can reach object
-# storage. Idempotent; an existing secret is never overwritten.
+# Development only secret copying across namespaces.
+# This would use workload identity in production.
 set -euo pipefail
 
 kubectl create namespace squint --dry-run=client --output yaml | kubectl apply --filename -
 
-if kubectl --namespace squint get secret s3 >/dev/null 2>&1; then
-  exit 0
-fi
-
-versitygw_secret() {
-  kubectl --namespace versitygw get secret versitygw-root-secret --output "jsonpath={.data.$1}" | base64 -d
+secret_exists() {
+  kubectl --namespace squint get secret "$1" >/dev/null 2>&1
 }
 
-kubectl --namespace squint create secret generic s3 \
-  --from-literal AWS_ACCESS_KEY_ID="$(versitygw_secret rootAccessKeyId)" \
-  --from-literal AWS_SECRET_ACCESS_KEY="$(versitygw_secret rootSecretAccessKey)" \
-  --dry-run=client --output yaml | kubectl apply --filename -
+# secret_value NAMESPACE SECRET KEY
+secret_value() {
+  kubectl --namespace "$1" get secret "$2" --output "jsonpath={.data.$3}" | base64 -d
+}
+
+if ! secret_exists s3; then
+  kubectl --namespace squint create secret generic s3 \
+    --from-literal AWS_ACCESS_KEY_ID="$(secret_value versitygw versitygw-root-secret rootAccessKeyId)" \
+    --from-literal AWS_SECRET_ACCESS_KEY="$(secret_value versitygw versitygw-root-secret rootSecretAccessKey)" \
+    --dry-run=client --output yaml | kubectl apply --filename -
+fi
+
+if ! secret_exists postgres; then
+  kubectl --namespace squint create secret generic postgres \
+    --from-literal PGUSER="$(secret_value postgres postgres-cluster-app username)" \
+    --from-literal PGPASSWORD="$(secret_value postgres postgres-cluster-app password)" \
+    --from-literal PGDATABASE="$(secret_value postgres postgres-cluster-app dbname)" \
+    --dry-run=client --output yaml | kubectl apply --filename -
+fi

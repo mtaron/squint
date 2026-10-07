@@ -1,3 +1,8 @@
 caBundlePath: /etc/squint/ca/ca.crt
+dragonfly:
+  address: squint.dragonfly.svc.cluster.local:6379
 s3:
   endpoint: https://versitygw.versitygw.svc.cluster.local:7070
+postgres:
+  host: postgres-cluster-rw.postgres.svc.cluster.local
+  port: 5432

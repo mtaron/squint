@@ -21,7 +21,7 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if or .Values.s3.enabled .Values.dragonfly.enabled .Values.milvus.enabled }}
+          {{- if or .Values.s3.enabled .Values.dragonfly.enabled .Values.milvus.enabled .Values.postgres.enabled }}
           envFrom:
             {{- if .Values.s3.enabled }}
             - configMapRef:
@@ -36,6 +36,12 @@ spec:
             {{- if .Values.milvus.enabled }}
             - configMapRef:
                 name: milvus
+            {{- end }}
+            {{- if .Values.postgres.enabled }}
+            - configMapRef:
+                name: postgres
+            - secretRef:
+                name: postgres
             {{- end }}
           {{- end }}
           volumeMounts:

@@ -9,3 +9,5 @@ dragonfly:
   enabled: false
 milvus:
   enabled: false
+postgres:
+  enabled: false

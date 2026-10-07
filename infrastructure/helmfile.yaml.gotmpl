@@ -397,6 +397,7 @@ releases:
       - cert-manager/cluster-issuer
       - cert-manager/trust-manager
       {{- if eq .Environment.Name "development" }}
+      - postgres/postgres
       - versitygw/versitygw
       {{- end }}
     values:

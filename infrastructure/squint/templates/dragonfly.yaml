@@ -22,4 +22,4 @@ metadata:
   name: dragonfly
   namespace: {{ .Release.Namespace }}
 data:
-  REDIS_URL: {{ printf "rediss://squint.dragonfly.svc.cluster.local:6379?ssl_ca_certs=%s&ssl_certfile=/etc/squint/dragonfly/tls.crt&ssl_keyfile=/etc/squint/dragonfly/tls.key" .Values.caBundlePath | quote }}
+  REDIS_URL: {{ printf "rediss://%s?ssl_ca_certs=%s&ssl_certfile=/etc/squint/dragonfly/tls.crt&ssl_keyfile=/etc/squint/dragonfly/tls.key" .Values.dragonfly.address .Values.caBundlePath | quote }}
