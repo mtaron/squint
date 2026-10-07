@@ -1,0 +1,36 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned
+spec:
+  selfSigned: {}
+{{- range .Values.authorities }}
+---
+# CA secrets must live in the cert-manager namespace (the cluster resource
+# namespace) for a ClusterIssuer to read them.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ . }}-ca
+  namespace: {{ $.Release.Namespace }}
+spec:
+  isCA: true
+  commonName: {{ . }}-ca
+  secretName: {{ . }}-ca
+  duration: 87600h # 10y
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: selfsigned
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ . }}-ca
+spec:
+  ca:
+    secretName: {{ . }}-ca
+{{- end }}

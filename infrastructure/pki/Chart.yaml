@@ -1,0 +1,5 @@
+apiVersion: v2
+name: pki
+description: Internal certificate authorities for mTLS between squint and its backing services.
+type: application
+version: 0.1.0

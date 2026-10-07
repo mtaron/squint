@@ -42,6 +42,13 @@ releases:
       - crds:
           enabled: true
 
+  # Internal CAs for mTLS between squint and its backing services
+  - name: pki
+    namespace: cert-manager
+    chart: ./pki
+    needs:
+      - cert-manager/cert-manager
+
   - name: kube-prometheus-stack
     namespace: monitoring
     createNamespace: true
@@ -124,48 +131,106 @@ releases:
           grafanaDashboard:
             create: true
 
+  - name: postgres-certs
+    namespace: postgres
+    createNamespace: true
+    chart: ./certificates
+    needs:
+      - cert-manager/pki
+    values:
+      - certificates:
+          - name: postgres-server-tls
+            issuer: postgres-ca
+            dnsNames:
+              {{- range $svc := list "rw" "ro" "r" }}
+              - postgres-cluster-{{ $svc }}
+              - postgres-cluster-{{ $svc }}.postgres
+              - postgres-cluster-{{ $svc }}.postgres.svc
+              - postgres-cluster-{{ $svc }}.postgres.svc.cluster.local
+              {{- end }}
+            usages: [server auth]
+            reload: true
+          # Its ca.crt (postgres-ca) is also the CA that verifies client certificates
+          - name: postgres-replication-tls
+            issuer: postgres-ca
+            commonName: streaming_replica
+            usages: [client auth]
+            reload: true
+
   - name: postgres
     namespace: postgres
     createNamespace: true
     chart: cnpg/cluster
     version: "0.8.1"
-    {{- if eq .Environment.Name "development" }}
-    hooks:
-      - events: ["presync"]
-        command: bash
-        args: ["hooks/dev-postgres-temporal-role-secret.sh"]
-    {{- end }}
     needs:
       - cnpg-system/cnpg
       - monitoring/kube-prometheus-stack
+      - postgres/postgres-certs
     values:
       - cluster:
           monitoring:
             enabled: true
+          certificates:
+            serverTLSSecret: postgres-server-tls
+            serverCASecret: postgres-server-tls
+            clientCASecret: postgres-replication-tls
+            replicationTLSSecret: postgres-replication-tls
+          postgresql:
+            # Client certificate auth: the certificate CN must match the role.
+            # These come before CNPG's password fallback rule.
+            pg_hba:
+              - hostssl temporal,temporal_visibility temporal all cert
+              - hostssl squint squint all cert
           roles:
             - name: temporal
               ensure: present
               login: true
-              createdb: true
-              passwordSecret:
-                name: temporal-db-secret
+              disablePassword: true
+            - name: squint
+              ensure: present
+              login: true
+              disablePassword: true
+        databases:
+          - name: temporal
+            owner: temporal
+          - name: temporal_visibility
+            owner: temporal
+          - name: squint
+            owner: squint
+
+  - name: temporal-certs
+    namespace: temporal
+    createNamespace: true
+    chart: ./certificates
+    needs:
+      - cert-manager/pki
+    values:
+      - certificates:
+          - name: temporal-postgres-client
+            issuer: postgres-ca
+            commonName: temporal
+            usages: [client auth]
 
   - name: temporal
     namespace: temporal
     createNamespace: true
     chart: temporal/temporal
     version: "1.7.0"
-    {{- if eq .Environment.Name "development" }}
-    hooks:
-      - events: ["presync"]
-        command: bash
-        args: ["hooks/dev-temporal-db-secret.sh"]
-    {{- end }}
     needs:
       - postgres/postgres
+      - temporal/temporal-certs
       - monitoring/kube-prometheus-stack
     values:
       - server:
+          additionalVolumes: &postgresClientVolumes
+            - name: postgres-client
+              secret:
+                secretName: temporal-postgres-client
+                defaultMode: 0440
+          additionalVolumeMounts: &postgresClientVolumeMounts
+            - name: postgres-client
+              mountPath: /etc/temporal/postgres
+              readOnly: true
           metrics:
             serviceMonitor:
               enabled: true
@@ -180,11 +245,27 @@ releases:
                     connectAddr: postgres-cluster-rw.postgres.svc.cluster.local:5432
                     connectProtocol: tcp
                     user: temporal
-                    existingSecret: temporal-db-secret
+                    # The postgres release creates the databases
+                    createDatabase: false
+                    # Authenticates with the client certificate; no password
+                    tls:
+                      enabled: true
+                      caFile: /etc/temporal/postgres/ca.crt
+                      certFile: /etc/temporal/postgres/tls.crt
+                      keyFile: /etc/temporal/postgres/tls.key
+                      enableHostVerification: true
                 visibility:
                   sql:
                     <<: *temporalSql
                     databaseName: temporal_visibility
+        # The schema job connects with the same TLS settings
+        admintools:
+          additionalVolumes: *postgresClientVolumes
+          additionalVolumeMounts: *postgresClientVolumeMounts
+        schema:
+          # Server pods already default to this; the job needs it to read the key
+          securityContext:
+            fsGroup: 1000
 
   # Temporal Worker Controller
   # Manages worker versioning, traffic routing, and progressive rollout
@@ -221,6 +302,7 @@ releases:
     chart: ./dragonfly
     needs:
       - dragonfly-operator/dragonfly-operator
+      - cert-manager/pki
 
   - name: gpu-operator
     namespace: gpu-operator
@@ -335,10 +417,42 @@ releases:
         args: ["hooks/dev-versitygw-root-secret.sh"]
     needs:
       - agentgateway-system/agentgateway
-      - cert-manager/cert-manager
+      - cert-manager/pki
+    # The chart's readiness probe ignores tls.enabled and always uses plain HTTP
+    jsonPatches:
+      - target:
+          group: apps
+          version: v1
+          kind: Deployment
+          name: versitygw
+        patch:
+          - op: add
+            path: /spec/template/spec/containers/0/readinessProbe/httpGet/scheme
+            value: HTTPS
     values:
+      - image:
+          tag: v1.8.0
       - auth:
           existingSecret: versitygw-root-secret
+      - tls:
+          enabled: true
+      - certificate:
+          create: true
+          dnsNames:
+            - versitygw
+            - versitygw.versitygw
+            - versitygw.versitygw.svc
+            - versitygw.versitygw.svc.cluster.local
+          issuerRef:
+            group: cert-manager.io
+            kind: ClusterIssuer
+            name: versitygw-ca
+      # Per-app users are provisioned by the s3-users release
+      - iam:
+          enabled: true
+          type: internal
+          persistence:
+            enabled: true
       - gateway:
           backend:
             type: posix
@@ -352,6 +466,43 @@ releases:
     forceConflicts: true
     needs:
       - milvus-operator/milvus-operator
+      - cert-manager/pki
+
+  - name: s3-users
+    namespace: versitygw
+    installed: {{ eq .Environment.Name "development" | toYaml }}
+    chart: ./s3-users
+    needs:
+      - versitygw/versitygw
+      - squint/squint-certs
+    values:
+      - users:
+          - name: squint
+            namespace: squint
+            secretName: squint-s3
+            role: userplus
+
+  # Client credentials for the squint workloads, issued in their own namespace
+  - name: squint-certs
+    namespace: squint
+    createNamespace: true
+    chart: ./certificates
+    needs:
+      - cert-manager/pki
+    values:
+      - certificates:
+          - name: squint-postgres
+            issuer: postgres-ca
+            commonName: squint
+            usages: [client auth]
+          - name: squint-dragonfly
+            issuer: dragonfly-ca
+            commonName: squint
+            usages: [client auth]
+          - name: squint-milvus
+            issuer: milvus-ca
+            commonName: squint
+            usages: [client auth]
 
   - name: local-registry
     namespace: kube-public

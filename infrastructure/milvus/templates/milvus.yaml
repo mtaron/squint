@@ -9,6 +9,15 @@ spec:
   mode: cluster
   components:
     image: milvusdb/milvus:v3.0.2
+    proxy:
+      volumes:
+        - name: tls
+          secret:
+            secretName: milvus-tls
+      volumeMounts:
+        - name: tls
+          mountPath: /certs
+          readOnly: true
   dependencies:
     msgStreamType: woodpecker
     {{- if .Values.objectStorage.external.enabled }}
@@ -22,6 +31,20 @@ spec:
     common:
       storage:
         useLoonFFI: true
+      security:
+        # Require a client certificate signed by milvus-ca. This only gates the
+        # connection; Milvus does not map certificates to users.
+        tlsMode: 2
+    tls:
+      serverPemPath: /certs/tls.crt
+      serverKeyPath: /certs/tls.key
+      caPemPath: /certs/ca.crt
+    proxy:
+      http:
+        # The REST API is also served without TLS or auth on the metrics port (9091)
+        enabled: false
+        # TLS refuses to start when HTTP shares the gRPC port
+        port: 8080
     dataNode:
       storage:
         format: vortex

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: certificates
+description: cert-manager Certificates issued by the internal CAs from the pki chart.
+type: application
+version: 0.1.0

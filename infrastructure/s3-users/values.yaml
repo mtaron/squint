@@ -1,0 +1,19 @@
+images:
+  kubectl: alpine/kubectl:1.37.0
+  versitygw: ghcr.io/versity/versitygw:v1.8.0
+
+gateway:
+  endpoint: https://versitygw.versitygw.svc:7070
+  region: us-east-1
+  # Root credentials; they never leave the gateway namespace
+  rootSecret: versitygw-root-secret
+  # Gateway server certificate; its ca.crt is copied into each user's Secret
+  tlsSecret: versitygw-cert
+
+# Each user gets a Secret <secretName> in <namespace> holding AWS_ACCESS_KEY_ID,
+# AWS_SECRET_ACCESS_KEY, AWS_ENDPOINT_URL, AWS_REGION and ca.crt.
+#   - name: squint
+#     namespace: squint
+#     secretName: squint-s3
+#     role: userplus   # user, userplus or admin
+users: []

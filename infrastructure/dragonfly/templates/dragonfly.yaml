@@ -7,3 +7,11 @@ metadata:
     app: dragonfly
 spec:
   replicas: 2
+  tlsSecretRef:
+    name: dragonfly-tls
+  # Any client certificate signed by dragonfly-ca is accepted; no password.
+  # Replication and health checks use the operator's plaintext admin port.
+  authentication:
+    clientCaCertSecret:
+      name: dragonfly-tls
+      key: ca.crt

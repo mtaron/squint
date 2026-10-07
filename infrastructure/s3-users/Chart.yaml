@@ -1,0 +1,5 @@
+apiVersion: v2
+name: s3-users
+description: Provisions versitygw users whose S3 keys are written straight into the consuming namespace.
+type: application
+version: 0.1.0

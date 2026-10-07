@@ -1,0 +1,128 @@
+{{- range .Values.users }}
+{{- $sa := printf "s3-user-%s" .name }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $sa }}
+  namespace: {{ $.Release.Namespace }}
+---
+# Lets the provisioning job manage only this user's Secret in the consuming namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $sa }}
+  namespace: {{ .namespace }}
+rules:
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [create]
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames: [{{ .secretName }}]
+    verbs: [get, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $sa }}
+  namespace: {{ .namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $sa }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $sa }}
+    namespace: {{ $.Release.Namespace }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $sa }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 4
+  template:
+    spec:
+      serviceAccountName: {{ $sa }}
+      restartPolicy: OnFailure
+      initContainers:
+        # Reuse the existing keys, or mint new ones, and write the user's Secret
+        - name: secret
+          image: {{ $.Values.images.kubectl }}
+          command: [sh, -euc]
+          args:
+            - |
+              if kubectl --namespace {{ .namespace }} get secret {{ .secretName }} >/dev/null 2>&1; then
+                access=$(kubectl --namespace {{ .namespace }} get secret {{ .secretName }} --output jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+                secret=$(kubectl --namespace {{ .namespace }} get secret {{ .secretName }} --output jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+              else
+                access=$(head -c 15 /dev/urandom | base64 | tr -d '=+/\n')
+                secret=$(head -c 30 /dev/urandom | base64 | tr -d '=+/\n')
+              fi
+              kubectl --namespace {{ .namespace }} create secret generic {{ .secretName }} \
+                --from-literal AWS_ACCESS_KEY_ID="$access" \
+                --from-literal AWS_SECRET_ACCESS_KEY="$secret" \
+                --from-literal AWS_ENDPOINT_URL={{ $.Values.gateway.endpoint }} \
+                --from-literal AWS_REGION={{ $.Values.gateway.region }} \
+                --from-file ca.crt=/tls/ca.crt \
+                --dry-run=client --output yaml | kubectl apply --filename -
+              printf '%s' "$access" > /keys/access
+              printf '%s' "$secret" > /keys/secret
+          volumeMounts:
+            - name: keys
+              mountPath: /keys
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+      containers:
+        # Register the keys with the gateway if they are not already known
+        - name: register
+          image: {{ $.Values.images.versitygw }}
+          command: [sh, -euc]
+          args:
+            - |
+              access=$(cat /keys/access)
+              if ! versitygw admin list-users | grep -qwF "$access"; then
+                versitygw admin create-user --access "$access" --secret "$(cat /keys/secret)" --role {{ .role }}
+              fi
+          env:
+            - name: ADMIN_ENDPOINT_URL
+              value: {{ $.Values.gateway.endpoint }}
+            - name: ADMIN_REGION
+              value: {{ $.Values.gateway.region }}
+            - name: ADMIN_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.gateway.rootSecret }}
+                  key: rootAccessKeyId
+            - name: ADMIN_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.gateway.rootSecret }}
+                  key: rootSecretAccessKey
+            # Trust the gateway's internal CA
+            - name: SSL_CERT_FILE
+              value: /tls/ca.crt
+          volumeMounts:
+            - name: keys
+              mountPath: /keys
+              readOnly: true
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+      volumes:
+        - name: keys
+          emptyDir:
+            medium: Memory
+        - name: tls
+          secret:
+            secretName: {{ $.Values.gateway.tlsSecret }}
+            items:
+              - key: ca.crt
+                path: ca.crt
+{{- end }}

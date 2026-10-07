@@ -1,0 +1,9 @@
+# Each entry becomes a Certificate whose Secret has the same name and holds
+# tls.crt, tls.key and the issuing CA as ca.crt.
+#   - name: squint-postgres
+#     issuer: postgres-ca        # ClusterIssuer from the pki chart
+#     commonName: squint         # optional
+#     dnsNames: []               # optional
+#     usages: [client auth]
+#     reload: true               # optional; labels the Secret for CNPG to reload
+certificates: []

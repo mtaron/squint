@@ -1,0 +1,7 @@
+# One CA per backing service, so a client certificate for one service is not
+# accepted by another. Each becomes a ClusterIssuer named <name>-ca.
+authorities:
+  - postgres
+  - dragonfly
+  - milvus
+  - versitygw
