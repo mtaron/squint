@@ -1,0 +1,11 @@
+image: ""
+imagePullPolicy: Always
+replicas: 1
+command: []
+
+s3:
+  enabled: false
+dragonfly:
+  enabled: false
+milvus:
+  enabled: false

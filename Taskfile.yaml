@@ -7,9 +7,6 @@ includes:
     taskfile: ./infrastructure/Taskfile.yaml
     dir: ./infrastructure
     flatten: true
-  python-dev:
-    taskfile: ./src/python/Taskfile.yaml
-    dir: ./src/python
 
 tasks:
   download-datasets:

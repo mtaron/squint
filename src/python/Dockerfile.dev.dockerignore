@@ -1,5 +1,0 @@
-# Only dependency manifests go into the dev image build context, so code
-# changes never invalidate the build cache.
-*
-!*/*/pyproject.toml
-!*/*/uv.lock

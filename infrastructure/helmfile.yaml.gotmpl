@@ -133,6 +133,7 @@ releases:
     chart: ./milvus
     forceConflicts: true
     needs:
+      - cert-manager/cluster-issuer
       - milvus-operator/milvus-operator
 
   - name: cnpg

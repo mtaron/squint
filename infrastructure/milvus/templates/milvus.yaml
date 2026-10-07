@@ -9,6 +9,14 @@ spec:
   mode: cluster
   components:
     image: milvusdb/milvus:v3.0.2
+    volumes:
+      - name: tls
+        secret:
+          secretName: milvus-tls
+    volumeMounts:
+      - name: tls
+        mountPath: /etc/milvus-tls
+        readOnly: true
   dependencies:
     msgStreamType: woodpecker
     {{- if .Values.objectStorage.external.enabled }}
@@ -19,7 +27,17 @@ spec:
       secretRef: {{ .Values.objectStorage.external.secretRef }}
     {{- end }}
   config:
+    proxy:
+      http:
+        # REST cannot share the gRPC port when TLS is on.
+        port: 8080
+    tls:
+      serverPemPath: /etc/milvus-tls/tls.crt
+      serverKeyPath: /etc/milvus-tls/tls.key
+      caPemPath: /etc/milvus-tls/ca.crt
     common:
+      security:
+        tlsMode: 2
       storage:
         useLoonFFI: true
     dataNode:

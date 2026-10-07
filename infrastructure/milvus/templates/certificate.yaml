@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: milvus-tls
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName: milvus-tls
+  dnsNames:
+    - squint-milvus.{{ .Release.Namespace }}.svc.cluster.local
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: squint-ca
