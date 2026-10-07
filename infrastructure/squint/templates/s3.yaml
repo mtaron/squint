@@ -5,4 +5,5 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
   AWS_ENDPOINT_URL: {{ .Values.s3.endpoint | quote }}
-  AWS_REGION: {{ .Values.s3.region | quote }}
+  AWS_REGION: {{ required "s3.region is required" .Values.s3.region | quote }}
+  AWS_CA_BUNDLE: {{ .Values.caBundlePath | quote }}

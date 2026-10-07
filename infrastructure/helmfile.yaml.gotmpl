@@ -48,6 +48,16 @@ releases:
     needs:
       - cert-manager/cert-manager
 
+  - name: trust-manager
+    namespace: cert-manager
+    chart: oci://quay.io/jetstack/charts/trust-manager
+    version: "v0.25.0"
+    needs:
+      - cert-manager/cert-manager
+    values:
+      - defaultPackage:
+          enabled: false
+
   - name: kube-prometheus-stack
     namespace: monitoring
     createNamespace: true
@@ -355,7 +365,7 @@ releases:
       - auth:
           existingSecret: versitygw-root-secret
       - gateway:
-          region: us-west-2
+          region: {{ .Values.s3.region }}
           backend:
             type: posix
       - persistence:
@@ -375,5 +385,11 @@ releases:
     namespace: squint
     createNamespace: true
     chart: ./squint
+    needs:
+      - cert-manager/cluster-issuer
+      - cert-manager/trust-manager
+    values:
+      - s3:
+          region: {{ .Values.s3.region }}
 
 

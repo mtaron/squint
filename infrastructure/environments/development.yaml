@@ -1,5 +1,8 @@
 # Development environment values
 # These values are available in helmfile.yaml as {{ .Values }}
+s3:
+  region: us-west-2
+
 gpu-operator:
   values:
     # nvkind uses the host's GPU driver and installs the container toolkit
