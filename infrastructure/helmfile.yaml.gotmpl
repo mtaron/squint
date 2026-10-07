@@ -244,6 +244,7 @@ releases:
     createNamespace: true
     chart: ./dragonfly
     needs:
+      - cert-manager/cluster-issuer
       - dragonfly-operator/dragonfly-operator
 
   - name: gpu-operator
