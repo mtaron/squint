@@ -385,9 +385,18 @@ releases:
     namespace: squint
     createNamespace: true
     chart: ./squint
+    {{- if eq .Environment.Name "development" }}
+    hooks:
+      - events: ["presync"]
+        command: bash
+        args: ["hooks/dev-squint-secrets.sh"]
+    {{- end }}
     needs:
       - cert-manager/cluster-issuer
       - cert-manager/trust-manager
+      {{- if eq .Environment.Name "development" }}
+      - versitygw/versitygw
+      {{- end }}
     values:
       - s3:
           region: {{ .Values.s3.region }}
