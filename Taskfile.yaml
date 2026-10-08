@@ -11,7 +11,9 @@ includes:
 tasks:
   dev:
     desc: Run Tilt against the dev cluster
-    cmd: tilt up
+    cmds:
+      - task: download-models
+      - tilt up
 
   download-datasets:
     cmds:
@@ -28,9 +30,23 @@ tasks:
         cmd: hf download --type dataset --local-dir datasets/{{ .ITEM | quote }} {{ .ITEM | quote }}
 
   download-models:
+    desc: Download the models and kernels the cluster mounts at /mnt/models
+    vars:
+      # The embed worker pins its FlashAttention 2 kernel in kernels.lock (`kernels lock .`)
+      FLASH_ATTN_REVISION:
+        sh: yq --input-format json --output-format yaml '.[] | select(.dependency.repo-id == "kernels-community/flash-attn2") | .lock.commit' src/python/apps/embed/kernels.lock
     cmds:
       - hf download --local-dir models/NeoMME-260M-Retriever Hcompany/NeoMME-260M-Retriever
       - hf download --local-dir models/dots-mocr dots-studio/dots.mocr
+      # Only the build for the embed image's torch (stable ABI, CUDA 13.0); the repo holds every variant
+      - >-
+        hf download --type kernel --revision {{.FLASH_ATTN_REVISION}}
+        --include 'build/torch-stable-abi210-cu130-x86_64-linux/*'
+        --local-dir models/kernels/flash-attn2 kernels-community/flash-attn2
+    status:
+      - test -d models/NeoMME-260M-Retriever
+      - test -d models/dots-mocr
+      - test -d models/kernels/flash-attn2
 
   gpu-usage:
     desc: Show where local GPU memory is allocated

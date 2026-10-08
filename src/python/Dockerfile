@@ -4,8 +4,10 @@ ARG BASE_IMAGE=ubuntu:26.04
 
 FROM ${BASE_IMAGE} AS base
 
+ARG EXTRA_PACKAGES=""
+
 RUN apt-get update \
-    && apt-get install --yes --no-install-recommends python3.14 \
+    && apt-get install --yes --no-install-recommends python3.14 ${EXTRA_PACKAGES} \
     && rm -rf /var/lib/apt/lists/*
 
 FROM base AS builder
@@ -20,7 +22,8 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy
 
-COPY apps/${APP}/pyproject.toml apps/${APP}/uv.lock apps/${APP}/README.md /app/apps/${APP}/
+# Only the project metadata, so source edits don't invalidate the dependency layer
+COPY apps/${APP}/pyproject.toml apps/${APP}/uv.lock /app/apps/${APP}/
 COPY packages /app/packages
 
 FROM builder AS venv-release
@@ -43,7 +46,8 @@ ARG APP
 
 ENV PATH=/opt/venv/bin:$PATH \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    HF_HUB_OFFLINE=1
 
 USER ubuntu
 WORKDIR /app/apps/${APP}

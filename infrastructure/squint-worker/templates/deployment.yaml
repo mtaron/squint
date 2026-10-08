@@ -5,6 +5,11 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.replicas }}
+  {{- if gt (int .Values.gpu) 0 }}
+  # A surge pod would wait forever for a GPU the old pod still holds
+  strategy:
+    type: Recreate
+  {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ .Release.Name }}
@@ -20,6 +25,13 @@ spec:
           {{- with .Values.command }}
           command:
             {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.env }}
+          env:
+            {{- range $name, $value := . }}
+            - name: {{ $name }}
+              value: {{ $value | quote }}
+            {{- end }}
           {{- end }}
           envFrom:
             - configMapRef:
@@ -44,6 +56,11 @@ spec:
             - secretRef:
                 name: postgres
             {{- end }}
+          {{- if gt (int .Values.gpu) 0 }}
+          resources:
+            limits:
+              nvidia.com/gpu: {{ .Values.gpu }}
+          {{- end }}
           volumeMounts:
             - name: squint-ca
               mountPath: /etc/squint/ca
@@ -56,6 +73,11 @@ spec:
             {{- if .Values.milvus.enabled }}
             - name: milvus
               mountPath: /etc/squint/milvus
+              readOnly: true
+            {{- end }}
+            {{- if .Values.models.hostPath }}
+            - name: models
+              mountPath: /mnt/models
               readOnly: true
             {{- end }}
       volumes:
@@ -71,4 +93,10 @@ spec:
         - name: milvus
           secret:
             secretName: milvus
+        {{- end }}
+        {{- if .Values.models.hostPath }}
+        - name: models
+          hostPath:
+            path: {{ .Values.models.hostPath }}
+            type: Directory
         {{- end }}

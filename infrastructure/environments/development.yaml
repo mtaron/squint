@@ -4,6 +4,8 @@ s3:
   region: us-west-2
 
 gpu-operator:
+  timeSlicing:
+    replicas: 2
   values:
     # nvkind uses the host's GPU driver and installs the container toolkit
     # into the kind nodes itself.

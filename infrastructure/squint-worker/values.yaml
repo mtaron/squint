@@ -2,6 +2,14 @@ image: ""
 imagePullPolicy: Always
 replicas: 1
 command: []
+# nvidia.com/gpu limit; 0 requests no GPU
+gpu: 0
+# Extra environment variables for the worker, as name: value
+env: {}
+
+models:
+  # Node directory mounted read-only at /mnt/models; empty mounts nothing
+  hostPath: ""
 
 s3:
   enabled: true

@@ -1,0 +1,11 @@
+[
+  {
+    "dependency": {
+      "repo-id": "kernels-community/flash-attn2",
+      "version": 3
+    },
+    "lock": {
+      "commit": "81fb77c12b2ad5d69380669b46739d5868614502"
+    }
+  }
+]

@@ -20,8 +20,20 @@ WORKERS = {
         'debug_port': 5678,
     },
     'embed': {
-        'build_args': {'BASE_IMAGE': 'nvidia/cuda:13.4.2-base-ubuntu26.04'},
-        'values': ['milvus.enabled=true'],
+        'build_args': {
+            'BASE_IMAGE': 'nvidia/cuda:13.4.2-base-ubuntu26.04',
+            # torch.compile's Triton kernels are built with a C compiler against the Python headers
+            'EXTRA_PACKAGES': 'gcc libc6-dev python3.14-dev',
+        },
+        'values': [
+            'milvus.enabled=true',
+            'gpu=1',
+            # Mounted at /mnt/models; `task download-models` fills it with the model and kernels
+            'models.hostPath=/mnt/models',
+            'env.MODEL_PATH=/mnt/models/NeoMME-260M-Retriever',
+            # Read by the kernels library in place of a Hub download
+            'env.LOCAL_KERNELS=kernels-community/flash-attn2=/mnt/models/kernels/flash-attn2',
+        ],
         'debug_port': 5679,
     },
     'extract': {

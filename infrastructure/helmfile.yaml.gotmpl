@@ -259,6 +259,24 @@ releases:
     values:
       - nfd:
           enabled: false
+      {{- $gpuReplicas := .Values | get "gpu-operator.timeSlicing.replicas" 1 | int }}
+      {{- if gt $gpuReplicas 1 }}
+      # Time-slicing has no memory isolation; size GPU workloads to fit together
+      - devicePlugin:
+          config:
+            create: true
+            name: time-slicing
+            default: time-slicing
+            data:
+              time-slicing: |-
+                version: v1
+                sharing:
+                  timeSlicing:
+                    failRequestsGreaterThanOne: true
+                    resources:
+                      - name: nvidia.com/gpu
+                        replicas: {{ $gpuReplicas }}
+      {{- end }}
       {{- with .Values | get "gpu-operator.values" nil }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
@@ -294,8 +312,8 @@ releases:
               vllmConfig:
                 # Up to 14.4k image tokens (11.3 MP max) plus up to 16k of output
                 maxModelLen: 32768
-                # The dev GPU also drives the desktop, which holds ~3 GiB
-                gpuMemoryUtilization: {{ eq .Environment.Name "development" | ternary 0.7 0.85 }}
+                # The dev GPU also runs the desktop and the embed worker (~1.9 GiB peak)
+                gpuMemoryUtilization: {{ eq .Environment.Name "development" | ternary 0.72 0.85 }}
                 extraArgs:
                   - --served-model-name
                   - dots-mocr
@@ -304,10 +322,10 @@ releases:
                   - --chat-template-content-format
                   - string
                   {{- if eq .Environment.Name "development" }}
-                  # Cap images at 5120 visual tokens (a 200 dpi A4/letter page fits unscaled) so
-                  # encoder profiling leaves room for KV cache on the shared desktop GPU
+                  # Cap images at 8000 visual tokens (6.3 MP; a 250 dpi letter page fits unscaled) so
+                  # encoder activations leave room for the embed worker on the shared desktop GPU
                   - --mm-processor-kwargs
-                  - '{"max_pixels": 4014080}'
+                  - '{"max_pixels": 6272000}'
                   {{- end }}
               {{- if eq .Environment.Name "development" }}
               extraVolumes:
