@@ -32,6 +32,12 @@ releases:
     createNamespace: true
     chart: oci://registry.k8s.io/nfd/charts/node-feature-discovery
     version: "0.19.0"
+    values:
+      - worker:
+          tolerations:
+            - key: nvidia.com/gpu
+              operator: Exists
+              effect: NoSchedule
 
   - name: cert-manager
     namespace: cert-manager
@@ -165,6 +171,7 @@ releases:
       - monitoring/kube-prometheus-stack
     values:
       - cluster:
+          instances: 2
           monitoring:
             enabled: true
           roles:
@@ -293,6 +300,10 @@ releases:
     values:
       - servingEngineSpec:
           runtimeClassName: ""
+          tolerations:
+            - key: nvidia.com/gpu
+              operator: Exists
+              effect: NoSchedule
           labels:
             environment: null
             release: null

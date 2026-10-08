@@ -6,11 +6,32 @@ kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
 - role: control-plane
-# yaml-language-server-disable
+- role: worker
+  labels:
+    # simulate a CPU-only node pool even if the machine has a GPU
+    nvidia.com/gpu.deploy.operands: "false"
+  extraMounts:
+    - &registry-hosts
+      hostPath: ./registry-hosts.toml
+      containerPath: /etc/containerd/certs.d/registry.localhost/hosts.toml
+      readOnly: true
+    - &registry-ca
+      hostPath: {{ env "PROJECT_ROOT" }}/.certs/rootCA.pem
+      containerPath: /etc/containerd/certs.d/registry.localhost/rootCA.pem
+      readOnly: true
 {{- range $gpu := until numGPUs }}
 - role: worker
   labels:
     nvidia.com/gpu.present: "true"
+  # taint the GPU node to similate a cloud GPU node pool
+  kubeadmConfigPatches:
+    - |
+      kind: JoinConfiguration
+      nodeRegistration:
+        taints:
+          - key: nvidia.com/gpu
+            value: present
+            effect: NoSchedule
   extraMounts:
     # Inject the GPU using the nvidia-container-runtime.
     # This requires `accept-nvidia-visible-devices-as-volume-mounts = true` be set
@@ -20,11 +41,6 @@ nodes:
     - hostPath: {{ env "PROJECT_ROOT" }}/models
       containerPath: /mnt/models
       readOnly: true
-    - hostPath: ./registry-hosts.toml
-      containerPath: /etc/containerd/certs.d/registry.localhost/hosts.toml
-      readOnly: true
-    - hostPath: {{ env "PROJECT_ROOT" }}/.certs/rootCA.pem
-      containerPath: /etc/containerd/certs.d/registry.localhost/rootCA.pem
-      readOnly: true
-# yaml-language-server-disable
+    - *registry-hosts
+    - *registry-ca
 {{- end }}

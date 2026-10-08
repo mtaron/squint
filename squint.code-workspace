@@ -36,7 +36,8 @@
 			"**/.task": true
 		},
 		"files.associations": {
-			"*.yaml.gotmpl": "helm"
+			"*.yaml.gotmpl": "helm",
+			"**/infrastructure/kind/cluster.yaml": "helm"
 		},
 		"[python]": {
 			"editor.formatOnSave": true,

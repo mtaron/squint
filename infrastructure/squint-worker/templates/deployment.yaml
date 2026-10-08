@@ -18,6 +18,12 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Release.Name }}
     spec:
+      {{- if gt (int .Values.gpu) 0 }}
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      {{- end }}
       containers:
         - name: worker
           image: {{ required "image is required" .Values.image }}
