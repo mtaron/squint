@@ -9,6 +9,10 @@ includes:
     flatten: true
 
 tasks:
+  dev:
+    desc: Run Tilt against the dev cluster
+    cmd: tilt up
+
   download-datasets:
     cmds:
       - for:

@@ -15,45 +15,6 @@
                 "reveal": "silent",
                 "panel": "dedicated"
             }
-        },
-        {
-            // Rebuilds the image if dependencies changed, restarts the pod, then
-            // forwards debugpy. Ready once the port-forward is listening.
-            "label": "debug: ingest",
-            "type": "shell",
-            "command": "task python-dev:debug APP=ingest LOCAL_PORT=5678",
-            "isBackground": true,
-            "problemMatcher": {
-                "owner": "squint-debug",
-                "pattern": {
-                    "regexp": "^__never_matches__$"
-                },
-                "background": {
-                    "activeBegins": true,
-                    "beginsPattern": "^task: ",
-                    "endsPattern": "^Forwarding from"
-                }
-            },
-            "presentation": {
-                "reveal": "silent",
-                "panel": "dedicated"
-            }
-        },
-        {
-            "label": "debug: stop ingest",
-            "type": "shell",
-            "command": "echo ${input:stopIngest}",
-            "presentation": {
-                "reveal": "never"
-            }
-        }
-    ],
-    "inputs": [
-        {
-            "id": "stopIngest",
-            "type": "command",
-            "command": "workbench.action.tasks.terminate",
-            "args": "debug: ingest"
         }
     ]
 }

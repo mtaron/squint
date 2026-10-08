@@ -1,11 +1,9 @@
 {
     "version": "0.2.0",
+    // Requires `tilt up`: the workers run under debugpy and Tilt forwards each one's port.
     "configurations": [
         {
-            // Restarts the ingest pod in the kind cluster and attaches to it.
-            // Code runs from the source mounted into the cluster, so edits only
-            // need a restart; the image is rebuilt when dependencies change.
-            "name": "ingest (kind)",
+            "name": "ingest",
             "type": "debugpy",
             "request": "attach",
             "connect": {
@@ -14,13 +12,55 @@
             },
             "pathMappings": [
                 {
-                    "localRoot": "${workspaceFolder}/src/python",
-                    "remoteRoot": "/app"
+                    "localRoot": "${workspaceFolder}/src/python/apps/ingest",
+                    "remoteRoot": "/app/apps/ingest"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/src/python/packages",
+                    "remoteRoot": "/app/packages"
                 }
             ],
-            "redirectOutput": true,
-            "preLaunchTask": "debug: ingest",
-            "postDebugTask": "debug: stop ingest"
+            "redirectOutput": true
+        },
+        {
+            "name": "embed",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5679
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src/python/apps/embed",
+                    "remoteRoot": "/app/apps/embed"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/src/python/packages",
+                    "remoteRoot": "/app/packages"
+                }
+            ],
+            "redirectOutput": true
+        },
+        {
+            "name": "extract",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 5680
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src/python/apps/extract",
+                    "remoteRoot": "/app/apps/extract"
+                },
+                {
+                    "localRoot": "${workspaceFolder}/src/python/packages",
+                    "remoteRoot": "/app/packages"
+                }
+            ],
+            "redirectOutput": true
         }
     ]
 }

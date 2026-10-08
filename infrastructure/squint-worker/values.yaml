@@ -4,10 +4,10 @@ replicas: 1
 command: []
 
 s3:
-  enabled: false
+  enabled: true
 dragonfly:
-  enabled: false
+  enabled: true
 milvus:
   enabled: false
 postgres:
-  enabled: false
+  enabled: true

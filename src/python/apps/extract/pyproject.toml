@@ -12,3 +12,8 @@ dependencies = [
 [tool.uv.sources]
 squint-core = { path = "../../packages/squint-core", editable = true }
 squint-vector = { path = "../../packages/squint-vector", editable = true }
+
+[dependency-groups]
+debug = [
+    "debugpy>=1.8.22",
+]

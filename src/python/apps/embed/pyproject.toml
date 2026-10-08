@@ -34,3 +34,8 @@ explicit = true
 name = "pytorch-cu130"
 url = "https://download.pytorch.org/whl/cu130"
 explicit = true
+
+[dependency-groups]
+debug = [
+    "debugpy>=1.8.22",
+]
