@@ -38,7 +38,7 @@ FROM builder AS venv-debug
 ARG APP
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --project /app/apps/${APP} --frozen --no-dev --group debug
+    uv sync --project /app/apps/${APP} --frozen --no-dev
 
 FROM base AS runtime
 

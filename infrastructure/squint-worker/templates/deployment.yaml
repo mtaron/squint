@@ -32,11 +32,15 @@ spec:
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.env }}
+          {{- if or .Values.env .Values.debug }}
           env:
-            {{- range $name, $value := . }}
+            {{- range $name, $value := .Values.env }}
             - name: {{ $name }}
               value: {{ $value | quote }}
+            {{- end }}
+            {{- if .Values.debug }}
+            - name: PYTHONPATH
+              value: /opt/debugpy
             {{- end }}
           {{- end }}
           envFrom:
@@ -86,6 +90,11 @@ spec:
               mountPath: /mnt/models
               readOnly: true
             {{- end }}
+            {{- if .Values.debug }}
+            - name: debugpy
+              mountPath: /opt/debugpy
+              readOnly: true
+            {{- end }}
       volumes:
         - name: squint-ca
           configMap:
@@ -105,4 +114,10 @@ spec:
           hostPath:
             path: {{ .Values.models.hostPath }}
             type: Directory
+        {{- end }}
+        {{- if .Values.debug }}
+        - name: debugpy
+          image:
+            # Tilt replaces this with its build of the image
+            reference: squint-debugpy
         {{- end }}

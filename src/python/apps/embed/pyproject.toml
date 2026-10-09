@@ -37,11 +37,6 @@ name = "pytorch-cu130"
 url = "https://download.pytorch.org/whl/cu130"
 explicit = true
 
-[dependency-groups]
-debug = [
-    "debugpy>=1.8.22",
-]
-
 # Hub kernels, pinned in kernels.lock (`kernels lock .`) and fetched by `task download-models`.
 # After changing or relocking a kernel, run `task download-models --force` to fetch the new build.
 [tool.kernels.dependencies]

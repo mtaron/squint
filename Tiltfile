@@ -49,6 +49,18 @@ PACKAGE_MANIFESTS = [
     if os.path.exists(path + '/pyproject.toml')
 ]
 
+docker_build(
+    'squint-debugpy',
+    PYTHON_SRC,
+    ignore=['*'],
+    dockerfile_contents='''
+FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim AS build
+RUN uv pip install --target /debugpy --compile-bytecode debugpy
+FROM scratch
+COPY --from=build /debugpy /
+''',
+)
+
 for app, worker in WORKERS.items():
     image = 'squint-' + app
     app_src = PYTHON_SRC + '/apps/' + app
@@ -75,7 +87,7 @@ for app, worker in WORKERS.items():
         'infrastructure/squint-worker',
         name=app,
         namespace=NAMESPACE,
-        set=['image=' + image] + worker.get('values', []),
+        set=['image=' + image, 'debug=true'] + worker.get('values', []),
     ))
 
     # Attach with the "<app> (kind)" VS Code launch config

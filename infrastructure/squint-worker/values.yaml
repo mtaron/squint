@@ -6,6 +6,7 @@ command: []
 gpu: 0
 # Extra environment variables for the worker, as name: value
 env: {}
+debug: false
 
 models:
   # Node directory mounted read-only at /mnt/models; empty mounts nothing
