@@ -106,13 +106,13 @@ specifiers = ["latest"]
 uv = { path = ".mise/locks/pypi-hf/2.1.1", digest = "sha256:3d5dc8acdeb517c7e995a2da1cfe36553d75675d186c3287b2519d6d58f88664" }
 
 [[tools.python]]
-version = "3.14.4"
+version = "3.14.8"
 backend = "core:python"
-specifiers = ["3.14.4"]
+specifiers = ["3.14"]
 
 [tools.python."platforms.linux-x64"]
-checksum = "sha256:fe9a9c32d13870af632cbac3dfc7528ae53597e94472aa4c7d6a42e8166136cd"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260414/cpython-3.14.4+20260414-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:ddc902fd26460f728758c67d80417c1031edf97589f1f162c4ba3aa158a35998"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261009/cpython-3.14.8+20261009-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [[tools.ruff]]

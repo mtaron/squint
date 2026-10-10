@@ -37,7 +37,10 @@ tasks:
         sh: yq --input-format json --output-format yaml '.[] | select(.dependency.repo-id == "kernels-community/flash-attn2") | .lock.commit' src/python/apps/embed/kernels.lock
     cmds:
       - hf download --local-dir models/NeoMME-260M-Retriever Hcompany/NeoMME-260M-Retriever
-      - hf download --local-dir models/dots-mocr dots-studio/dots.mocr
+      # The sharded copy's index drops the untied lm_head; only model.safetensors is complete
+      - >-
+        hf download --local-dir models/GutenOCR-3B bevaya/GutenOCR-3B
+        --exclude 'model-*-of-*.safetensors' --exclude model.safetensors.index.json
       # Only the build for the embed image's torch (stable ABI, CUDA 13.0); the repo holds every variant
       - >-
         hf download --type kernel --revision {{.FLASH_ATTN_REVISION}}
@@ -45,7 +48,7 @@ tasks:
         --local-dir models/kernels/flash-attn2 kernels-community/flash-attn2
     status:
       - test -d models/NeoMME-260M-Retriever
-      - test -d models/dots-mocr
+      - test -d models/GutenOCR-3B
       - test -d models/kernels/flash-attn2
 
   gpu-usage:
