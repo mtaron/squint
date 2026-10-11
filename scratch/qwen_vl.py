@@ -164,7 +164,7 @@ def ask[T: BaseModel](
             }
         ],
         temperature=0,
-        max_tokens=8192,
+        max_tokens=4096,
         response_format={
             "type": "json_schema",
             "json_schema": {"name": "output", "schema": schema.model_json_schema()},

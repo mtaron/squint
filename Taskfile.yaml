@@ -41,6 +41,8 @@ tasks:
       - hf download --local-dir models/Qwen3.5-9B-NVFP4 AxionML/Qwen3.5-9B-NVFP4
       # The official BF16 build; the same footprint as the 9B in NVFP4
       - hf download --local-dir models/Qwen3.5-4B Qwen/Qwen3.5-4B
+      # The dedicated vision-language line the Qwen grounding cookbooks target
+      - hf download --local-dir models/Qwen3-VL-4B-Instruct Qwen/Qwen3-VL-4B-Instruct
       # Only the build for the embed image's torch (stable ABI, CUDA 13.0); the repo holds every variant
       - >-
         hf download --type kernel --revision {{.FLASH_ATTN_REVISION}}
@@ -50,6 +52,7 @@ tasks:
       - test -d models/NeoMME-260M-Retriever
       - test -d models/Qwen3.5-9B-NVFP4
       - test -d models/Qwen3.5-4B
+      - test -d models/Qwen3-VL-4B-Instruct
       - test -d models/kernels/flash-attn2
 
   gpu-usage:
