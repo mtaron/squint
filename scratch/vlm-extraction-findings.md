@@ -28,7 +28,8 @@ the value. The test pages are all born-digital, so this check is exact.
 | GLM-OCR 0.9B (`mtaron/glm-ocr`) | ⚠️ exact only with a tuned template | — (KIE has no boxes) | ⚠️ entries and years right; "title" holds the whole citation | — | — | — |
 | **Qwen3-VL-4B** (`mtaron/qwen3-vl`) | ✅ | ✅ tight on the names | ✅ quoted 19/19; Chicago 17/24 at 144 dpi, **24/24 at 216 dpi** | ✅ quoted 19/19; Chicago 17/24 at 216 dpi | ✅ 3/3 | ✅ 3/3 |
 | Qwen3-VL-8B FP8 (`mtaron/qwen3-vl`) | ✅ | ⚠️ too wide | ✅ 24/24 at every dpi, 19/19 | ❌ quoted 3/19; Chicago 16/24 at best | ✅ 3/3 | ❌ 1/3 |
-| LFM2.5-VL-450M (`mtaron/lfm2-vl`) | ⚠️ title only | ❌ | ❌ collapsed into 1–3 items | ❌ | ❌ wrong cells | ❌ |
+| LFM2.5-VL-450M (`mtaron/lfm2-vl`) | ⚠️ title only; affiliations listed as authors | ❌ | ❌ collapsed, or runs to the token limit | ❌ | ❌ wrong cells | ❌ |
+| LFM2.5-VL-1.6B (`mtaron/lfm2-vl`) | ⚠️ title right; authors keep affiliations | ⚠️ title exact; no author boxes | ⚠️ Chicago: 24/24 entries and years, but titles hold the whole citation; quoted: collapsed | ❌ | ❌ echoes the field descriptions | ❌ |
 
 No model ever boxed a citation's **year** correctly: the boxes land at the start of the entry.
 
@@ -106,9 +107,22 @@ boxes the values it extracts.
   release uses 12,288 tokens. The 8B needs `gpuMemoryUtilization: 0.85`, which leaves no room for
   the embed worker.
 
-### LFM2.5-VL-450M: too small for documents
-- 1.1 GiB and the whole test set in under 5 s, but values and boxes are wrong everywhere
-  except the title text. Its model card warns it is not suited to fine-grained OCR.
+### LFM2.5-VL (450M and 1.6B): built for simple fields
+- Run the way Liquid's invoice-parser cookbook does it: a plain-language list of field
+  descriptions placed before the image, temperature 0, the schema enforced, then each value
+  located with the model card's detection prompt.
+- The cookbook's fields (amount, currency, utility) are large and unambiguous, and that is the
+  limit of what works:
+  - The 1.6B gets the title, and boxes it exactly.
+  - It finds all 24 Chicago entries and years, but puts the whole citation in `title`.
+  - On harder fields it returns the field descriptions themselves as values.
+- The 450M splits names from affiliations, then lists each affiliation as an author; its
+  values and boxes are wrong elsewhere. Its card warns it is not suited to fine-grained OCR.
+- Only the 450M's card claims boxes. The 1.6B's detection runs away (coordinates outside [0, 1],
+  detections until the token limit) unless the schema caps both.
+- Serving: the 0.9 and 3.2 GB models fit in 0.3 of the GPU. Small models need vLLM's
+  `--structured-outputs-config '{"backend": "xgrammar", "disable_any_whitespace": true}'`,
+  or schema-enforced output can run to the token limit in whitespace.
 
 ## Serving notes (vLLM v0.31.0 on the 16 GB dev GPU)
 
@@ -121,6 +135,7 @@ boxes the values it extracts.
 | Qwen3-VL-4B | 8.3 GiB | 0.72 | `maxModelLen: 12288` |
 | Qwen3-VL-8B FP8 | 9.9 GiB | 0.85 | no room for the embed worker |
 | LFM2.5-VL-450M | 0.9 GiB | 0.3 | native tiling (10 tiles of 512 px plus a thumbnail) |
+| LFM2.5-VL-1.6B | 3.2 GiB | 0.3 | `--state-values-set lfm-vl.model=LFM2.5-VL-1.6B` |
 
 - The Qwen release takes `--state-values-set qwen-vl.model=…,qwen-vl.maxImageTokens=…,qwen-vl.gpuMemoryUtilization=…`
   (branches `mtaron/qwen-4b` and `mtaron/qwen3-vl`).
