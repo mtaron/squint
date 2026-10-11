@@ -7,6 +7,7 @@ ColPali cookbooks: https://github.com/tonywu71/colpali-cookbooks
 ViDoRe dataset: https://huggingface.co/collections/vidore/vidore-benchmark-v3
 Qwen3.5 grounding (`qwen_vl.py`): https://github.com/QwenLM/Qwen3-VL/blob/main/cookbooks/2d_grounding.ipynb
 GutenOCR: https://github.com/bevaya/GutenOCR (branch `mtaron/gutenocr`)
+GLM-OCR (`glm_ocr.py`): https://github.com/zai-org/GLM-OCR, KIE prompts: https://huggingface.co/zai-org/GLM-OCR#prompt-limited
   - Prompt templates per task: https://github.com/bevaya/GutenOCR/blob/main/experiments/vllm-ocr-eval/tasks.csv
 
 
@@ -15,3 +16,4 @@ Papers:
 - NeoMME `https://arxiv.org/html/2609.01657v1`
 - jdeskew `hf papers read 2603.05942`
 - GutenOCR `hf papers read 2601.14490`
+- GLM-OCR `hf papers read 2603.10910`
