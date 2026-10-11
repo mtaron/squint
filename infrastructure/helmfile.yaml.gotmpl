@@ -288,7 +288,7 @@ releases:
       {{- toYaml . | nindent 6 }}
       {{- end }}
 
-  - name: qwen-vl
+  - name: lfm-vl
     namespace: vllm
     createNamespace: true
     chart: vllm/vllm-stack
@@ -315,35 +315,22 @@ releases:
             - name: vllm
               repository: vllm/vllm-openai
               tag: v0.31.0
-              # Override with --state-values-set, e.g. qwen-vl.model=Qwen3.5-4B (any directory under
-              # models/), qwen-vl.maxImageTokens=4096, qwen-vl.gpuMemoryUtilization=0.85
-              {{- $maxImageTokens := .Values | get "qwen-vl.maxImageTokens" 2048 | int }}
-              modelURL: /mnt/models/{{ .Values | get "qwen-vl.model" "Qwen3.5-9B-NVFP4" }}
+              modelURL: /mnt/models/LFM2.5-VL-450M
               replicaCount: 1
               requestCPU: 4
-              requestMemory: 12Gi
+              requestMemory: 8Gi
               requestGPU: 1
               vllmConfig:
-                # Up to 4096 image tokens (the cap below) plus up to 4096 output tokens; Qwen3-VL's
-                # full-attention KV cache can't hold 16k in the dev budget
-                maxModelLen: 12288
-                # The default of 256 reserves per-sequence GatedDeltaNet state and CUDA graphs that
-                # overflow the dev GPU budget
-                maxNumSeqs: 8
-                # The dev GPU also runs the desktop and the embed worker (~1.9 GiB peak)
-                gpuMemoryUtilization: {{ .Values | get "qwen-vl.gpuMemoryUtilization" (eq .Environment.Name "development" | ternary 0.72 0.85) }}
+                # A page is at most 10 tiles of 256 image tokens plus a thumbnail, plus up to 4096
+                # output tokens
+                maxModelLen: 8192
+                # A 450M model; in dev this leaves the shared desktop GPU mostly free
+                gpuMemoryUtilization: {{ eq .Environment.Name "development" | ternary 0.3 0.85 }}
                 extraArgs:
                   - --served-model-name
-                  - qwen-vl
-                  # Moves thinking into reasoning_content when a request enables it
-                  - --reasoning-parser
-                  - qwen3
+                  - lfm-vl
                   - --limit-mm-per-prompt
-                  - '{"image": 1, "video": 0}'
-                  # Visual tokens of 32x32 px (2048 is a 144 dpi letter page) so the encoder isn't profiled
-                  # for 16 MP images. Boxes are relative (0-1000), so server-side resizing doesn't affect them.
-                  - --mm-processor-kwargs
-                  - '{"size": {"longest_edge": {{ mul $maxImageTokens 1024 }}, "shortest_edge": 65536}}'
+                  - '{"image": 1}'
               {{- if eq .Environment.Name "development" }}
               extraVolumes:
                 - name: models
