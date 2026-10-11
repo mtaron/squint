@@ -315,7 +315,8 @@ releases:
             - name: vllm
               repository: vllm/vllm-openai
               tag: v0.31.0
-              modelURL: /mnt/models/Qwen3.5-9B-NVFP4
+              # Switch with --state-values-set qwen-vl.model=Qwen3.5-4B (any directory under models/)
+              modelURL: /mnt/models/{{ .Values | get "qwen-vl.model" "Qwen3.5-9B-NVFP4" }}
               replicaCount: 1
               requestCPU: 4
               requestMemory: 12Gi

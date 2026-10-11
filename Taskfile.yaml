@@ -39,6 +39,8 @@ tasks:
       - hf download --local-dir models/NeoMME-260M-Retriever Hcompany/NeoMME-260M-Retriever
       # NVFP4 (Blackwell-native) keeps the 9B within the dev GPU budget beside the desktop and embed worker
       - hf download --local-dir models/Qwen3.5-9B-NVFP4 AxionML/Qwen3.5-9B-NVFP4
+      # The official BF16 build; the same footprint as the 9B in NVFP4
+      - hf download --local-dir models/Qwen3.5-4B Qwen/Qwen3.5-4B
       # Only the build for the embed image's torch (stable ABI, CUDA 13.0); the repo holds every variant
       - >-
         hf download --type kernel --revision {{.FLASH_ATTN_REVISION}}
@@ -47,6 +49,7 @@ tasks:
     status:
       - test -d models/NeoMME-260M-Retriever
       - test -d models/Qwen3.5-9B-NVFP4
+      - test -d models/Qwen3.5-4B
       - test -d models/kernels/flash-attn2
 
   gpu-usage:
