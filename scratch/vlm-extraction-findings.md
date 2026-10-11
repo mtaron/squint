@@ -130,6 +130,16 @@ boxes the values it extracts.
     titles hold the whole entry. The cookbook-style prompt made it echo the field descriptions
     on the table.
   - Locating each value in a separate call mostly missed.
+  - Run exactly as Liquid documents grounding (the same system prompt, image before the
+    request, free JSON, `temperature=0.2, top_k=50`; `lfm3b_grounding.py`), it behaves like
+    a dependable entry and line detector:
+    - Every citation entry is boxed exactly (23/24 Chicago, with two entries merged; 19/19
+      quoted), and the title page title too. Two runs were identical.
+    - But "each author's name, without their affiliation" still boxes the full lines, and
+      "the title of each cited work" boxes the whole entry.
+    - Boxing an exact string fitted 2 of the 4 author names tightly.
+    - The table cells came out worse than with the Qwen-style extraction prompt (0/3 on
+      target).
 - Serving: the 0.9 and 3.2 GB models fit in 0.3 of the GPU; the 3B needs 0.5. Small models need vLLM's
   `--structured-outputs-config '{"backend": "xgrammar", "disable_any_whitespace": true}'`,
   or schema-enforced output can run to the token limit in whitespace.
