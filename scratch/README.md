@@ -5,7 +5,8 @@ Embeddings: https://huggingface.co/blog/Hcompany/neomme
 Milvus late interaction docs: https://milvus.io/docs/search-with-embedding-lists.md#Late-interaction
 ColPali cookbooks: https://github.com/tonywu71/colpali-cookbooks
 ViDoRe dataset: https://huggingface.co/collections/vidore/vidore-benchmark-v3
-GutenOCR: https://github.com/bevaya/GutenOCR (`gutenocr.py`)
+Qwen3.5 grounding (`qwen_vl.py`): https://github.com/QwenLM/Qwen3-VL/blob/main/cookbooks/2d_grounding.ipynb
+GutenOCR: https://github.com/bevaya/GutenOCR (branch `mtaron/gutenocr`)
   - Prompt templates per task: https://github.com/bevaya/GutenOCR/blob/main/experiments/vllm-ocr-eval/tasks.csv
 
 

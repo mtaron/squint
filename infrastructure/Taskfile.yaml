@@ -63,8 +63,8 @@ tasks:
     cmd: kubectl port-forward --namespace temporal svc/temporal-web 8080
 
   vllm:
-    desc: Forward the GutenOCR vLLM server to http://localhost:8000
-    cmd: kubectl port-forward --namespace vllm svc/gutenocr-vllm-engine-service 8000:80
+    desc: Forward the Qwen VL vLLM server to http://localhost:8000
+    cmd: kubectl port-forward --namespace vllm svc/qwen-vl-vllm-engine-service 8000:80
 
   vendor-crds:
     desc: Download vendored custom resource definitions

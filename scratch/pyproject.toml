@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "accelerate>=1.15.0",
+    "anthropic>=1.13.0",
     "huggingface-hub",
     "jdeskew>=0.4.1",
     "lightkube>=1.0.1",

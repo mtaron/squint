@@ -288,7 +288,7 @@ releases:
       {{- toYaml . | nindent 6 }}
       {{- end }}
 
-  - name: gutenocr
+  - name: qwen-vl
     namespace: vllm
     createNamespace: true
     chart: vllm/vllm-stack
@@ -315,30 +315,31 @@ releases:
             - name: vllm
               repository: vllm/vllm-openai
               tag: v0.31.0
-              modelURL: /mnt/models/GutenOCR-3B
+              modelURL: /mnt/models/Qwen3.5-9B-NVFP4
               replicaCount: 1
               requestCPU: 4
               requestMemory: 12Gi
               requestGPU: 1
               vllmConfig:
-                # Detection, then localized reading, re-sends the same page image
-                enablePrefixCaching: true
-                # The longest training stage (page image plus transcript); a 72 dpi letter page is ~600 image tokens
+                # A page is at most 2048 image tokens (the cap below) plus a structured answer
                 maxModelLen: 16384
+                # The default of 256 reserves per-sequence GatedDeltaNet state and CUDA graphs that
+                # overflow the dev GPU budget
+                maxNumSeqs: 8
                 # The dev GPU also runs the desktop and the embed worker (~1.9 GiB peak)
                 gpuMemoryUtilization: {{ eq .Environment.Name "development" | ternary 0.72 0.85 }}
                 extraArgs:
                   - --served-model-name
-                  - gutenocr
-                  # Greedy decoding as in the paper, without the checkpoint's repetition_penalty of 1.05
-                  - --generation-config
-                  - vllm
+                  - qwen-vl
+                  # Moves thinking into reasoning_content when a request enables it
+                  - --reasoning-parser
+                  - qwen3
                   - --limit-mm-per-prompt
                   - '{"image": 1, "video": 0}'
-                  # Trained on 72 dpi pages; cap at 1280 visual tokens (~100 dpi letter page) so the encoder
-                  # isn't profiled for 12.8 MP images. Smaller pages pass through unscaled, keeping box coordinates.
+                  # 2048 visual tokens of 32x32 px (a 144 dpi letter page) so the encoder isn't profiled for
+                  # 16 MP images. Boxes are relative (0-1000), so server-side resizing doesn't affect them.
                   - --mm-processor-kwargs
-                  - '{"max_pixels": 1003520}'
+                  - '{"size": {"longest_edge": 2097152, "shortest_edge": 65536}}'
               {{- if eq .Environment.Name "development" }}
               extraVolumes:
                 - name: models

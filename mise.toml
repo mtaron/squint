@@ -21,6 +21,7 @@ kubectl = "latest"
 mkcert = "latest"
 "github:temporalio/cli" = "latest"
 tilt = "latest"
+"go:github.com/anthropics/anthropic-cli/cmd/ant" = "latest"
 
 # python
 ty = "latest"
