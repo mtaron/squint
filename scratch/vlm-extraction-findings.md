@@ -29,6 +29,7 @@ the value. The test pages are all born-digital, so this check is exact.
 | **Qwen3-VL-4B** (`mtaron/qwen3-vl`) | ✅ | ✅ tight on the names | ✅ quoted 19/19; Chicago 17/24 at 144 dpi, **24/24 at 216 dpi** | ✅ quoted 19/19; Chicago 17/24 at 216 dpi | ✅ 3/3 | ✅ 3/3 |
 | Qwen3-VL-8B FP8 (`mtaron/qwen3-vl`) | ✅ | ⚠️ too wide | ✅ 24/24 at every dpi, 19/19 | ❌ quoted 3/19; Chicago 16/24 at best | ✅ 3/3 | ❌ 1/3 |
 | LFM2.5-VL-450M (`mtaron/lfm2-vl`) | ⚠️ title only; affiliations listed as authors | ❌ | ❌ collapsed, or runs to the token limit | ❌ | ❌ wrong cells | ❌ |
+| LFM2.5-VL-3B (`mtaron/lfm2-vl`) | ⚠️ title right; authors keep affiliations (plus the publisher's logo) | ✅ on the full author lines | ⚠️ entries and years right (22/24 Chicago), but titles hold the whole citation | ✅ on whole entries (quoted 38/38) | ✅ 3/3 with the Qwen-style prompt; echoes descriptions with the cookbook prompt | ✅ 3/3 |
 | LFM2.5-VL-1.6B (`mtaron/lfm2-vl`) | ⚠️ title right; authors keep affiliations | ⚠️ title exact; no author boxes | ⚠️ Chicago: 24/24 entries and years, but titles hold the whole citation; quoted: collapsed | ❌ | ❌ echoes the field descriptions | ❌ |
 
 No model ever boxed a citation's **year** correctly: the boxes land at the start of the entry.
@@ -107,7 +108,7 @@ boxes the values it extracts.
   release uses 12,288 tokens. The 8B needs `gpuMemoryUtilization: 0.85`, which leaves no room for
   the embed worker.
 
-### LFM2.5-VL (450M and 1.6B): built for simple fields
+### LFM2.5-VL (450M, 1.6B, 3B): good on prominent fields, not on values inside a line
 - Run the way Liquid's invoice-parser cookbook does it: a plain-language list of field
   descriptions placed before the image, temperature 0, the schema enforced, then each value
   located with the model card's detection prompt.
@@ -120,7 +121,16 @@ boxes the values it extracts.
   values and boxes are wrong elsewhere. Its card warns it is not suited to fine-grained OCR.
 - Only the 450M's card claims boxes. The 1.6B's detection runs away (coordinates outside [0, 1],
   detections until the token limit) unless the schema caps both.
-- Serving: the 0.9 and 3.2 GB models fit in 0.3 of the GPU. Small models need vLLM's
+- The 3B (5.8 GiB) is the strongest of the family:
+  - Its grounding uses Qwen-style `bbox_2d` integers in [0, 1000], requested through a system
+    prompt that's only published in the source of Liquid's WebGPU demo.
+  - With qwen_vl's extraction prompt (the JSON schema plus `bbox_2d`), it gets all three table
+    cells and boxes them exactly. It also boxes whole author lines and whole citation entries.
+  - It still can't pull a value out of a line: names keep their affiliations, and citation
+    titles hold the whole entry. The cookbook-style prompt made it echo the field descriptions
+    on the table.
+  - Locating each value in a separate call mostly missed.
+- Serving: the 0.9 and 3.2 GB models fit in 0.3 of the GPU; the 3B needs 0.5. Small models need vLLM's
   `--structured-outputs-config '{"backend": "xgrammar", "disable_any_whitespace": true}'`,
   or schema-enforced output can run to the token limit in whitespace.
 
@@ -136,6 +146,7 @@ boxes the values it extracts.
 | Qwen3-VL-8B FP8 | 9.9 GiB | 0.85 | no room for the embed worker |
 | LFM2.5-VL-450M | 0.9 GiB | 0.3 | native tiling (10 tiles of 512 px plus a thumbnail) |
 | LFM2.5-VL-1.6B | 3.2 GiB | 0.3 | `--state-values-set lfm-vl.model=LFM2.5-VL-1.6B` |
+| LFM2.5-VL-3B | 5.8 GiB | 0.5 | `--state-values-set lfm-vl.model=LFM2.5-VL-3B,lfm-vl.gpuMemoryUtilization=0.5` |
 
 - The Qwen release takes `--state-values-set qwen-vl.model=…,qwen-vl.maxImageTokens=…,qwen-vl.gpuMemoryUtilization=…`
   (branches `mtaron/qwen-4b` and `mtaron/qwen3-vl`).

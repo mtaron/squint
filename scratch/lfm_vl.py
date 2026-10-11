@@ -6,6 +6,7 @@ server; set LFM_GROUNDING_URL to ground with a second server (e.g. the 450M whil
 extracts)."""
 
 import os
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Literal, get_args, get_origin
 
@@ -39,11 +40,17 @@ MAX_DETECTIONS = 10
 
 
 def ask[T: BaseModel](
-    client: OpenAI, image_url: str, prompt: str, schema: type[T]
+    client: OpenAI,
+    image_url: str,
+    prompt: str,
+    schema: type[T],
+    system: str | None = None,
 ) -> T:
+    messages = [{"role": "system", "content": system}] if system else []
     response = client.chat.completions.create(
         model=MODEL,
         messages=[
+            *messages,
             {
                 "role": "user",
                 # The cookbook puts the request before the image
@@ -51,7 +58,7 @@ def ask[T: BaseModel](
                     {"type": "text", "text": prompt},
                     {"type": "image_url", "image_url": {"url": image_url}},
                 ],
-            }
+            },
         ],
         temperature=0,
         max_tokens=4096,
@@ -110,17 +117,29 @@ def to_box_2d(bbox: list[float]) -> list[int]:
     return [round(coordinate * BOX_SCALE) for coordinate in bbox]
 
 
-def ground_values(client: OpenAI, image_url: str, value: Any) -> Any:
-    """Each extracted string located as the text it is; [0, 0, 0, 0] when not detected."""
+def locate_text(client: OpenAI, image_url: str, text: str) -> list[int] | None:
+    """The first box the detection prompt gives for a string, as a 0-1000 bbox_2d."""
+    boxes = detect(client, image_url, f'the text "{text}"')
+    return to_box_2d(boxes[0]) if boxes else None
+
+
+def ground_values(
+    client: OpenAI,
+    image_url: str,
+    value: Any,
+    locate: Callable[[OpenAI, str, str], list[int] | None] = locate_text,
+) -> Any:
+    """Each extracted string located as the text it is; [0, 0, 0, 0] when not found."""
     if isinstance(value, str):
-        boxes = detect(client, image_url, f'the text "{value}"')
         return Grounded(
             text=value or "<empty>",
-            bbox_2d=to_box_2d(boxes[0]) if boxes else [0, 0, 0, 0],
+            bbox_2d=locate(client, image_url, value) or [0, 0, 0, 0],
         )
     if isinstance(value, list):
-        return [ground_values(client, image_url, item) for item in value]
-    return {name: ground_values(client, image_url, item) for name, item in value}
+        return [ground_values(client, image_url, item, locate) for item in value]
+    return {
+        name: ground_values(client, image_url, item, locate) for name, item in value
+    }
 
 
 def detect_fields(client: OpenAI, image_url: str, schema: type[BaseModel]) -> BaseModel:
