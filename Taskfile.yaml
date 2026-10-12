@@ -27,6 +27,7 @@ tasks:
           - "vidore/vidore_v3_physics"
           - "vidore/vidore_v3_finance_fr"
           - "allenai/olmOCR-bench"
+          - "llamaindex/ExtractBench"
         cmd: hf download --type dataset --local-dir datasets/{{ .ITEM | quote }} {{ .ITEM | quote }}
 
   download-models:
@@ -34,7 +35,7 @@ tasks:
     vars:
       # The embed worker pins its FlashAttention 2 kernel in kernels.lock (`kernels lock .`)
       FLASH_ATTN_REVISION:
-        sh: yq --input-format json --output-format yaml '.[] | select(.dependency.repo-id == "kernels-community/flash-attn2") | .lock.commit' src/python/apps/embed/kernels.lock
+        sh: yq --input-format json --output-format yaml '.[] | select(.dependency.repo-id == "kernels-community/flash-attn2") | .lock.commit' squint/python/apps/embed/kernels.lock
     cmds:
       - hf download --local-dir models/NeoMME-260M-Retriever Hcompany/NeoMME-260M-Retriever
       - hf download --local-dir models/Qwen3-VL-4B-Instruct Qwen/Qwen3-VL-4B-Instruct
@@ -47,6 +48,15 @@ tasks:
       - test -d models/NeoMME-260M-Retriever
       - test -d models/Qwen3-VL-4B-Instruct
       - test -d models/kernels/flash-attn2
+
+  venvs:
+    desc: (Re)create every Python project's .venv with uv
+    vars:
+      PROJECTS:
+        sh: find squint/python -name pyproject.toml -not -path '*/.venv/*' -printf '%h\n'
+    cmds:
+      - for: { var: PROJECTS }
+        cmd: rm -rf {{.ITEM}}/.venv && uv sync --directory {{.ITEM}}
 
   gpu-usage:
     desc: Show where local GPU memory is allocated

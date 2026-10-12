@@ -12,11 +12,11 @@
             },
             "pathMappings": [
                 {
-                    "localRoot": "${workspaceFolder}/src/python/apps/ingest",
+                    "localRoot": "${workspaceFolder}/squint/python/apps/ingest",
                     "remoteRoot": "/app/apps/ingest"
                 },
                 {
-                    "localRoot": "${workspaceFolder}/src/python/packages",
+                    "localRoot": "${workspaceFolder}/squint/python/packages",
                     "remoteRoot": "/app/packages"
                 }
             ],
@@ -32,11 +32,11 @@
             },
             "pathMappings": [
                 {
-                    "localRoot": "${workspaceFolder}/src/python/apps/embed",
+                    "localRoot": "${workspaceFolder}/squint/python/apps/embed",
                     "remoteRoot": "/app/apps/embed"
                 },
                 {
-                    "localRoot": "${workspaceFolder}/src/python/packages",
+                    "localRoot": "${workspaceFolder}/squint/python/packages",
                     "remoteRoot": "/app/packages"
                 }
             ],
@@ -52,11 +52,11 @@
             },
             "pathMappings": [
                 {
-                    "localRoot": "${workspaceFolder}/src/python/apps/extract",
+                    "localRoot": "${workspaceFolder}/squint/python/apps/extract",
                     "remoteRoot": "/app/apps/extract"
                 },
                 {
-                    "localRoot": "${workspaceFolder}/src/python/packages",
+                    "localRoot": "${workspaceFolder}/squint/python/packages",
                     "remoteRoot": "/app/packages"
                 }
             ],

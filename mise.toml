@@ -35,4 +35,6 @@ kind = "latest"
 
 [env]
 PROJECT_ROOT = "{{config_root}}"
+# Keep in sync with tools.python; uv otherwise picks the newest managed Python
+UV_PYTHON = "3.14.4"
 

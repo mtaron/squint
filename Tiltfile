@@ -10,7 +10,7 @@ if k8s_context() != 'kind-squint':
     fail('expected kubectl context kind-squint, got %s' % k8s_context())
 
 NAMESPACE = 'squint'
-PYTHON_SRC = 'src/python'
+PYTHON_SRC = 'squint/python'
 
 # Workers run under debugpy on this port in the pod
 DEBUG_PORT = 5678

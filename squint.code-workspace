@@ -7,19 +7,19 @@
 			"path": "scratch"
 		},
 		{
-			"path": "src/python/apps/ingest"
+			"path": "squint/python/apps/ingest"
 		},
 		{
-			"path": "src/python/apps/embed"
+			"path": "squint/python/apps/embed"
 		},
 		{
-			"path": "src/python/apps/extract"
+			"path": "squint/python/apps/extract"
 		},
 		{
-			"path": "src/python/packages/squint-core"
+			"path": "squint/python/packages/squint-core"
 		},
 		{
-			"path": "src/python/packages/squint-vector"
+			"path": "squint/python/packages/squint-vector"
 		}
 	],
 	"settings": {
