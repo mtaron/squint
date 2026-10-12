@@ -140,6 +140,13 @@ boxes the values it extracts.
     - Boxing an exact string fitted 2 of the 4 author names tightly.
     - The table cells came out worse than with the Qwen-style extraction prompt (0/3 on
       target).
+  - Schema shape instead of hints (`lfm3b_schema.py`), with generic descriptions:
+    - **Authors as `{first, last}`:** it put the whole name in `first` and a piece of the
+      affiliation in `last` (`"UDAYAN DAS"` / `"DA"`, `"CHRIS MAYFIELD"` / `"UNIVERSITY"`),
+      splitting the line at its comma rather than the name.
+    - **Nested citations `{title, year}`:** titles stayed whole citations (0/24 and 0/19 exact).
+    - Both prompt styles behaved the same. GLM-OCR's `{name, affiliation}` worked because the
+      keys named both halves of the line; `{first, last}` names two halves of the name instead.
 - Serving: the 0.9 and 3.2 GB models fit in 0.3 of the GPU; the 3B needs 0.5. Small models need vLLM's
   `--structured-outputs-config '{"backend": "xgrammar", "disable_any_whitespace": true}'`,
   or schema-enforced output can run to the token limit in whitespace.
