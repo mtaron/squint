@@ -65,13 +65,12 @@ for app, worker in WORKERS.items():
     image = 'squint-' + app
     app_src = PYTHON_SRC + '/apps/' + app
 
-    # The debug target installs the local packages editable from /app/packages, so
-    # syncing source and restarting the process picks up edits without a rebuild
+    # The local packages are installed editable from /app/packages, so syncing
+    # source and restarting the process picks up edits without a rebuild
     docker_build_with_restart(
         image,
         PYTHON_SRC,
         dockerfile=PYTHON_SRC + '/Dockerfile',
-        target='debug',
         build_args=dict({'APP': app}, **worker.get('build_args', {})),
         only=['apps/' + app, 'packages'],
         # Frozen stdlib modules can make debugpy miss breakpoints

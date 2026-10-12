@@ -37,6 +37,8 @@ tasks:
       - sudo install -D --mode 644 {{.CERT_DIR}}/rootCA.pem /etc/docker/certs.d/{{.REGISTRY_HOST}}/ca.crt
     status:
       - test -f {{.CERT_DIR}}/rootCA.pem
+      - test -f {{.CERT_DIR}}/dev.pem
+      - test -f {{.CERT_DIR}}/dev-key.pem
     silent: true
 
   lb-dev-cluster:

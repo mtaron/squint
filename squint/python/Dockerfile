@@ -10,7 +10,7 @@ RUN apt-get update \
     && apt-get install --yes --no-install-recommends python3.14 ${EXTRA_PACKAGES} \
     && rm -rf /var/lib/apt/lists/*
 
-FROM base AS builder
+FROM base AS venv
 
 ARG APP
 
@@ -26,21 +26,10 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
 COPY apps/${APP}/pyproject.toml apps/${APP}/uv.lock /app/apps/${APP}/
 COPY packages /app/packages
 
-FROM builder AS venv-release
-
-ARG APP
-
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --project /app/apps/${APP} --frozen --no-dev --no-editable
-
-FROM builder AS venv-debug
-
-ARG APP
-
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --project /app/apps/${APP} --frozen --no-dev
 
-FROM base AS runtime
+FROM base
 
 ARG APP
 
@@ -49,22 +38,13 @@ ENV PATH=/opt/venv/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     HF_HUB_OFFLINE=1
 
+# The local packages are installed editable, so the venv links to the source under /app/packages.
+# Owned by ubuntu so Tilt can live update the source in place.
+COPY --from=venv /opt/venv /opt/venv
+COPY --chown=ubuntu:ubuntu packages /app/packages
+COPY --chown=ubuntu:ubuntu apps/${APP} /app/apps/${APP}
+
 USER ubuntu
 WORKDIR /app/apps/${APP}
 
 ENTRYPOINT ["python", "main.py"]
-
-FROM runtime AS debug
-
-ARG APP
-
-COPY --from=venv-debug /opt/venv /opt/venv
-COPY --chown=ubuntu:ubuntu packages /app/packages
-COPY --chown=ubuntu:ubuntu apps/${APP} /app/apps/${APP}
-
-FROM runtime AS release
-
-ARG APP
-
-COPY --from=venv-release /opt/venv /opt/venv
-COPY apps/${APP} /app/apps/${APP}

@@ -9,6 +9,8 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 CLUSTER_NAME="${CLUSTER_NAME:-squint}"
+REGISTRY_NAME="${REGISTRY_NAME:-kind-registry}"
+CERT_DIR="${CERT_DIR:-$(cd ../.. && pwd)/.certs}"
 
 # Start the registry on https://registry.localhost if it isn't already running
 if [[ "$(docker inspect --format '{{.State.Running}}' "${REGISTRY_NAME}" 2>/dev/null || true)" != true ]]; then
