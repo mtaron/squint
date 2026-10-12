@@ -1,0 +1,3 @@
+BASE_IMAGE: nvidia/cuda:13.4.2-base-ubuntu26.04
+# torch.compile's Triton kernels are built with a C compiler against the Python headers
+EXTRA_PACKAGES: gcc libc6-dev python3.14-dev

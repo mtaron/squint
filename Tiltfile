@@ -20,14 +20,7 @@ WORKERS = {
         'debug_port': 5678,
     },
     'embed': {
-        'build_args': {
-            'BASE_IMAGE': 'nvidia/cuda:13.4.2-base-ubuntu26.04',
-            # torch.compile's Triton kernels are built with a C compiler against the Python headers
-            'EXTRA_PACKAGES': 'gcc libc6-dev python3.14-dev',
-        },
         'values': [
-            'milvus.enabled=true',
-            'gpu=1',
             # Mounted at /mnt/models; `task download-models` fills it with the model and kernels
             'models.hostPath=/mnt/models',
             'env.MODEL_PATH=/mnt/models/NeoMME-260M-Retriever',
@@ -37,7 +30,6 @@ WORKERS = {
         'debug_port': 5679,
     },
     'extract': {
-        'values': ['milvus.enabled=true'],
         'debug_port': 5680,
     },
 }
@@ -64,6 +56,9 @@ COPY --from=build /debugpy /
 for app, worker in WORKERS.items():
     image = 'squint-' + app
     app_src = PYTHON_SRC + '/apps/' + app
+    deploy_dir = app_src + '/deploy'
+    values_file = deploy_dir + '/values.yaml'
+    build_args = read_yaml(deploy_dir + '/build-args.yaml', default={})
 
     # The local packages are installed editable from /app/packages, so syncing
     # source and restarting the process picks up edits without a rebuild
@@ -71,8 +66,9 @@ for app, worker in WORKERS.items():
         image,
         PYTHON_SRC,
         dockerfile=PYTHON_SRC + '/Dockerfile',
-        build_args=dict({'APP': app}, **worker.get('build_args', {})),
+        build_args=dict({'APP': app}, **build_args),
         only=['apps/' + app, 'packages'],
+        ignore=['apps/' + app + '/deploy'],
         # Frozen stdlib modules can make debugpy miss breakpoints
         entrypoint=['python', '-Xfrozen_modules=off', '-m', 'debugpy', '--listen', '0.0.0.0:%d' % DEBUG_PORT, 'main.py'],
         live_update=[
@@ -86,6 +82,7 @@ for app, worker in WORKERS.items():
         'infrastructure/squint-worker',
         name=app,
         namespace=NAMESPACE,
+        values=[values_file] if os.path.exists(values_file) else [],
         set=['image=' + image, 'debug=true'] + worker.get('values', []),
     ))
 
