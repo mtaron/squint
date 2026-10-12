@@ -3,6 +3,10 @@
     "temporal-docs": {
       "type": "http",
       "url": "https://temporal.mcp.kapa.ai"
+    },
+    "better-auth": {
+      "type": "http",
+      "url": "https://mcp.better-auth.com/mcp"
     }
   }
 }

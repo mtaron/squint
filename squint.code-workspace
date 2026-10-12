@@ -16,6 +16,9 @@
 			"path": "squint/python/apps/extract"
 		},
 		{
+			"path": "squint/javascript/ui"
+		},
+		{
 			"path": "squint/python/packages/squint-core"
 		},
 		{
@@ -52,7 +55,8 @@
 			"charliermarsh.ruff",
 			"task.vscode-task",
 			"astral-sh.ty",
-			"tilt-dev.Tiltfile"
+			"tilt-dev.Tiltfile",
+			"svelte.svelte-vscode"
 		]
 	}
 }
