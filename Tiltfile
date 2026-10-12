@@ -1,5 +1,5 @@
 # -*- mode: Python -*-
-# Builds and deploys the squint workers to the kind dev cluster.
+# Builds and deploys the squint workers and UI to the kind dev cluster.
 # The platform (Temporal, Milvus, ...) is deployed separately by `task create-dev-cluster`.
 # Images are pushed to the registry advertised by the cluster's local-registry-hosting ConfigMap.
 
@@ -11,6 +11,7 @@ if k8s_context() != 'kind-squint':
 
 NAMESPACE = 'squint'
 PYTHON_SRC = 'squint/python'
+UI_SRC = 'squint/javascript/ui'
 
 # Workers run under debugpy on this port in the pod
 DEBUG_PORT = 5678
@@ -92,3 +93,44 @@ for app, worker in WORKERS.items():
         port_forwards=[port_forward(worker['debug_port'], DEBUG_PORT, name='debugpy')],
         labels=['workers'],
     )
+
+# Same lookup as `task get-dev-lb-ip`; the address is served by `task lb-dev-cluster`
+GATEWAY_IP = str(local(
+    "kubectl get gateway --namespace agentgateway-system agentgateway-proxy -o jsonpath='{.status.addresses[0].value}'",
+    quiet=True,
+)).strip()
+if not GATEWAY_IP:
+    fail('the gateway has no address; run `task lb-dev-cluster`')
+UI_ORIGIN = 'https://' + GATEWAY_IP
+
+# The gateway's HTTPS certificate names its load balancer IP, so it's (re)issued once that IP is known
+local_resource('gateway-cert', cmd='task gateway-cert', labels=['ui'])
+
+# Vite's dev server watches the synced source and hot reloads it. Changes outside src/ and
+# static/ (dependencies, config, migrations) rebuild the image, and the new pod migrates on start.
+docker_build(
+    'squint-ui',
+    UI_SRC,
+    target='dev',
+    live_update=[
+        sync(UI_SRC + '/src', '/app/src'),
+        sync(UI_SRC + '/static', '/app/static'),
+    ],
+)
+
+k8s_yaml(helm(
+    'infrastructure/squint-ui',
+    name='ui',
+    namespace=NAMESPACE,
+    set=['image=squint-ui', 'route.enabled=true', 'env.ORIGIN=' + UI_ORIGIN],
+))
+
+# Attach with the "ui" VS Code launch config
+k8s_resource(
+    'ui',
+    objects=['ui:httproute'],
+    resource_deps=['gateway-cert'],
+    links=[link(UI_ORIGIN, 'squint')],
+    port_forwards=[port_forward(9229, 9229, name='inspector')],
+    labels=['ui'],
+)

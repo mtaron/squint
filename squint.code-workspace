@@ -56,7 +56,8 @@
 			"task.vscode-task",
 			"astral-sh.ty",
 			"tilt-dev.Tiltfile",
-			"svelte.svelte-vscode"
+			"svelte.svelte-vscode",
+			"ms-playwright.playwright"
 		]
 	}
 }

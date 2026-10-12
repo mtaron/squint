@@ -28,6 +28,10 @@ tasks:
     vars:
       # The registry container name is used by containerd inside the kind network
       HOSTS: localhost 127.0.0.1 ::1 {{.REGISTRY_HOST}} {{.REGISTRY_NAME}}
+    preconditions:
+      # Without it mkcert skips the NSS trust stores that Chrome, Chromium and Firefox use
+      - sh: command -v certutil
+        msg: Install the NSS tools first, e.g. `sudo apt install libnss3-tools`
     cmds:
       - mkcert -install
       - mkdir -p {{.CERT_DIR}}
@@ -41,6 +45,27 @@ tasks:
       - test -f {{.CERT_DIR}}/dev-key.pem
     silent: true
 
+  gateway-cert:
+    desc: Serve the gateway's HTTPS listener with a locally trusted certificate for its load balancer IP
+    vars:
+      # The load balancer assigns the IP once the gateway exists, so the certificate can't be made up front
+      GATEWAY_IP:
+        sh: kubectl get gateway --namespace agentgateway-system agentgateway-proxy -o jsonpath='{.status.addresses[0].value}'
+    preconditions:
+      - sh: test -n "{{.GATEWAY_IP}}"
+        msg: The gateway has no address; run `task lb-dev-cluster`
+    cmds:
+      - mkcert -cert-file {{.CERT_DIR}}/gateway.pem -key-file {{.CERT_DIR}}/gateway-key.pem {{.GATEWAY_IP}}
+      - >-
+        kubectl create secret tls gateway-tls --namespace agentgateway-system
+        --cert {{.CERT_DIR}}/gateway.pem --key {{.CERT_DIR}}/gateway-key.pem
+        --dry-run=client --output yaml | kubectl apply --filename -
+    status:
+      - >-
+        kubectl get secret gateway-tls --namespace agentgateway-system -o jsonpath='{.data.tls\.crt}'
+        | base64 -d | openssl x509 -noout -checkip {{.GATEWAY_IP}}
+    silent: true
+
   lb-dev-cluster:
     desc: Run the dev cluster load balancer
     if: "! pgrep --full '(^|/)cloud-provider-kind( |$)'"  # Run only a single instance
@@ -48,7 +73,7 @@ tasks:
 
   get-dev-lb-ip:
     desc: Get the load balancer IP for the dev cluster
-    cmd: kubectl get svc --namespace squint agentgateway-proxy -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}" ; echo
+    cmd: kubectl get gateway --namespace agentgateway-system agentgateway-proxy -o jsonpath='{.status.addresses[0].value}' ; echo
     silent: true
 
   delete-dev-cluster:

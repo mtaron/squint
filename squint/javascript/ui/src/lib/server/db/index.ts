@@ -1,10 +1,20 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
-import { DATABASE_URL } from '$app/env/private';
+import { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } from '$app/env/private';
 
-if (!DATABASE_URL) throw new Error('DATABASE_URL is not set');
+export function connect(options: postgres.Options<{}> = {}) {
+	return postgres({
+		host: PGHOST,
+		port: PGPORT,
+		user: PGUSER,
+		password: PGPASSWORD,
+		database: PGDATABASE,
+		ssl: 'prefer',
+		...options
+	});
+}
 
-const client = postgres(DATABASE_URL);
+export const client = connect();
 
 export const db = drizzle(client, { schema });

@@ -1,0 +1,16 @@
+image: ""
+imagePullPolicy: Always
+replicas: 1
+port: 3000
+# Extra environment variables for the UI, as name: value. ORIGIN must be the URL users browse to.
+env: {}
+
+route:
+  enabled: false
+  gateway:
+    name: agentgateway-proxy
+    namespace: agentgateway-system
+    # Listener to attach to; the gateway redirects its plain HTTP listener to HTTPS
+    sectionName: https
+  # Empty matches every host the gateway listener accepts
+  hostnames: []

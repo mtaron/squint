@@ -28,3 +28,9 @@ if ! secret_exists postgres; then
     --from-literal PGDATABASE="$(secret_value postgres postgres-cluster-app dbname)" \
     --dry-run=client --output yaml | kubectl apply --filename -
 fi
+
+if ! secret_exists ui; then
+  kubectl --namespace squint create secret generic ui \
+    --from-literal BETTER_AUTH_SECRET="$(head -c 32 /dev/urandom | base64)" \
+    --dry-run=client --output yaml | kubectl apply --filename -
+fi

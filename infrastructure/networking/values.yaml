@@ -1,0 +1,3 @@
+# kubernetes.io/tls Secret in this namespace serving the HTTPS listener.
+# Development fills it with `task gateway-cert`.
+tlsSecretName: gateway-tls

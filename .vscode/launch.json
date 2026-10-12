@@ -49,6 +49,16 @@
                 }
             ],
             "redirectOutput": true
+        },
+        {
+            "name": "ui",
+            "type": "node",
+            "request": "attach",
+            "address": "localhost",
+            "port": 9229,
+            "localRoot": "${workspaceFolder}/squint/javascript/ui",
+            "remoteRoot": "/app",
+            "restart": true
         }
     ]
 }
