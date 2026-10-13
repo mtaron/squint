@@ -14,6 +14,28 @@ gpu-operator:
     - toolkit:
         enabled: false
 
+temporal:
+  values:
+    # The chart has no Gateway API route of its own
+    - extraObjects:
+        - |
+          apiVersion: gateway.networking.k8s.io/v1
+          kind: HTTPRoute
+          metadata:
+            name: temporal-web
+            namespace: {{ .Release.Namespace }}
+          spec:
+            parentRefs:
+              - name: agentgateway-proxy
+                namespace: agentgateway-system
+                sectionName: https
+            hostnames:
+              - temporal.squint.loc
+            rules:
+              - backendRefs:
+                  - name: temporal-web
+                    port: 8080
+
 kube-prometheus-stack:
   grafana:
     route:

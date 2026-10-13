@@ -9,7 +9,7 @@ vars:
   REGISTRY_NAME: kind-registry
   REGISTRY_HOST: registry.localhost
   GATEWAY_HOST: squint.loc
-  GATEWAY_HOSTS: "{{.GATEWAY_HOST}} grafana.{{.GATEWAY_HOST}}"
+  GATEWAY_HOSTS: "{{.GATEWAY_HOST}} grafana.{{.GATEWAY_HOST}} temporal.{{.GATEWAY_HOST}}"
 
 tasks:
   create-dev-cluster:
@@ -83,14 +83,6 @@ tasks:
     desc: Delete local development cluster
     cmd: kind delete cluster --name squint
     silent: true
-
-  grafana:
-    desc: Forward Grafana to http://localhost:3000
-    cmd: kubectl port-forward --namespace monitoring svc/kube-prometheus-stack-grafana 3000:80
-
-  temporal-ui:
-    desc: Forward the Temporal UI to http://localhost:8080
-    cmd: kubectl port-forward --namespace temporal svc/temporal-web 8080
 
   vllm:
     desc: Forward the Qwen3-VL vLLM server to http://localhost:8000

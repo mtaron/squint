@@ -217,6 +217,9 @@ releases:
                   sql:
                     <<: *temporalSql
                     databaseName: temporal_visibility
+      {{- with .Values | get "temporal.values" nil }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
 
   # Temporal Worker Controller
   # Manages worker versioning, traffic routing, and progressive rollout
