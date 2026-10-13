@@ -23,10 +23,16 @@ helmDefaults:
   historyMax: 5
 
 releases:
+  # Gateway is the modern Ingress, but shipped out of band
+  # Use `task vendor-crds` to update
+  # https://github.com/kubernetes-sigs/gateway-api
   - name: gateway-api-crds
     namespace: default
     chart: ./gateway-api
 
+  # Node Feature Discovery
+  # Labels nodes with their hardware features, which the GPU operator uses to find GPU nodes
+  # https://github.com/kubernetes-sigs/node-feature-discovery
   - name: node-feature-discovery
     namespace: node-feature-discovery
     createNamespace: true
@@ -39,6 +45,9 @@ releases:
               operator: Exists
               effect: NoSchedule
 
+  # cert-manager
+  # Issues and renews TLS certificates for in-cluster services
+  # https://github.com/cert-manager/cert-manager
   - name: cert-manager
     namespace: cert-manager
     createNamespace: true
@@ -48,12 +57,16 @@ releases:
       - crds:
           enabled: true
 
+  # The self-signed squint CA and the ClusterIssuer that signs service certificates with it
   - name: cluster-issuer
     namespace: cert-manager
     chart: ./cluster-issuer
     needs:
       - cert-manager/cert-manager
 
+  # trust-manager
+  # Distributes the squint CA to namespaces as a trust bundle
+  # https://github.com/cert-manager/trust-manager
   - name: trust-manager
     namespace: cert-manager
     chart: oci://quay.io/jetstack/charts/trust-manager
@@ -64,11 +77,14 @@ releases:
       - defaultPackage:
           enabled: false
 
+  # kube-prometheus-stack
+  # Prometheus, Alertmanager, Grafana, node-exporter and kube-state-metrics with their operator
+  # https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
   - name: kube-prometheus-stack
     namespace: monitoring
     createNamespace: true
     chart: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
-    version: "91.4.1"
+    version: "92.3.1"
     values:
       - prometheus:
           prometheusSpec:
@@ -99,8 +115,21 @@ releases:
           enabled: false
         kubeEtcd:
           enabled: false
+        prometheus-node-exporter:
+          prometheus:
+            monitor:
+              # Power supplies (on kind, the host's peripherals) reuse the model_name label that
+              # the vLLM dashboards list models by
+              metricRelabelings:
+                - sourceLabels: [__name__]
+                  regex: node_power_supply_.*
+                  action: drop
         grafana:
           defaultDashboardsEnabled: true
+          sidecar:
+            dashboards:
+              # Any value, since some charts label dashboards with their name rather than "1"
+              labelValue: ""
           resources:
             requests:
               cpu: 100m
@@ -111,6 +140,17 @@ releases:
       {{- toYaml . | nindent 6 }}
       {{- end }}
 
+  # Dashboards for components whose charts don't ship one, vendored by `task vendor-dashboards`
+  - name: dashboards
+    namespace: monitoring
+    chart: ./dashboards
+    needs:
+      - monitoring/kube-prometheus-stack
+
+  # Prometheus Adapter
+  # Serves Prometheus metrics through the Kubernetes custom metrics API for autoscaling
+  # TODO autoscaling is not hooked up yet
+  # https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-adapter
   - name: prometheus-adapter
     namespace: monitoring
     createNamespace: true
@@ -123,6 +163,9 @@ releases:
           url: http://kube-prometheus-stack-prometheus.monitoring.svc
           port: 9090
 
+  # Milvus Operator
+  # Milvus is a vector database that support late embedding vectors
+  # https://github.com/zilliztech/milvus-operator
   - name: milvus-operator
     namespace: milvus-operator
     createNamespace: true
@@ -133,6 +176,7 @@ releases:
     values:
       - monitoringEnabled: true
 
+  # https://github.com/milvus-io/milvus
   - name: milvus
     namespace: milvus
     createNamespace: true
@@ -146,11 +190,15 @@ releases:
       {{- toYaml . | nindent 6 }}
     {{- end }}
 
+  # CloudNativePG
+  # Operator that runs PostgreSQL clusters
+  # https://github.com/cloudnative-pg/charts
+  # I would probably just use Neon if deploying this for real
   - name: cnpg
     namespace: cnpg-system
     createNamespace: true
     chart: cnpg/cloudnative-pg
-    version: "0.29.0"
+    version: "0.29.1"
     needs:
       - monitoring/kube-prometheus-stack
     values:
@@ -163,7 +211,7 @@ releases:
     namespace: postgres
     createNamespace: true
     chart: cnpg/cluster
-    version: "0.8.1"
+    version: "0.9.0"
     {{- if eq .Environment.Name "development" }}
     hooks:
       - events: ["presync"]
@@ -186,6 +234,9 @@ releases:
               passwordSecret:
                 name: temporal-db-secret
 
+  # Temporal
+  # Workflow engine for durable execution
+  # https://github.com/temporalio/helm-charts
   - name: temporal
     namespace: temporal
     createNamespace: true
@@ -241,6 +292,9 @@ releases:
       - temporal/temporal
       - default/temporal-worker-controller-crds
 
+  # Dragonfly Operator
+  # Redis-compatible cache
+  # https://github.com/dragonflydb/dragonfly-operator
   - name: dragonfly-operator
     namespace: dragonfly-operator
     createNamespace: true
@@ -254,6 +308,7 @@ releases:
       - grafanaDashboard:
           enabled: true
 
+  # https://github.com/dragonflydb/dragonfly
   - name: dragonfly
     namespace: dragonfly
     createNamespace: true
@@ -262,6 +317,9 @@ releases:
       - cert-manager/cluster-issuer
       - dragonfly-operator/dragonfly-operator
 
+  # NVIDIA GPU Operator
+  # Device plugin, GPU feature discovery and DCGM metrics for GPU nodes
+  # https://github.com/NVIDIA/gpu-operator
   - name: gpu-operator
     namespace: gpu-operator
     createNamespace: true
@@ -273,6 +331,12 @@ releases:
     values:
       - nfd:
           enabled: false
+      - dcgmExporter:
+          serviceMonitor:
+            relabelings:
+              # Name GPUs by node rather than by the exporter pod's address
+              - sourceLabels: [__meta_kubernetes_pod_node_name]
+                targetLabel: instance
       {{- $gpuReplicas := .Values | get "gpu-operator.timeSlicing.replicas" 1 | int }}
       {{- if gt $gpuReplicas 1 }}
       # Time-slicing has no memory isolation; size GPU workloads to fit together
@@ -295,6 +359,10 @@ releases:
       {{- toYaml . | nindent 6 }}
       {{- end }}
 
+  # vLLM production stack
+  # Serves Qwen3-VL for extraction; the vLLM image tag is in modelSpec below
+  # https://github.com/vllm-project/production-stack
+  # https://github.com/vllm-project/vllm
   - name: qwen3-vl
     namespace: vllm
     createNamespace: true
@@ -363,16 +431,19 @@ releases:
       - grafanaDashboards:
           enabled: true
 
+  # agentgateway
+  # Gateway API implementation
+  # https://github.com/agentgateway/agentgateway
   - name: agentgateway-crds
     namespace: agentgateway-system
     createNamespace: true
     chart: oci://cr.agentgateway.dev/charts/agentgateway-crds
-    version: "v1.5.0"
+    version: "v1.6.0"
 
   - name: agentgateway
     namespace: agentgateway-system
     chart: oci://cr.agentgateway.dev/charts/agentgateway
-    version: "v1.5.0"
+    version: "v1.6.0"
     needs:
       - default/gateway-api-crds
       - agentgateway-system/agentgateway-crds
@@ -387,6 +458,9 @@ releases:
     needs:
       - agentgateway-system/agentgateway
 
+  # Versity S3 Gateway
+  # S3-compatible object storage on a local volume, standing in for S3 in development
+  # https://github.com/versity/versitygw
   - name: versitygw
     namespace: versitygw
     installed: {{ eq .Environment.Name "development" | toYaml }}
@@ -421,6 +495,7 @@ releases:
             kind: ClusterIssuer
             name: squint-ca
 
+  # Cluster configuration and secrets for squint services
   - name: squint
     namespace: squint
     createNamespace: true

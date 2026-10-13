@@ -6,6 +6,7 @@ metadata:
   labels:
     app: dragonfly
 spec:
+  image: docker.dragonflydb.io/dragonflydb/dragonfly:v2.0.2
   replicas: 2
   tlsSecretRef:
     name: dragonfly-tls

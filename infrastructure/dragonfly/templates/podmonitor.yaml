@@ -1,0 +1,16 @@
+# The operator's ServiceMonitor only covers the operator itself
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: squint
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: squint
+      app.kubernetes.io/name: dragonfly
+  # The Dragonfly dashboard selects instances by app
+  podTargetLabels:
+    - app
+  podMetricsEndpoints:
+    - port: admin

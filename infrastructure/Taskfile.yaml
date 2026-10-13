@@ -3,7 +3,8 @@
 version: "3"
 
 vars:
-  GATEWAY_API_VERSION: "1.6.2"
+  # https://github.com/kubernetes-sigs/gateway-api/releases
+  GATEWAY_API_VERSION: "1.6.3"
   ENVIRONMENT: '{{default "development" .ENVIRONMENT}}'
   CERT_DIR: "{{.PROJECT_ROOT}}/.certs"
   REGISTRY_NAME: kind-registry
@@ -97,6 +98,25 @@ tasks:
       # gateway-api
       - curl --show-error --silent --fail --location https://github.com/kubernetes-sigs/gateway-api/releases/download/v{{.GATEWAY_API_VERSION}}/standard-install.yaml --output ./gateway-api/templates/crds.yaml
       - yq '.version = {{.GATEWAY_API_VERSION | quote}}' --inplace ./gateway-api/Chart.yaml
+
+  vendor-dashboards:
+    desc: Download vendored Grafana dashboards
+    silent: true
+    vars:
+      # https://github.com/NVIDIA/dcgm-exporter/releases
+      DCGM_EXPORTER_VERSION: "4.8.4"
+      # https://github.com/milvus-io/milvus/releases; keep in step with ./milvus/templates/milvus.yaml
+      MILVUS_VERSION: "v3.0.2"
+      # https://github.com/temporalio/dashboards/commits/main, since the repo has no releases
+      TEMPORAL_DASHBOARDS_COMMIT: 4994df2cf98a901ec78217c111eda95ff087480d
+    cmds:
+      - curl --show-error --silent --fail --location https://raw.githubusercontent.com/NVIDIA/dcgm-exporter/{{.DCGM_EXPORTER_VERSION}}/grafana/dcgm-exporter-dashboard.json --output ./dashboards/files/dcgm-exporter.json
+      - curl --show-error --silent --fail --location https://raw.githubusercontent.com/temporalio/dashboards/{{.TEMPORAL_DASHBOARDS_COMMIT}}/server/server-general.json --output ./dashboards/files/temporal-server.json
+      # Some Milvus panels name the upstream author's Prometheus datasource rather than the dashboard's variable
+      - >-
+        curl --show-error --silent --fail --location https://raw.githubusercontent.com/milvus-io/milvus/{{.MILVUS_VERSION}}/deployments/monitor/grafana/milvus-dashboard.json
+        | jq 'walk(if type == "object" and .datasource.type? == "prometheus" then .datasource.uid = "${datasource}" else . end)'
+        > ./dashboards/files/milvus.json
 
   deploy:
     desc: Apply the helmfile

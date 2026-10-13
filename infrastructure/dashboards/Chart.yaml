@@ -1,0 +1,5 @@
+apiVersion: v2
+name: dashboards
+description: Grafana dashboards for components whose charts don't ship one
+type: application
+version: 0.1.0
