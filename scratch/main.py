@@ -7,8 +7,6 @@ import numpy as np
 import pypdfium2 as pdfium
 import requests
 import torch
-from lightkube import Client
-from lightkube.resources.core_v1 import Service
 from pymilvus import MilvusClient
 from sentence_transformers.util import cos_sim, mean_maxsim
 from transformers import BatchFeature, NeoMMEForRetrieval, NeoMMEProcessor
@@ -76,21 +74,8 @@ def rasterize_pdf(
             yield page.render(scale=scale, crop=crop, rev_byteorder=True).to_numpy()
 
 
-def gateway_address() -> str | None:
-    """Load balancer address of the gateway proxy, or None if not assigned yet."""
-    svc = Client().get(Service, "agentgateway-proxy", namespace="squint")
-    ingress = svc.status.loadBalancer.ingress
-    if not ingress:
-        return None
-    return ingress[0].hostname or ingress[0].ip
-
-
 def check_milvus():
-    address = gateway_address()
-    if address is None:
-        print("Gateway has no load balancer address; run `task lb-dev-cluster`")
-        return
-    uri = f"http://{address}:{MILVUS_PORT}"
+    uri = f"http://squint.loc:{MILVUS_PORT}"
     client = MilvusClient(uri=uri)
     print(f"Connected to {uri}, server version {client.get_server_version()}")
     print(f"Databases: {client.list_databases()}")

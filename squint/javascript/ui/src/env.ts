@@ -28,7 +28,7 @@ export const variables = defineEnvVars({
 		schema: url
 	},
 	ORIGIN: {
-		description: 'The app origin (base URL), e.g. `http://172.18.0.5`.',
+		description: 'The app origin (base URL), e.g. `https://squint.loc`.',
 		schema: url
 	},
 	BETTER_AUTH_SECRET: {

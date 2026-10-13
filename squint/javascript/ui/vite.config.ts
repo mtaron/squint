@@ -17,6 +17,9 @@ export default defineConfig({
 			experimental: { remoteFunctions: true }
 		})
 	],
+	server: {
+		allowedHosts: process.env.ORIGIN ? [new URL(process.env.ORIGIN).hostname] : []
+	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

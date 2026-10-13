@@ -94,16 +94,9 @@ for app, worker in WORKERS.items():
         labels=['workers'],
     )
 
-# Same lookup as `task get-dev-lb-ip`; the address is served by `task lb-dev-cluster`
-GATEWAY_IP = str(local(
-    "kubectl get gateway --namespace agentgateway-system agentgateway-proxy -o jsonpath='{.status.addresses[0].value}'",
-    quiet=True,
-)).strip()
-if not GATEWAY_IP:
-    fail('the gateway has no address; run `task lb-dev-cluster`')
-UI_ORIGIN = 'https://' + GATEWAY_IP
+# `task dev-hosts` points squint.loc at the gateway's load balancer IP
+UI_ORIGIN = 'https://squint.loc'
 
-# The gateway's HTTPS certificate names its load balancer IP, so it's (re)issued once that IP is known
 local_resource('gateway-cert', cmd='task gateway-cert', labels=['ui'])
 
 # Vite's dev server watches the synced source and hot reloads it. Changes outside src/ and

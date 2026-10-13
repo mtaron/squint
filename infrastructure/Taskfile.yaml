@@ -8,6 +8,7 @@ vars:
   CERT_DIR: "{{.PROJECT_ROOT}}/.certs"
   REGISTRY_NAME: kind-registry
   REGISTRY_HOST: registry.localhost
+  GATEWAY_HOST: squint.loc
 
 tasks:
   create-dev-cluster:
@@ -33,6 +34,8 @@ tasks:
       - sh: command -v certutil
         msg: Install the NSS tools first, e.g. `sudo apt install libnss3-tools`
     cmds:
+      # Chromium-based browsers only create their NSS store on first use, and mkcert skips a missing one
+      - test -d ~/.pki/nssdb || (mkdir -p ~/.pki/nssdb && certutil -d sql:$HOME/.pki/nssdb -N --empty-password)
       - mkcert -install
       - mkdir -p {{.CERT_DIR}}
       - cp "$(mkcert -CAROOT)/rootCA.pem" {{.CERT_DIR}}/rootCA.pem
@@ -43,19 +46,13 @@ tasks:
       - test -f {{.CERT_DIR}}/rootCA.pem
       - test -f {{.CERT_DIR}}/dev.pem
       - test -f {{.CERT_DIR}}/dev-key.pem
+      - test -d ~/.pki/nssdb
     silent: true
 
   gateway-cert:
-    desc: Serve the gateway's HTTPS listener with a locally trusted certificate for its load balancer IP
-    vars:
-      # The load balancer assigns the IP once the gateway exists, so the certificate can't be made up front
-      GATEWAY_IP:
-        sh: kubectl get gateway --namespace agentgateway-system agentgateway-proxy -o jsonpath='{.status.addresses[0].value}'
-    preconditions:
-      - sh: test -n "{{.GATEWAY_IP}}"
-        msg: The gateway has no address; run `task lb-dev-cluster`
+    desc: Serve the gateway's HTTPS listener with a locally trusted certificate for {{.GATEWAY_HOST}}
     cmds:
-      - mkcert -cert-file {{.CERT_DIR}}/gateway.pem -key-file {{.CERT_DIR}}/gateway-key.pem {{.GATEWAY_IP}}
+      - mkcert -cert-file {{.CERT_DIR}}/gateway.pem -key-file {{.CERT_DIR}}/gateway-key.pem {{.GATEWAY_HOST}}
       - >-
         kubectl create secret tls gateway-tls --namespace agentgateway-system
         --cert {{.CERT_DIR}}/gateway.pem --key {{.CERT_DIR}}/gateway-key.pem
@@ -63,7 +60,7 @@ tasks:
     status:
       - >-
         kubectl get secret gateway-tls --namespace agentgateway-system -o jsonpath='{.data.tls\.crt}'
-        | base64 -d | openssl x509 -noout -checkip {{.GATEWAY_IP}}
+        | base64 -d | openssl x509 -noout -checkhost {{.GATEWAY_HOST}}
     silent: true
 
   lb-dev-cluster:
@@ -71,9 +68,17 @@ tasks:
     if: "! pgrep --full '(^|/)cloud-provider-kind( |$)'"  # Run only a single instance
     cmd: cloud-provider-kind --gateway-channel disabled # Gateway API CRDs are installed manually
 
-  get-dev-lb-ip:
-    desc: Get the load balancer IP for the dev cluster
-    cmd: kubectl get gateway --namespace agentgateway-system agentgateway-proxy -o jsonpath='{.status.addresses[0].value}' ; echo
+  dev-hosts:
+    desc: Point {{.GATEWAY_HOST}} at the dev cluster load balancer with a hostctl profile
+    vars:
+      GATEWAY_IP:
+        sh: kubectl get gateway --namespace agentgateway-system agentgateway-proxy -o jsonpath='{.status.addresses[0].value}' ; echo
+    preconditions:
+      - sh: test -n "{{.GATEWAY_IP}}"
+        msg: The gateway has no address; run `task lb-dev-cluster`
+    cmd: echo "{{.GATEWAY_IP}} {{.GATEWAY_HOST}}" | sudo "$(command -v hostctl)" replace squint --quiet
+    status:
+      - test "$(hostctl list squint --out json |  jq --raw-output '.[].IP')" = "{{.GATEWAY_IP}}"
     silent: true
 
   delete-dev-cluster:
