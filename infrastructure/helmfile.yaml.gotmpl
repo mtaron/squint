@@ -141,6 +141,10 @@ releases:
     needs:
       - cert-manager/cluster-issuer
       - milvus-operator/milvus-operator
+    {{- with .Values | get "milvus.values" nil }}
+    values:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
 
   - name: cnpg
     namespace: cnpg-system

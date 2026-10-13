@@ -9,7 +9,7 @@ vars:
   REGISTRY_NAME: kind-registry
   REGISTRY_HOST: registry.localhost
   GATEWAY_HOST: squint.loc
-  GATEWAY_HOSTS: "{{.GATEWAY_HOST}} grafana.{{.GATEWAY_HOST}} temporal.{{.GATEWAY_HOST}}"
+  GATEWAY_HOSTS: "{{.GATEWAY_HOST}} grafana.{{.GATEWAY_HOST}} temporal.{{.GATEWAY_HOST}} milvus.{{.GATEWAY_HOST}}"
 
 tasks:
   create-dev-cluster:

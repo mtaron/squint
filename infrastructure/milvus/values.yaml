@@ -5,3 +5,12 @@ objectStorage:
     bucketName: ""
     secretRef: ""
     useSSL: false
+
+# Gateway API route to the WebUI and its management API
+route:
+  enabled: false
+  gateway:
+    name: agentgateway-proxy
+    namespace: agentgateway-system
+    sectionName: https
+  hostnames: []

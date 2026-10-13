@@ -14,6 +14,13 @@ gpu-operator:
     - toolkit:
         enabled: false
 
+milvus:
+  values:
+    - route:
+        enabled: true
+        hostnames:
+          - milvus.squint.loc
+
 temporal:
   values:
     # The chart has no Gateway API route of its own
