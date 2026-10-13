@@ -9,7 +9,6 @@ vars:
   REGISTRY_NAME: kind-registry
   REGISTRY_HOST: registry.localhost
   GATEWAY_HOST: squint.loc
-  GATEWAY_HOSTS: "{{.GATEWAY_HOST}} grafana.{{.GATEWAY_HOST}} temporal.{{.GATEWAY_HOST}} milvus.{{.GATEWAY_HOST}}"
 
 tasks:
   create-dev-cluster:
@@ -73,10 +72,13 @@ tasks:
     vars:
       GATEWAY_IP:
         sh: kubectl get gateway --namespace agentgateway-system agentgateway-proxy -o jsonpath='{.status.addresses[0].value}' ; echo
+      # The UI's route matches every host, so only subdomains are listed on routes
+      ROUTE_HOSTNAMES:
+        sh: kubectl get httproute --all-namespaces -o jsonpath='{.items[*].spec.hostnames[*]}'
     preconditions:
       - sh: test -n "{{.GATEWAY_IP}}"
         msg: The gateway has no address; run `task lb-dev-cluster`
-    cmd: printf '{{.GATEWAY_IP}} %s\n' {{.GATEWAY_HOSTS}} | sudo "$(command -v hostctl)" replace squint --quiet
+    cmd: printf '{{.GATEWAY_IP}} %s\n' {{.GATEWAY_HOST}} {{.ROUTE_HOSTNAMES}} | sudo "$(command -v hostctl)" replace squint --quiet
     silent: true
 
   delete-dev-cluster:

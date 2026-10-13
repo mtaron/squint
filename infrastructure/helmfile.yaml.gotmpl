@@ -107,9 +107,9 @@ releases:
               memory: 128Mi
             limits:
               memory: 512Mi
-          {{- with .Values | get "kube-prometheus-stack.grafana" nil }}
-          {{- toYaml . | nindent 10 }}
-          {{- end }}
+      {{- with .Values | get "kube-prometheus-stack.values" nil }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
 
   - name: prometheus-adapter
     namespace: monitoring
