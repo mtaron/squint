@@ -9,6 +9,7 @@ vars:
   REGISTRY_NAME: kind-registry
   REGISTRY_HOST: registry.localhost
   GATEWAY_HOST: squint.loc
+  GATEWAY_HOSTS: "{{.GATEWAY_HOST}} grafana.{{.GATEWAY_HOST}}"
 
 tasks:
   create-dev-cluster:
@@ -50,17 +51,16 @@ tasks:
     silent: true
 
   gateway-cert:
-    desc: Serve the gateway's HTTPS listener with a locally trusted certificate for {{.GATEWAY_HOST}}
+    desc: Serve the gateway's HTTPS listener with a locally trusted certificate for {{.GATEWAY_HOST}} and its subdomains
     cmds:
-      - mkcert -cert-file {{.CERT_DIR}}/gateway.pem -key-file {{.CERT_DIR}}/gateway-key.pem {{.GATEWAY_HOST}}
+      - mkcert -cert-file {{.CERT_DIR}}/gateway.pem -key-file {{.CERT_DIR}}/gateway-key.pem {{.GATEWAY_HOST}} '*.{{.GATEWAY_HOST}}'
       - >-
         kubectl create secret tls gateway-tls --namespace agentgateway-system
         --cert {{.CERT_DIR}}/gateway.pem --key {{.CERT_DIR}}/gateway-key.pem
         --dry-run=client --output yaml | kubectl apply --filename -
     status:
-      - >-
-        kubectl get secret gateway-tls --namespace agentgateway-system -o jsonpath='{.data.tls\.crt}'
-        | base64 -d | openssl x509 -noout -checkhost {{.GATEWAY_HOST}}
+      - test -f {{.CERT_DIR}}/gateway.pem
+      - kubectl get secret gateway-tls --namespace agentgateway-system
     silent: true
 
   lb-dev-cluster:
@@ -69,16 +69,14 @@ tasks:
     cmd: cloud-provider-kind --gateway-channel disabled # Gateway API CRDs are installed manually
 
   dev-hosts:
-    desc: Point {{.GATEWAY_HOST}} at the dev cluster load balancer with a hostctl profile
+    desc: Point {{.GATEWAY_HOST}} and its subdomains at the dev cluster load balancer with a hostctl profile
     vars:
       GATEWAY_IP:
         sh: kubectl get gateway --namespace agentgateway-system agentgateway-proxy -o jsonpath='{.status.addresses[0].value}' ; echo
     preconditions:
       - sh: test -n "{{.GATEWAY_IP}}"
         msg: The gateway has no address; run `task lb-dev-cluster`
-    cmd: echo "{{.GATEWAY_IP}} {{.GATEWAY_HOST}}" | sudo "$(command -v hostctl)" replace squint --quiet
-    status:
-      - test "$(hostctl list squint --out json |  jq --raw-output '.[].IP')" = "{{.GATEWAY_IP}}"
+    cmd: printf '{{.GATEWAY_IP}} %s\n' {{.GATEWAY_HOSTS}} | sudo "$(command -v hostctl)" replace squint --quiet
     silent: true
 
   delete-dev-cluster:

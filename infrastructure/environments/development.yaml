@@ -16,7 +16,18 @@ gpu-operator:
 
 kube-prometheus-stack:
   grafana:
+    route:
+      main:
+        enabled: true
+        hostnames:
+          - grafana.squint.loc
+        parentRefs:
+          - name: agentgateway-proxy
+            namespace: agentgateway-system
+            sectionName: https
     grafana.ini:
+      server:
+        root_url: https://grafana.squint.loc
       auth:
         disable_login_form: true
       auth.anonymous:
