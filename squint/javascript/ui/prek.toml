@@ -1,0 +1,25 @@
+#:schema https://www.schemastore.org/prek.json
+
+# Runs from this directory so pnpm resolves oxlint and oxfmt from pnpm-lock.yaml
+[[repos]]
+repo = "local"
+hooks = [
+  { id = "oxlint", name = "oxlint", language = "system", entry = "mise exec -- pnpm exec oxlint --fix", types_or = [
+    "javascript",
+    "jsx",
+    "ts",
+    "tsx",
+    "svelte",
+  ] },
+  { id = "oxfmt", name = "oxfmt", language = "system", entry = "mise exec -- pnpm exec oxfmt", types_or = [
+    "javascript",
+    "jsx",
+    "ts",
+    "tsx",
+    "svelte",
+    "json",
+    "css",
+    "markdown",
+    "yaml",
+  ] },
+]
