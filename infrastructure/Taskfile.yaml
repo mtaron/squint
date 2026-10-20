@@ -13,7 +13,7 @@ vars:
 
 tasks:
   create-dev-cluster:
-    desc: Create local development cluster. This should take about twelve minutes.
+    desc: Create local development cluster
     cmds:
       - task: install-local-certs
       - ./kind/create.sh
@@ -25,13 +25,16 @@ tasks:
     status:
       - kind get kubeconfig --name squint
 
+  delete-dev-cluster:
+    desc: Delete local development cluster
+    cmd: kind delete cluster --name squint
+    silent: true
+
   install-local-certs:
     desc: Install the mkcert CA and generate a locally trusted dev certificate
     vars:
-      # The registry container name is used by containerd inside the kind network
       HOSTS: localhost 127.0.0.1 ::1 {{.REGISTRY_HOST}} {{.REGISTRY_NAME}}
     preconditions:
-      # Without it mkcert skips the NSS trust stores that Chrome, Chromium and Firefox use
       - sh: command -v certutil
         msg: Install the NSS tools first, e.g. `sudo apt install libnss3-tools`
     cmds:
@@ -62,6 +65,7 @@ tasks:
       - test -f {{.CERT_DIR}}/gateway.pem
       - kubectl get secret gateway-tls --namespace agentgateway-system
     silent: true
+    internal: true
 
   lb-dev-cluster:
     desc: Run the dev cluster load balancer
@@ -80,11 +84,6 @@ tasks:
       - sh: test -n "{{.GATEWAY_IP}}"
         msg: The gateway has no address; run `task lb-dev-cluster`
     cmd: printf '{{.GATEWAY_IP}} %s\n' {{.GATEWAY_HOST}} {{.ROUTE_HOSTNAMES}} | sudo "$(command -v hostctl)" replace squint --quiet
-    silent: true
-
-  delete-dev-cluster:
-    desc: Delete local development cluster
-    cmd: kind delete cluster --name squint
     silent: true
 
   vllm:
