@@ -135,6 +135,11 @@ releases:
             dashboards:
               # Any value, since some charts label dashboards with their name rather than "1"
               labelValue: ""
+          additionalDataSources:
+            - name: Tempo
+              type: tempo
+              uid: tempo
+              url: http://tempo.monitoring.svc:3200
           resources:
             requests:
               cpu: 100m
@@ -202,6 +207,28 @@ releases:
                 as: temporal_slot_utilization
               resources:
                 namespaced: false
+
+  # Grafana Tempo
+  # Trace store, receiving OTLP and queried from Grafana
+  # https://github.com/grafana-community/helm-charts/tree/main/charts/tempo
+  - name: tempo
+    namespace: monitoring
+    createNamespace: true
+    chart: oci://ghcr.io/grafana-community/helm-charts/tempo
+    version: "3.2.0"
+    needs:
+      - monitoring/kube-prometheus-stack
+    values:
+      - tempo:
+          reportingEnabled: false
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+        serviceMonitor:
+          enabled: true
 
   # Milvus Operator
   # Milvus is a vector database that support late embedding vectors

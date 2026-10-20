@@ -138,7 +138,13 @@ k8s_yaml(helm(
     'infrastructure/squint-ui',
     name='ui',
     namespace=NAMESPACE,
-    set=['image=squint-ui', 'route.enabled=true', 'env.ORIGIN=' + UI_ORIGIN],
+    set=[
+        'image=squint-ui',
+        'route.enabled=true',
+        'env.ORIGIN=' + UI_ORIGIN,
+        # Traces are viewed in Grafana's Explore view with the Tempo data source
+        'env.OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo.monitoring.svc:4318',
+    ],
 ))
 
 # Attach with the "ui" VS Code launch config

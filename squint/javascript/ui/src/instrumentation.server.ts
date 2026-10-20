@@ -1,0 +1,33 @@
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
+import { GrpcInstrumentation } from "@opentelemetry/instrumentation-grpc";
+import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
+import { RedisInstrumentation } from "@opentelemetry/instrumentation-redis";
+import { UndiciInstrumentation } from "@opentelemetry/instrumentation-undici";
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { register } from "import-in-the-middle/register-hooks.mjs";
+
+// Read directly rather than through $app/env, since src/env.ts and its imports load before this file
+// and couldn't be instrumented. The SDK reads its other standard OTEL_* variables itself.
+const tracesEnabled = Boolean(process.env.OTEL_EXPORTER_OTLP_ENDPOINT);
+
+if (tracesEnabled) {
+  register();
+
+  const sdk = new NodeSDK({
+    serviceName: "squint-ui",
+    traceExporter: new OTLPTraceExporter(),
+    instrumentations: [
+      new HttpInstrumentation({
+        ignoreIncomingRequestHook: (request) => request.url === "/healthz",
+      }),
+      new RedisInstrumentation(),
+      new UndiciInstrumentation(),
+      new GrpcInstrumentation(),
+    ],
+  });
+
+  sdk.start();
+
+  // adapter-node emits this once in-flight requests finish, so the last spans are flushed before exit
+  process.on("sveltekit:shutdown", () => sdk.shutdown());
+}

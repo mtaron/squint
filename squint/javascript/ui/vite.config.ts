@@ -16,6 +16,7 @@ export default defineConfig({
       },
       adapter: adapter(),
       experimental: { remoteFunctions: true },
+      tracing: { server: true },
     }),
   ],
   server: {

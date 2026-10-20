@@ -14,6 +14,7 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
   if (session) {
     event.locals.session = session.session;
     event.locals.user = session.user;
+    event.tracing.root.setAttribute("user.id", session.user.id);
   }
 
   return svelteKitHandler({ event, resolve, auth, building });

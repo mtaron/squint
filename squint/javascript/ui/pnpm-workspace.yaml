@@ -2,3 +2,6 @@ allowBuilds:
   esbuild: true
   protobufjs: true
   sharp: true
+# OpenTelemetry JS 3.0 (2026-10-20) is newer than pnpm's minimum release age
+minimumReleaseAgeExclude:
+  - "@opentelemetry/*"
