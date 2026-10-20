@@ -7,7 +7,9 @@ command: []
 gpu: 0
 # Extra environment variables for the worker, as name: value
 env: {}
+# Run under debugpy, listening on debugPort, and restart on source changes
 debug: false
+debugPort: 5678
 
 temporal:
   # temporal-worker-controller Connection, from the squint chart

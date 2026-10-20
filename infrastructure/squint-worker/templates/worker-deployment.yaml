@@ -35,9 +35,22 @@ spec:
           - name: worker
             image: {{ required "image is required" .Values.image }}
             imagePullPolicy: {{ .Values.imagePullPolicy }}
+            {{- if .Values.debug }}
+            # Restarts the worker under debugpy whenever synced source changes
+            command:
+              - python
+              - -m
+              - watchfiles
+              - --filter
+              - python
+              # Frozen stdlib modules can make debugpy miss breakpoints
+              - python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:{{ .Values.debugPort }} main.py
+              - /app
+            {{- else }}
             {{- with .Values.command }}
             command:
               {{- toYaml . | nindent 14 }}
+            {{- end }}
             {{- end }}
             ports:
               - name: metrics
@@ -50,7 +63,7 @@ spec:
               {{- end }}
               {{- if .Values.debug }}
               - name: PYTHONPATH
-                value: /opt/debugpy
+                value: /opt/devtools
               {{- end }}
             {{- end }}
             {{- if or .Values.s3.enabled .Values.dragonfly.enabled .Values.milvus.enabled .Values.postgres.enabled }}
@@ -101,8 +114,8 @@ spec:
                 readOnly: true
               {{- end }}
               {{- if .Values.debug }}
-              - name: debugpy
-                mountPath: /opt/debugpy
+              - name: devtools
+                mountPath: /opt/devtools
                 readOnly: true
               {{- end }}
         volumes:
@@ -126,8 +139,8 @@ spec:
               type: Directory
           {{- end }}
           {{- if .Values.debug }}
-          - name: debugpy
+          - name: devtools
             image:
               # Tilt replaces this with its build of the image
-              reference: squint-debugpy
+              reference: squint-devtools
           {{- end }}
