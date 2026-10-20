@@ -42,9 +42,12 @@
 			"*.yaml.gotmpl": "helm",
 			"**/infrastructure/kind/cluster.yaml": "helm"
 		},
+		"editor.formatOnSave": true,
 		"[python]": {
-			"editor.formatOnSave": true,
 			"editor.defaultFormatter": "charliermarsh.ruff"
+		},
+		"[javascript]": {
+			"editor.defaultFormatter": "oxc.oxc-vscode"
 		},
 		"python.languageServer": "None"
 	},
@@ -55,10 +58,12 @@
 			"ms-kubernetes-tools.vscode-kubernetes-tools",
 			"ms-playwright.playwright",
 			"ms-python.python",
+			"oxc.oxc-vscode",
 			"svelte.svelte-vscode",
 			"task.vscode-task",
 			"tilt-dev.Tiltfile",
-			"TomlSmith.tomlsmith"
+			"TomlSmith.tomlsmith",
+			"vitest.explorer"
 		]
 	}
 }
