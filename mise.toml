@@ -23,6 +23,7 @@ mkcert = "latest"
 "github:temporalio/cli" = "latest"
 tilt = "latest"
 hostctl = "latest"
+prek = "latest"
 
 # python
 ty = "latest"
