@@ -1,2 +1,4 @@
 milvus:
   enabled: true
+autoscaling:
+  enabled: true

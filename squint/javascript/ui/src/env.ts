@@ -24,6 +24,10 @@ export const variables = defineEnvVars({
   PGPASSWORD: { description: "Postgres password.", schema: text },
   PGDATABASE: { description: "Postgres database name.", schema: text },
   TEMPORAL_ADDRESS: { description: "Temporal frontend address as `host:port`.", schema: text },
+  TEMPORAL_TLS_SERVER_CA_CERT_PATH: {
+    description: "Path to the CA certificate that signed the Temporal frontend's certificate.",
+    schema: text,
+  },
   REDIS_URL: {
     description:
       "Dragonfly URL. TLS files are given as `ssl_ca_certs`, `ssl_certfile` and `ssl_keyfile` query parameters, as redis-py expects.",

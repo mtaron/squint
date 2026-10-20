@@ -1,0 +1,35 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: temporal-frontend-tls
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName: temporal-frontend-tls
+  dnsNames:
+    - temporal-frontend.{{ .Release.Namespace }}.svc.cluster.local
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: squint-ca
+---
+# The chart's Web UI TLS settings always present a client keypair
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: temporal-web-tls
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName: temporal-web-tls
+  commonName: temporal-web
+  usages:
+    - client auth
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: squint-ca

@@ -1,0 +1,39 @@
+{{- if .Values.autoscaling.enabled }}
+# One HPA per worker version, each scaling its own versioned Deployment
+apiVersion: temporal.io/v1alpha1
+kind: WorkerResourceTemplate
+metadata:
+  name: {{ .Release.Name }}-hpa
+  namespace: {{ .Release.Namespace }}
+spec:
+  workerDeploymentRef:
+    name: {{ .Release.Name }}
+  template:
+    apiVersion: autoscaling/v2
+    kind: HorizontalPodAutoscaler
+    spec:
+      # The controller fills in the versioned Deployment
+      scaleTargetRef: {}
+      minReplicas: {{ .Values.autoscaling.minReplicas }}
+      maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+      metrics:
+        # Fraction of the version's activity slots in use, from the temporal_slot_utilization
+        # recording rule. The controller adds the version's labels to matchLabels.
+        - type: External
+          external:
+            metric:
+              name: temporal_slot_utilization
+              selector:
+                matchLabels:
+                  worker_type: ActivityWorker
+            target:
+              # An aggregate ratio, so Value rather than AverageValue
+              type: Value
+              value: {{ .Values.autoscaling.targetUtilization | quote }}
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: {{ .Values.autoscaling.scaleUpStabilizationSeconds }}
+        scaleDown:
+          # Let in-flight activities finish before removing pods
+          stabilizationWindowSeconds: {{ .Values.autoscaling.scaleDownStabilizationSeconds }}
+{{- end }}

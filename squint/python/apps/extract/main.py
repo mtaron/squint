@@ -1,13 +1,21 @@
-import signal
-import threading
+import asyncio
+
+from squint_core.hello import HelloWorkflow, say_hello
+from squint_core.worker import run_worker
+
+TASK_QUEUE = "extract"
+MAX_CONCURRENT_ACTIVITIES = 5
 
 
 def main():
-    stop = threading.Event()
-    signal.signal(signal.SIGTERM, lambda *_: stop.set())
-    print("extract worker started")
-    while not stop.wait(60):
-        print("extract worker alive")
+    asyncio.run(
+        run_worker(
+            TASK_QUEUE,
+            [HelloWorkflow],
+            [say_hello],
+            max_concurrent_activities=MAX_CONCURRENT_ACTIVITIES,
+        )
+    )
 
 
 if __name__ == "__main__":

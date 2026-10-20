@@ -5,7 +5,8 @@ s3:
 
 gpu-operator:
   timeSlicing:
-    replicas: 2
+    # vLLM, the embed worker, and a new embed version while the old one drains
+    replicas: 3
   values:
     # nvkind uses the host's GPU driver and installs the container toolkit
     # into the kind nodes itself.
@@ -23,6 +24,13 @@ milvus:
 
 temporal:
   values:
+    # Retire drained worker versions sooner than the 3m defaults, so rebuilds don't pile up
+    - server:
+        dynamicConfig:
+          matching.wv.VersionDrainageStatusVisibilityGracePeriod:
+            - value: 30s
+          matching.wv.VersionDrainageStatusRefreshInterval:
+            - value: 30s
     # The chart has no Gateway API route of its own
     - extraObjects:
         - |

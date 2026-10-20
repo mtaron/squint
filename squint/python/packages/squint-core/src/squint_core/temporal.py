@@ -1,7 +1,11 @@
 from temporalio.client import Client
+from temporalio.envconfig import ClientConfig
+from temporalio.runtime import Runtime
 
-from squint_core.config import require_env
 
-
-async def create_client() -> Client:
-    return await Client.connect(require_env("TEMPORAL_ADDRESS"))
+async def create_client(runtime: Runtime | None = None) -> Client:
+    """Connect to Temporal using the TEMPORAL_ADDRESS, TEMPORAL_NAMESPACE and TEMPORAL_TLS_*
+    environment variables."""
+    return await Client.connect(
+        **ClientConfig.load_client_connect_config(), runtime=runtime
+    )

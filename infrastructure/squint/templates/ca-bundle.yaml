@@ -13,3 +13,20 @@ spec:
     namespaceSelector:
       matchLabels:
         kubernetes.io/metadata.name: {{ .Release.Namespace }}
+---
+# The same CA as a Secret, which temporal-worker-controller Connections require.
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: squint-ca-cert
+spec:
+  sources:
+    - secret:
+        name: squint-ca
+        key: ca.crt
+  target:
+    secret:
+      key: ca.crt
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: {{ .Release.Namespace }}

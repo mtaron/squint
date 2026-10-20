@@ -1,7 +1,21 @@
+{{- $address := printf "%s:%v" .Values.temporal.host .Values.temporal.port }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: temporal
   namespace: {{ .Release.Namespace }}
 data:
-  TEMPORAL_ADDRESS: {{ printf "%s:%v" .Values.temporal.host .Values.temporal.port | quote }}
+  TEMPORAL_ADDRESS: {{ $address | quote }}
+  TEMPORAL_TLS_SERVER_CA_CERT_PATH: {{ .Values.caBundlePath | quote }}
+---
+# How temporal-worker-controller and the workers it deploys reach Temporal
+apiVersion: temporal.io/v1alpha1
+kind: Connection
+metadata:
+  name: temporal
+  namespace: {{ .Release.Namespace }}
+spec:
+  hostPort: {{ $address | quote }}
+  tls:
+    caCertSecretRef:
+      name: squint-ca-cert

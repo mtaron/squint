@@ -76,6 +76,11 @@ releases:
     values:
       - defaultPackage:
           enabled: false
+      # temporal-worker-controller Connections read the CA from a Secret
+      - secretTargets:
+          enabled: true
+          authorizedSecrets:
+            - squint-ca-cert
 
   # kube-prometheus-stack
   # Prometheus, Alertmanager, Grafana, node-exporter and kube-state-metrics with their operator
@@ -136,11 +141,36 @@ releases:
               memory: 128Mi
             limits:
               memory: 512Mi
+        additionalPrometheusRulesMap:
+          temporal-worker-scaling:
+            groups:
+              - name: temporal-worker-slots
+                interval: 10s
+                rules:
+                  # Fraction of each worker version's task slots in use, from 0 (idle) to 1
+                  # (saturated), for the per-version HPAs that squint-worker attaches. The
+                  # Temporal server's own workers report slots too, without version labels.
+                  # Adapted from the temporal-worker-controller demo, without its task queue filter:
+                  # https://github.com/temporalio/temporal-worker-controller/blob/v1.13.0/internal/demo/k8s/prometheus-stack-values.yaml
+                  - record: temporal_slot_utilization
+                    expr: |
+                      sum by (temporal_worker_deployment_name, temporal_worker_build_id, temporal_namespace, worker_type) (
+                        temporal_worker_task_slots_used{temporal_worker_deployment_name!=""}
+                      )
+                      /
+                      clamp_min(
+                        sum by (temporal_worker_deployment_name, temporal_worker_build_id, temporal_namespace, worker_type) (
+                          temporal_worker_task_slots_used{temporal_worker_deployment_name!=""}
+                          + temporal_worker_task_slots_available{temporal_worker_deployment_name!=""}
+                        ),
+                        1
+                      )
       {{- with .Values | get "kube-prometheus-stack.values" nil }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
 
-  # Dashboards for components whose charts don't ship one, vendored by `task vendor-dashboards`
+  # Dashboards for components whose charts don't ship one, vendored by `task vendor-dashboards`,
+  # and for squint's own charts
   - name: dashboards
     namespace: monitoring
     chart: ./dashboards
@@ -148,8 +178,7 @@ releases:
       - monitoring/kube-prometheus-stack
 
   # Prometheus Adapter
-  # Serves Prometheus metrics through the Kubernetes custom metrics API for autoscaling
-  # TODO autoscaling is not hooked up yet
+  # Serves Prometheus metrics through the Kubernetes custom and external metrics APIs
   # https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-adapter
   - name: prometheus-adapter
     namespace: monitoring
@@ -162,6 +191,17 @@ releases:
       - prometheus:
           url: http://kube-prometheus-stack-prometheus.monitoring.svc
           port: 9090
+      - rules:
+          external:
+            # Selected per worker version by the labels temporal-worker-controller injects into
+            # each HPA's matchLabels. Adapted from the temporal-worker-controller demo:
+            # https://github.com/temporalio/temporal-worker-controller/blob/v1.13.0/internal/demo/k8s/prometheus-adapter-values.yaml
+            - seriesQuery: 'temporal_slot_utilization{}'
+              metricsQuery: 'avg(<<.Series>>{<<.LabelMatchers>>})'
+              name:
+                as: temporal_slot_utilization
+              resources:
+                namespaced: false
 
   # Milvus Operator
   # Milvus is a vector database that support late embedding vectors
@@ -234,6 +274,14 @@ releases:
               passwordSecret:
                 name: temporal-db-secret
 
+  # Certificates for the Temporal frontend and its Web UI client
+  - name: temporal-tls
+    namespace: temporal
+    createNamespace: true
+    chart: ./temporal-tls
+    needs:
+      - cert-manager/cluster-issuer
+
   # Temporal
   # Workflow engine for durable execution
   # https://github.com/temporalio/helm-charts
@@ -251,12 +299,23 @@ releases:
     needs:
       - postgres/postgres
       - monitoring/kube-prometheus-stack
+      - temporal/temporal-tls
     values:
       - server:
           metrics:
             serviceMonitor:
               enabled: true
+          tls:
+            frontend:
+              enabled: true
+              secretName: temporal-frontend-tls
+              serverName: &temporalFrontendHost temporal-frontend.temporal.svc.cluster.local
           config:
+            namespaces:
+              create: true
+              namespace:
+                - name: default
+                  retention: 3d
             persistence:
               datastores:
                 default:
@@ -272,6 +331,13 @@ releases:
                   sql:
                     <<: *temporalSql
                     databaseName: temporal_visibility
+        # The Web UI's connection to the frontend; browsers reach the UI through the gateway
+        web:
+          tls:
+            enabled: true
+            secretName: temporal-web-tls
+            serverName: *temporalFrontendHost
+            enableHostVerification: true
       {{- with .Values | get "temporal.values" nil }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
@@ -282,12 +348,12 @@ releases:
   - name: temporal-worker-controller-crds
     chart: oci://docker.io/temporalio/temporal-worker-controller-crds
     namespace: default
-    version: "0.30.0"
+    version: "0.32.0"
 
   - name: temporal-worker-controller
     chart: oci://docker.io/temporalio/temporal-worker-controller
     namespace: temporal
-    version: "0.30.0"
+    version: "0.32.0"
     needs:
       - temporal/temporal
       - default/temporal-worker-controller-crds
@@ -509,6 +575,7 @@ releases:
     needs:
       - cert-manager/cluster-issuer
       - cert-manager/trust-manager
+      - default/temporal-worker-controller-crds
       {{- if eq .Environment.Name "development" }}
       - postgres/postgres
       - versitygw/versitygw

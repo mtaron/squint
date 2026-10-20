@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      # Set by temporal-worker-controller on the pods of every version
+      temporal.io/deployment-name: {{ .Release.Name }}
+  podMetricsEndpoints:
+    - port: metrics

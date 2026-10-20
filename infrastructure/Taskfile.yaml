@@ -65,7 +65,6 @@ tasks:
       - test -f {{.CERT_DIR}}/gateway.pem
       - kubectl get secret gateway-tls --namespace agentgateway-system
     silent: true
-    internal: true
 
   lb-dev-cluster:
     desc: Run the dev cluster load balancer

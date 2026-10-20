@@ -1,5 +1,6 @@
 image: ""
-imagePullPolicy: Always
+imagePullPolicy: IfNotPresent
+# Ignored when autoscaling is enabled
 replicas: 1
 command: []
 # nvidia.com/gpu limit; 0 requests no GPU
@@ -7,6 +8,36 @@ gpu: 0
 # Extra environment variables for the worker, as name: value
 env: {}
 debug: false
+
+temporal:
+  # temporal-worker-controller Connection, from the squint chart
+  connection: temporal
+  namespace: default
+
+# How new workflow executions move to a new worker version
+# https://github.com/temporalio/temporal-worker-controller/blob/main/docs/configuration.md#rollout-strategies
+rollout:
+  strategy: Progressive
+  steps:
+    - rampPercentage: 25
+      pauseDuration: 2m
+    - rampPercentage: 75
+      pauseDuration: 3m
+
+# How long drained versions are kept, scaled down and then deleted
+sunset:
+  scaledownDelay: 5m
+  deleteDelay: 1h
+
+# A HorizontalPodAutoscaler per worker version on activity slot utilization
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  # Fraction of the version's activity slots in use that the HPA scales to hold
+  targetUtilization: 0.7
+  scaleUpStabilizationSeconds: 0
+  scaleDownStabilizationSeconds: 120
 
 models:
   # Node directory mounted read-only at /mnt/models; empty mounts nothing

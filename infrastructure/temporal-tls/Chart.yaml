@@ -1,0 +1,5 @@
+apiVersion: v2
+name: temporal-tls
+description: Certificates for the Temporal frontend and its Web UI client.
+type: application
+version: 0.1.0

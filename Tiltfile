@@ -3,8 +3,6 @@
 # The platform (Temporal, Milvus, ...) is deployed separately by `task create-dev-cluster`.
 # Images are pushed to the registry advertised by the cluster's local-registry-hosting ConfigMap.
 
-load('ext://restart_process', 'docker_build_with_restart')
-
 allow_k8s_contexts('kind-squint')
 if k8s_context() != 'kind-squint':
     fail('expected kubectl context kind-squint, got %s' % k8s_context())
@@ -41,6 +39,42 @@ PACKAGE_MANIFESTS = [
     for path in listdir(PYTHON_SRC + '/packages')
     if os.path.exists(path + '/pyproject.toml')
 ]
+
+RESTART_FILE = '/tmp/.restart-proc'
+
+def docker_build_with_restart(ref, context, entrypoint, live_update, **kwargs):
+    """Like ext://restart_process's docker_build_with_restart, but sets the restart wrapper as the
+    image's ENTRYPOINT instead of overriding the container command, which Tilt can't do in CRDs."""
+    base_ref = ref + '-base'
+    docker_build(base_ref, context, **kwargs)
+    docker_build(
+        ref,
+        context,
+        dockerfile_contents='''
+FROM tiltdev/restart-helper:2025-02-17 AS restart-helper
+FROM {base}
+RUN ["touch", "{file}"]
+RUN ["chmod", "666", "{file}"]
+COPY --from=restart-helper /tilt-restart-wrapper /
+COPY --from=restart-helper /entr /
+ENTRYPOINT {entrypoint}
+'''.format(base=base_ref, file=RESTART_FILE, entrypoint=['/tilt-restart-wrapper', '--watch_file=' + RESTART_FILE] + entrypoint),
+        only=kwargs.get('only', []),
+        ignore=kwargs.get('ignore', []),
+        # entr only reacts to writes, not timestamp changes
+        live_update=live_update + [run('date > ' + RESTART_FILE)],
+    )
+
+# temporal-worker-controller turns each WorkerDeployment into one Deployment per worker version.
+# Each image rebuild is a new version; live updates keep the running one.
+k8s_kind(
+    'WorkerDeployment',
+    image_json_path=[
+        '{.spec.deployment.template.spec.containers[*].image}',
+        '{.spec.deployment.template.spec.volumes[?(@.name=="debugpy")].image.reference}',
+    ],
+    pod_readiness='wait',
+)
 
 docker_build(
     'squint-debugpy',
@@ -79,17 +113,31 @@ for app, worker in WORKERS.items():
         ],
     )
 
+    values = read_yaml(values_file, default={})
     k8s_yaml(helm(
         'infrastructure/squint-worker',
         name=app,
         namespace=NAMESPACE,
         values=[values_file] if os.path.exists(values_file) else [],
-        set=['image=' + image, 'debug=true'] + worker.get('values', []),
+        set=[
+            'image=' + image,
+            'debug=true',
+            # Promote each rebuild straight away, and free a drained version's pods (and GPU)
+            # as soon as its workflows finish
+            'rollout.strategy=AllAtOnce',
+            'sunset.scaledownDelay=0s',
+            'sunset.deleteDelay=5m',
+        ] + worker.get('values', []),
     ))
+
+    objects = [app + ':podmonitor']
+    if values.get('autoscaling', {}).get('enabled'):
+        objects.append(app + '-hpa:workerresourcetemplate')
 
     # Attach with the "<app> (kind)" VS Code launch config
     k8s_resource(
         app,
+        objects=objects,
         port_forwards=[port_forward(worker['debug_port'], DEBUG_PORT, name='debugpy')],
         labels=['workers'],
     )
