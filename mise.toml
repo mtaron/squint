@@ -17,10 +17,15 @@ yq = "latest"
 jq = "latest"
 helm = "latest"
 helmfile = "latest"
-helm-diff = { version = "latest", depends = ["helm"], postinstall = "helm plugin uninstall diff >/dev/null 2>&1 || true; helm plugin install $MISE_TOOL_INSTALL_PATH/diff" }
+helm-diff = {
+    version = "latest",
+    depends = ["helm"],
+    postinstall = "helm plugin uninstall diff >/dev/null 2>&1 || true; helm plugin install $MISE_TOOL_INSTALL_PATH/diff"
+}
 kubectl = "latest"
 mkcert = "latest"
 "github:temporalio/cli" = "latest"
+"github:tomlsmith/tomlsmith" = "latest"
 tilt = "latest"
 hostctl = "latest"
 prek = "latest"
@@ -28,7 +33,6 @@ prek = "latest"
 # python
 ty = "latest"
 ruff = "latest"
-
 "pypi:hf" = "latest"
 
 # dev cluster

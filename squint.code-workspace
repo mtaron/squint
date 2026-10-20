@@ -50,14 +50,15 @@
 	},
 	"extensions": {
 		"recommendations": [
-			"ms-python.python",
-			"ms-kubernetes-tools.vscode-kubernetes-tools",
-			"charliermarsh.ruff",
-			"task.vscode-task",
 			"astral-sh.ty",
-			"tilt-dev.Tiltfile",
+			"charliermarsh.ruff",
+			"ms-kubernetes-tools.vscode-kubernetes-tools",
+			"ms-playwright.playwright",
+			"ms-python.python",
 			"svelte.svelte-vscode",
-			"ms-playwright.playwright"
+			"task.vscode-task",
+			"tilt-dev.Tiltfile",
+			"TomlSmith.tomlsmith"
 		]
 	}
 }

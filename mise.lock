@@ -12,6 +12,16 @@ checksum = "sha256:09a0326a51db84d02735e53542b9ebd8c4758daf47482a9ab0abce15844e6
 url = "https://github.com/temporalio/cli/releases/download/v1.9.1/temporal_cli_1.9.1_linux_amd64.tar.gz"
 url_api = "https://api.github.com/repos/temporalio/cli/releases/assets/564294919"
 
+[[tools."github:tomlsmith/tomlsmith"]]
+version = "0.4.0"
+backend = "github:tomlsmith/tomlsmith"
+specifiers = ["latest"]
+
+[tools."github:tomlsmith/tomlsmith"."platforms.linux-x64"]
+checksum = "sha256:5e2e7d678a2ca454cfc65854131b63da23a7624eb9654fc5f554c31997803732"
+url = "https://github.com/tomlsmith/tomlsmith/releases/download/v0.4.0/tomlsmith-v0.4.0-linux-x64-musl.tar.gz"
+url_api = "https://api.github.com/repos/tomlsmith/tomlsmith/releases/assets/542192293"
+
 [[tools."go:github.com/NVIDIA/nvkind/cmd/nvkind"]]
 version = "0.0.0-20260630043359-c57050497cff"
 backend = "go:github.com/NVIDIA/nvkind/cmd/nvkind"
