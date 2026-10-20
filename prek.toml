@@ -1,0 +1,20 @@
+# Configuration file for `prek`, a git hook framework written in Rust.
+# See https://prek.j178.dev for more information.
+#:schema https://www.schemastore.org/prek.json
+
+exclude = { glob = [
+    "**/*.lock",
+    "**/*-lock.json",
+    "**/*-lock.yaml",
+    "**/*.svg",
+    ".claude/skills/**",
+    "squint/javascript/ui/drizzle/**",
+] }
+
+[[repos]]
+repo = "builtin"
+hooks = [
+    { id = "trailing-whitespace" },
+    { id = "end-of-file-fixer" },
+    { id = "check-added-large-files" },
+]
