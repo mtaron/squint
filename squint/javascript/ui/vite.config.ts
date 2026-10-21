@@ -1,11 +1,23 @@
 import { enhancedImages } from "@sveltejs/enhanced-img";
+import browserslist from "browserslist";
+import { browserslistToTargets } from "lightningcss";
 import { defineConfig } from "vitest/config";
 import { playwright } from "@vitest/browser-playwright";
 import adapter from "@sveltejs/adapter-node";
 import { sveltekit } from "@sveltejs/kit/vite";
+import { presetIcons } from "@unocss/preset-icons";
+import UnoCSS from "@unocss/vite";
 
 export default defineConfig({
   plugins: [
+    UnoCSS({
+      presets: [
+        presetIcons({
+          collections: { ph: () => import("@iconify-json/ph").then((module) => module.icons) },
+          extraProperties: { display: "inline-block", "vertical-align": "-0.125em" },
+        }),
+      ],
+    }),
     enhancedImages(),
     sveltekit({
       compilerOptions: {
@@ -19,6 +31,10 @@ export default defineConfig({
       tracing: { server: true },
     }),
   ],
+  css: {
+    transformer: "lightningcss",
+    lightningcss: { targets: browserslistToTargets(browserslist()) },
+  },
   server: {
     allowedHosts: process.env.ORIGIN ? [new URL(process.env.ORIGIN).hostname] : [],
   },

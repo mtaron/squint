@@ -1,4 +1,4 @@
-import type { Handle, ServerInit } from "@sveltejs/kit/hooks";
+import { sequence, type Handle, type ServerInit } from "@sveltejs/kit/hooks";
 import { building } from "$app/env";
 import { auth } from "#lib/server/auth.ts";
 import { runMigrations } from "#lib/server/db/migrate.ts";
@@ -7,6 +7,20 @@ import { svelteKitHandler } from "better-auth/svelte-kit";
 export const init: ServerInit = async () => {
   if (!building) await runMigrations();
 };
+
+const aboveTheFoldFonts = new Set([
+  "node_modules/@fontsource-variable/fraunces/files/fraunces-latin-full-normal.woff2",
+  "node_modules/@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2",
+]);
+
+// https://svelte.dev/docs/kit/performance#Optimizing-assets-Fonts
+const preloadFonts: Handle = ({ event, resolve }) =>
+  resolve(event, {
+    preload: (asset) =>
+      asset.type === "font"
+        ? aboveTheFoldFonts.has(asset.filename)
+        : asset.type === "js" || asset.type === "css",
+  });
 
 const handleBetterAuth: Handle = async ({ event, resolve }) => {
   const session = await auth.api.getSession({ headers: event.request.headers });
@@ -20,4 +34,4 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
   return svelteKitHandler({ event, resolve, auth, building });
 };
 
-export const handle: Handle = handleBetterAuth;
+export const handle: Handle = sequence(preloadFonts, handleBetterAuth);

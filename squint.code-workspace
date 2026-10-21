@@ -36,7 +36,8 @@
 			"**/__pycache__": true,
 			"**/.venv": true,
 			"**/.ruff_cache": true,
-			"**/.task": true
+			"**/.task": true,
+			"**/.playwright-mcp": true
 		},
 		"files.associations": {
 			"*.yaml.gotmpl": "helm",
@@ -59,6 +60,7 @@
 			"ms-playwright.playwright",
 			"ms-python.python",
 			"oxc.oxc-vscode",
+			"svelte.svelte-vscode",
 			"svelte.svelte-vscode",
 			"task.vscode-task",
 			"tilt-dev.Tiltfile",

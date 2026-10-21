@@ -40,17 +40,24 @@
     "redis": "^6.3.0"
   },
   "devDependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@iconify-json/ph": "^1.2.2",
     "@playwright/test": "^1.64.1",
     "@sveltejs/adapter-node": "^6.0.0",
     "@sveltejs/enhanced-img": "^1.0.0",
     "@sveltejs/kit": "^3.1.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@types/node": "^24.19.2",
+    "@unocss/preset-icons": "^66.11.0",
+    "@unocss/vite": "^66.11.0",
     "@vitest/browser-playwright": "^4.1.12",
     "auth": "^1.7.11",
     "better-auth": "^1.7.11",
+    "browserslist": "^4.29.4",
     "drizzle-kit": "^0.31.11",
     "drizzle-orm": "^0.45.4",
+    "lightningcss": "^1.33.0",
     "oxfmt": "^0.73.0",
     "oxlint": "^1.88.0",
     "playwright": "^1.64.1",
@@ -63,5 +70,8 @@
     "vitest": "^4.1.12",
     "vitest-browser-svelte": "^2.2.1"
   },
+  "browserslist": [
+    "defaults"
+  ],
   "packageManager": "pnpm@12.11.2"
 }

@@ -1,0 +1,100 @@
+<script lang="ts">
+  import { enhance } from "$app/forms";
+  import Button from "#lib/components/Button.svelte";
+  import Highlight from "#lib/components/Highlight.svelte";
+  import type { PageProps } from "./$types";
+
+  let { form }: PageProps = $props();
+</script>
+
+<svelte:head>
+  <title>Sign in to squint</title>
+</svelte:head>
+
+<section>
+  <h1>Hello <Highlight>again</Highlight>.</h1>
+  <p class="lede">Sign in to get back to your documents, or create an account to start a pile.</p>
+
+  <form method="post" action="?/signInEmail" use:enhance>
+    <label>
+      <span>Email</span>
+      <input type="email" name="email" autocomplete="email" required />
+    </label>
+    <label>
+      <span>Password</span>
+      <input type="password" name="password" autocomplete="current-password" required />
+    </label>
+    <label>
+      <span>Name <small>(only for new accounts)</small></span>
+      <input name="name" autocomplete="name" />
+    </label>
+
+    <p class="error" aria-live="polite">{form?.message ?? ""}</p>
+
+    <div class="actions">
+      <Button>Sign in</Button>
+      <Button variant="quiet" formaction="?/signUpEmail">Create account</Button>
+    </div>
+  </form>
+</section>
+
+<style>
+  section {
+    display: grid;
+    gap: var(--space-5);
+    max-width: 28rem;
+    padding-block: var(--space-8) var(--space-6);
+  }
+
+  h1 {
+    font-size: var(--step-5);
+  }
+
+  .lede {
+    color: var(--ink-soft);
+  }
+
+  form {
+    display: grid;
+    gap: var(--space-5);
+    margin-block-start: var(--space-4);
+  }
+
+  label {
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--step-0);
+    font-weight: 600;
+  }
+
+  small {
+    color: var(--ink-soft);
+    font-size: inherit;
+    font-weight: 400;
+  }
+
+  input {
+    padding: var(--space-3) var(--space-4);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-small);
+    font-weight: 400;
+
+    &:hover {
+      border-color: var(--ink-soft);
+    }
+  }
+
+  .error {
+    min-height: 1.5em;
+    margin-block: calc(-1 * var(--space-2));
+    color: light-dark(#b0215f, var(--marker-pink));
+    font-size: var(--step-0);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+</style>
