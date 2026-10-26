@@ -18,7 +18,7 @@ if (tracesEnabled) {
     traceExporter: new OTLPTraceExporter(),
     instrumentations: [
       new HttpInstrumentation({
-        ignoreIncomingRequestHook: (request) => request.url === "/healthz",
+        ignoreIncomingRequestHook: (request) => request.url === "/health",
       }),
       new RedisInstrumentation(),
       new UndiciInstrumentation(),

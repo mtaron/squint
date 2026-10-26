@@ -40,11 +40,11 @@ spec:
                 name: ui
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: /health
               port: http
           livenessProbe:
             httpGet:
-              path: /healthz
+              path: /health
               port: http
             # Migrations run before the server starts listening
             initialDelaySeconds: 30
