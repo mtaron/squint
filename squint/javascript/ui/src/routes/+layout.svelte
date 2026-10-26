@@ -5,6 +5,7 @@
   import "../app.css";
   import { resolve } from "$app/paths";
   import favicon from "#lib/assets/favicon.svg";
+  import ThemeToggle from "#lib/components/ThemeToggle.svelte";
   import Wordmark from "#lib/components/Wordmark.svelte";
   import type { LayoutProps } from "./$types";
 
@@ -19,6 +20,7 @@
   <header>
     <a class="home" href={resolve("/")} aria-label="squint home"><Wordmark /></a>
     <nav>
+      <ThemeToggle />
       {#if data.user}
         <span class="user">{data.user.name}</span>
         <form method="post" action={resolve("/logout")}>

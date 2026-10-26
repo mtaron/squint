@@ -44,6 +44,18 @@
   }
 
   @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) {
+      .bare {
+        display: none;
+      }
+
+      .badge {
+        display: inline;
+      }
+    }
+  }
+
+  :global(:root[data-theme="dark"]) {
     .bare {
       display: none;
     }
