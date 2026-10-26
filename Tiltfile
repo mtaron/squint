@@ -7,6 +7,13 @@ allow_k8s_contexts('kind-squint')
 if k8s_context() != 'kind-squint':
     fail('expected kubectl context kind-squint, got %s' % k8s_context())
 
+# `task preview` runs the production images, similar to `vite preview`
+config.define_bool('preview')
+PREVIEW = config.parse().get('preview', False)
+
+# `task prune-images` removes old builds on demand
+docker_prune_settings(disable=True)
+
 NAMESPACE = 'squint'
 PYTHON_SRC = 'squint/python'
 UI_SRC = 'squint/javascript/ui'
@@ -52,17 +59,18 @@ k8s_kind(
 )
 
 # Mounted on the workers' PYTHONPATH in debug mode
-docker_build(
-    'squint-devtools',
-    PYTHON_SRC,
-    ignore=['*'],
-    dockerfile_contents='''
+if not PREVIEW:
+    docker_build(
+        'squint-devtools',
+        PYTHON_SRC,
+        ignore=['*'],
+        dockerfile_contents='''
 FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim AS build
 RUN uv pip install --target /devtools --compile-bytecode debugpy watchfiles
 FROM scratch
 COPY --from=build /devtools /
 ''',
-)
+    )
 
 for app, worker in WORKERS.items():
     image = 'squint-' + app
@@ -80,7 +88,7 @@ for app, worker in WORKERS.items():
         build_args=dict({'APP': app}, **build_args),
         only=['apps/' + app, 'packages'],
         ignore=['apps/' + app + '/deploy'],
-        live_update=[
+        live_update=[] if PREVIEW else [
             fall_back_on([app_src + '/pyproject.toml', app_src + '/uv.lock'] + PACKAGE_MANIFESTS),
             sync(app_src, '/app/apps/' + app),
             sync(PYTHON_SRC + '/packages', '/app/packages'),
@@ -88,21 +96,25 @@ for app, worker in WORKERS.items():
     )
 
     values = read_yaml(values_file, default={})
+    set_values = [
+        'image=' + image,
+        # Promote each rebuild straight away, and free a drained version's pods (and GPU)
+        # as soon as its workflows finish
+        'rollout.strategy=AllAtOnce',
+        'sunset.scaledownDelay=0s',
+        'sunset.deleteDelay=5m',
+    ] + worker.get('values', [])
+    port_forwards = []
+    if not PREVIEW:
+        set_values += ['debug=true', 'debugPort=%d' % DEBUG_PORT]
+        port_forwards.append(port_forward(worker['debug_port'], DEBUG_PORT, name='debugpy'))
+
     k8s_yaml(helm(
         'infrastructure/squint-worker',
         name=app,
         namespace=NAMESPACE,
         values=[values_file] if os.path.exists(values_file) else [],
-        set=[
-            'image=' + image,
-            'debug=true',
-            'debugPort=%d' % DEBUG_PORT,
-            # Promote each rebuild straight away, and free a drained version's pods (and GPU)
-            # as soon as its workflows finish
-            'rollout.strategy=AllAtOnce',
-            'sunset.scaledownDelay=0s',
-            'sunset.deleteDelay=5m',
-        ] + worker.get('values', []),
+        set=set_values,
     ))
 
     objects = [app + ':podmonitor']
@@ -113,7 +125,7 @@ for app, worker in WORKERS.items():
     k8s_resource(
         app,
         objects=objects,
-        port_forwards=[port_forward(worker['debug_port'], DEBUG_PORT, name='debugpy')],
+        port_forwards=port_forwards,
         labels=['workers'],
     )
 
@@ -124,11 +136,12 @@ local_resource('gateway-cert', cmd='task gateway-cert', labels=['ui'])
 
 # Vite's dev server watches the synced source and hot reloads it. Changes outside src/ and
 # static/ (dependencies, config, migrations) rebuild the image, and the new pod migrates on start.
+# In preview mode the Dockerfile's final stage runs the production build, and every change rebuilds.
 docker_build(
     'squint-ui',
     UI_SRC,
-    target='dev',
-    live_update=[
+    target=None if PREVIEW else 'dev',
+    live_update=[] if PREVIEW else [
         sync(UI_SRC + '/src', '/app/src'),
         sync(UI_SRC + '/static', '/app/static'),
     ],
@@ -153,6 +166,6 @@ k8s_resource(
     objects=['ui:httproute'],
     resource_deps=['gateway-cert'],
     links=[link(UI_ORIGIN, 'squint')],
-    port_forwards=[port_forward(9229, 9229, name='inspector')],
+    port_forwards=[] if PREVIEW else [port_forward(9229, 9229, name='inspector')],
     labels=['ui'],
 )

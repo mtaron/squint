@@ -15,6 +15,16 @@ tasks:
       - task: download-models
       - tilt up
 
+  preview:
+    desc: Run Tilt with the production build, like `vite preview`
+    cmds:
+      - task: download-models
+      - tilt up -- --preview
+
+  prune-images:
+    desc: Remove unused images built by Tilt
+    cmd: tilt docker-prune
+
   update-dev-dependencies:
     desc: Update mise dependencies
     cmd: mise upgrade --local
