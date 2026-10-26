@@ -9,18 +9,20 @@ specifiers = ["latest"]
 
 [tools."github:temporalio/cli"."platforms.linux-x64"]
 checksum = "sha256:09a0326a51db84d02735e53542b9ebd8c4758daf47482a9ab0abce15844e60d5"
+checksum_source = "mise-versions"
 url = "https://github.com/temporalio/cli/releases/download/v1.9.1/temporal_cli_1.9.1_linux_amd64.tar.gz"
 url_api = "https://api.github.com/repos/temporalio/cli/releases/assets/564294919"
 
 [[tools."github:tomlsmith/tomlsmith"]]
-version = "0.4.0"
+version = "0.4.1"
 backend = "github:tomlsmith/tomlsmith"
 specifiers = ["latest"]
 
 [tools."github:tomlsmith/tomlsmith"."platforms.linux-x64"]
-checksum = "sha256:5e2e7d678a2ca454cfc65854131b63da23a7624eb9654fc5f554c31997803732"
-url = "https://github.com/tomlsmith/tomlsmith/releases/download/v0.4.0/tomlsmith-v0.4.0-linux-x64-musl.tar.gz"
-url_api = "https://api.github.com/repos/tomlsmith/tomlsmith/releases/assets/542192293"
+checksum = "sha256:446e6eb3b9a56726144ec96762fd9e8c582542f3a7c31eac29227c945f3b0a79"
+checksum_source = "mise-versions"
+url = "https://github.com/tomlsmith/tomlsmith/releases/download/v0.4.1/tomlsmith-v0.4.1-linux-x64-musl.tar.gz"
+url_api = "https://api.github.com/repos/tomlsmith/tomlsmith/releases/assets/667905908"
 
 [[tools."go:github.com/NVIDIA/nvkind/cmd/nvkind"]]
 version = "0.0.0-20260630043359-c57050497cff"
@@ -48,6 +50,7 @@ specifiers = ["latest"]
 
 [tools.helm-diff."platforms.linux-x64"]
 checksum = "sha256:504e99410611daa70702362e1b10dc74929df8a912cb3f6b5d21d1ee9d0cb7d9"
+checksum_source = "mise-versions"
 url = "https://github.com/databus23/helm-diff/releases/download/v3.15.15/helm-diff-linux-amd64.tgz"
 url_api = "https://api.github.com/repos/databus23/helm-diff/releases/assets/589788383"
 
@@ -60,6 +63,7 @@ specifiers = ["latest"]
 checksum = "sha256:f179485c5bb9f8e20fbd8ea16d8807915988aba4d60131ee864fb3232452716e"
 url = "https://github.com/helmfile/helmfile/releases/download/v1.8.2/helmfile_1.8.2_linux_amd64.tar.gz"
 signer = "sigstore-oidc:https://github.com/helmfile/helmfile/.github/workflows/releaser.yaml"
+repository_ids = { repository = "474521466" }
 
 [[tools.hostctl]]
 version = "1.1.4"
@@ -89,6 +93,7 @@ specifiers = ["latest"]
 
 [tools.kind."platforms.linux-x64"]
 checksum = "sha256:aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d"
+checksum_source = "mise-versions"
 url = "https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64"
 url_api = "https://api.github.com/repos/kubernetes-sigs/kind/releases/assets/531396433"
 
@@ -107,45 +112,46 @@ backend = "aqua:FiloSottile/mkcert"
 specifiers = ["latest"]
 
 [tools.mkcert."platforms.linux-x64"]
+checksum = "sha256:6d31c65b03972c6dc4a14ab429f2928300518b26503f58723e532d1b0a3bbb52"
 url = "https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-linux-amd64"
 url_api = "https://api.github.com/repos/FiloSottile/mkcert/releases/assets/63709955"
 
 [[tools.node]]
-version = "24.22.0"
+version = "24.22.1"
 backend = "core:node"
 specifiers = ["lts"]
 
 [tools.node."platforms.linux-x64"]
-checksum = "sha256:28ea0a438de9a13bd7891fd758eee6c7819ee8af5442dfd8d45bd65e56d4228c"
-url = "https://nodejs.org/dist/v24.22.0/node-v24.22.0-linux-x64.tar.gz"
+checksum = "sha256:eb6728e77c576a35162c122c45ccadf224d89ff00abc8dae46cc2897c6002d7c"
+url = "https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-x64.tar.gz"
 
 [[tools.pnpm]]
-version = "12.14.0"
+version = "12.15.0"
 backend = "aqua:pnpm/pnpm"
 specifiers = ["latest"]
 
 [tools.pnpm."platforms.linux-x64"]
-checksum = "sha256:3910c3852136bed5bc1511b9137a45fd4357ed6b3970d9d08893641e9005867e"
-url = "https://github.com/pnpm/pnpm/releases/download/v12.14.0/pnpm-linux-x64.tar.gz"
-url_api = "https://api.github.com/repos/pnpm/pnpm/releases/assets/643957410"
+checksum = "sha256:55b5ed0092bd11176c1669598e231ae52e7cedac59de6efd0d415730f37d0598"
+url = "https://github.com/pnpm/pnpm/releases/download/v12.15.0/pnpm-linux-x64.tar.gz"
+url_api = "https://api.github.com/repos/pnpm/pnpm/releases/assets/662173360"
 provenance = "github-attestations"
 
 [[tools.prek]]
-version = "0.5.6"
+version = "0.5.7"
 backend = "aqua:j178/prek"
 specifiers = ["latest"]
 
 [tools.prek."platforms.linux-x64"]
-checksum = "sha256:b0c1a9fdaf0f379c1c2809481a1e1560a4a233777ecd3c38d3e7459d77a59398"
-url = "https://github.com/j178/prek/releases/download/v0.5.6/prek-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/j178/prek/releases/assets/655367968"
+checksum = "sha256:e238e5a6b4e384e8d18f33d3c3b1a329be0e1237f77ac6e021e641ddd3a2bab6"
+url = "https://github.com/j178/prek/releases/download/v0.5.7/prek-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/j178/prek/releases/assets/660929556"
 provenance = "github-attestations"
 
 [[tools."pypi:hf"]]
-version = "2.2.0"
+version = "2.3.0"
 backend = "pypi:hf"
 specifiers = ["latest"]
-uv = { path = ".mise/locks/pypi-hf/2.2.0", digest = "sha256:1a1b40f746ae61aa988d1df783c29883ffd304bf97c6819158fafefea83340b0" }
+uv = { path = ".mise/locks/pypi-hf/2.3.0", digest = "sha256:ec3a51cbea4d2501395b965b3ac50e59c22e766d0d2396bf949689b271da1104" }
 
 [[tools.python]]
 version = "3.14.4"
@@ -158,14 +164,14 @@ url = "https://github.com/astral-sh/python-build-standalone/releases/download/20
 provenance = "github-attestations"
 
 [[tools.ruff]]
-version = "0.17.1"
+version = "0.17.2"
 backend = "aqua:astral-sh/ruff"
 specifiers = ["latest"]
 
 [tools.ruff."platforms.linux-x64"]
-checksum = "sha256:a293ac937715ae6fb6b64da86761598379e6149f40fbc00fde9ba8a2a562ac65"
-url = "https://github.com/astral-sh/ruff/releases/download/0.17.1/ruff-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/ruff/releases/assets/644283613"
+checksum = "sha256:7b2e6a6e132ecf7b5fe726163b186d5d209befe93bb25f83767b2d97fbdf14e5"
+url = "https://github.com/astral-sh/ruff/releases/download/0.17.2/ruff-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/ruff/releases/assets/666735382"
 provenance = "github-attestations"
 
 [[tools.task]]
@@ -175,6 +181,7 @@ specifiers = ["latest"]
 
 [tools.task."platforms.linux-x64"]
 checksum = "sha256:680859dbb4d881a9c72d4d9a8f510825450849af8567deacd7302c01124416fb"
+checksum_source = "mise-versions"
 url = "https://github.com/go-task/task/releases/download/v3.54.0/task_linux_amd64.tar.gz"
 url_api = "https://api.github.com/repos/go-task/task/releases/assets/604090073"
 
@@ -185,29 +192,30 @@ specifiers = ["latest"]
 
 [tools.tilt."platforms.linux-x64"]
 checksum = "sha256:e39513f958705d30524d55f68b1d46fbef2b46a0da568efd00e6383dee6be44f"
+checksum_source = "mise-versions"
 url = "https://github.com/tilt-dev/tilt/releases/download/v0.37.8/tilt.0.37.8.linux.x86_64.tar.gz"
 url_api = "https://api.github.com/repos/tilt-dev/tilt/releases/assets/602230514"
 
 [[tools.ty]]
-version = "0.0.89"
+version = "0.0.91"
 backend = "aqua:astral-sh/ty"
 specifiers = ["latest"]
 
 [tools.ty."platforms.linux-x64"]
-checksum = "sha256:85d1bb663cf67e3e8078fb646327f0d88a377d66c9fc3aa11f6ad08c874d6512"
-url = "https://github.com/astral-sh/ty/releases/download/0.0.89/ty-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/ty/releases/assets/646995092"
+checksum = "sha256:f9ab9cef6d2d96ea4d8bac06aa464bbe6622e57d0476e91156bc0df3478b2c08"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.91/ty-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/ty/releases/assets/666701025"
 provenance = "github-attestations"
 
 [[tools.uv]]
-version = "0.13.1"
+version = "0.13.5"
 backend = "aqua:astral-sh/uv"
 specifiers = ["latest"]
 
 [tools.uv."platforms.linux-x64"]
-checksum = "sha256:eadd9d27c134ab5ac1ffd4473b97a741407f3ea238288f03121fc4deddf90220"
-url = "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/639313223"
+checksum = "sha256:f68d291c75783122dad58ab77def0e13f3233f358731db5d6d7e8715603b928f"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.5/uv-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/664336023"
 provenance = "github-attestations"
 
 [[tools.yq]]
