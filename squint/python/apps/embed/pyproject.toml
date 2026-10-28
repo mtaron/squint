@@ -41,3 +41,13 @@ explicit = true
 # After changing or relocking a kernel, run `task download-models --force` to fetch the new build.
 [tool.kernels.dependencies]
 "kernels-community/flash-attn2" = 3
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+asyncio_mode = "auto"

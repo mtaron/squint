@@ -77,14 +77,15 @@ tasks:
       --input "{\"name\": \"load $i\", \"delay_seconds\": {{.DELAY}}}" > /dev/null || exit 1;
       done; echo "started {{.COUNT}} workflows on {{.QUEUE}}"'
 
-  venvs:
-    desc: (Re)create every Python project's .venv with uv
+
+  update-python-dependencies:
+    desc: Upgrade every Python project's uv.lock and sync its .venv
     vars:
       PROJECTS:
         sh: find squint/python -name pyproject.toml -not -path '*/.venv/*' -printf '%h\n'
     cmds:
       - for: { var: PROJECTS }
-        cmd: rm -rf {{.ITEM}}/.venv && uv sync --directory {{.ITEM}}
+        cmd: uv sync --upgrade --directory {{.ITEM}}
 
   gpu-usage:
     desc: Show where local GPU memory is allocated
