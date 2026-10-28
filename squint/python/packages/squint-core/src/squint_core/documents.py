@@ -15,7 +15,7 @@ class Document(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     id: UUID
-    user_id: str
+    user_id: UUID
     name: str
     sha256: str
     size_bytes: int
@@ -25,7 +25,7 @@ class Document(BaseModel):
 
 class NewDocument(BaseModel):
     id: UUID = Field(default_factory=uuid7)
-    user_id: str
+    user_id: UUID
     name: str
     sha256: str
     size_bytes: int
@@ -55,7 +55,7 @@ async def get_document(db: Executor, id: UUID) -> Document | None:
 
 
 async def find_document_by_sha256(
-    db: Executor, user_id: str, sha256: str
+    db: Executor, user_id: UUID, sha256: str
 ) -> Document | None:
     """The user's earlier upload of the same file, if any."""
     row = await db.fetchrow(
@@ -64,7 +64,7 @@ async def find_document_by_sha256(
     return Document.model_validate(dict(row)) if row else None
 
 
-async def list_documents(db: Executor, user_id: str, *, limit: int) -> list[Document]:
+async def list_documents(db: Executor, user_id: UUID, *, limit: int) -> list[Document]:
     """The user's most recent uploads first."""
     rows = await db.fetch(
         """

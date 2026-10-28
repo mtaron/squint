@@ -1,0 +1,25 @@
+{
+  "name": "@squint/worker",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/main.ts",
+    "check": "tsc --noEmit",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1158.0",
+    "@temporalio/activity": "^1.25.0",
+    "@temporalio/envconfig": "^1.25.0",
+    "@temporalio/worker": "^1.25.0",
+    "@temporalio/workflow": "^1.25.0"
+  },
+  "devDependencies": {
+    "@temporalio/client": "^1.25.0",
+    "@temporalio/testing": "^1.25.0",
+    "@types/node": "^24.19.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.12"
+  }
+}

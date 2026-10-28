@@ -15,6 +15,13 @@
       "when": 1793207808784,
       "tag": "0001_document",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793227516840,
+      "tag": "0002_uuid_ids",
+      "breakpoints": true
     }
   ]
 }

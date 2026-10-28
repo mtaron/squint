@@ -19,6 +19,7 @@ PYTHON_SRC = 'squint/python'
 JS_SRC = 'squint/javascript'
 UI_SRC = JS_SRC + '/ui'
 DB_SRC = JS_SRC + '/db'
+WORKER_SRC = JS_SRC + '/worker'
 
 # Workers run under debugpy on this port in the pod
 DEBUG_PORT = 5678
@@ -82,17 +83,46 @@ COPY --from=build /devtools /
 ''',
     )
 
+def deploy_worker(app, deploy_dir, set_values=[], port_forwards=[]):
+    """Deploys a worker image built as squint-<app> with the squint-worker chart."""
+    values_file = deploy_dir + '/values.yaml'
+    values = read_yaml(values_file, default={})
+    k8s_yaml(helm(
+        'infrastructure/squint-worker',
+        name=app,
+        namespace=NAMESPACE,
+        values=[values_file] if os.path.exists(values_file) else [],
+        set=[
+            'image=squint-' + app,
+            # Promote each rebuild straight away, and free a drained version's pods (and GPU)
+            # as soon as its workflows finish
+            'rollout.strategy=AllAtOnce',
+            'sunset.scaledownDelay=0s',
+            'sunset.deleteDelay=5m',
+        ] + set_values,
+    ))
+
+    objects = [app + ':podmonitor']
+    if values.get('autoscaling', {}).get('enabled'):
+        objects.append(app + '-hpa:workerresourcetemplate')
+
+    k8s_resource(
+        app,
+        objects=objects,
+        port_forwards=port_forwards,
+        resource_deps=['migrate'],
+        labels=['workers'],
+    )
+
 for app, worker in WORKERS.items():
-    image = 'squint-' + app
     app_src = PYTHON_SRC + '/apps/' + app
     deploy_dir = app_src + '/deploy'
-    values_file = deploy_dir + '/values.yaml'
     build_args = read_yaml(deploy_dir + '/build-args.yaml', default={})
 
     # The local packages are installed editable from /app/packages, so syncing source is enough
     # for the chart's debug mode to restart the worker with the edits, without a rebuild
     docker_build(
-        image,
+        'squint-' + app,
         PYTHON_SRC,
         dockerfile=PYTHON_SRC + '/Dockerfile',
         build_args=dict({'APP': app}, **build_args),
@@ -105,40 +135,34 @@ for app, worker in WORKERS.items():
         ],
     )
 
-    values = read_yaml(values_file, default={})
-    set_values = [
-        'image=' + image,
-        # Promote each rebuild straight away, and free a drained version's pods (and GPU)
-        # as soon as its workflows finish
-        'rollout.strategy=AllAtOnce',
-        'sunset.scaledownDelay=0s',
-        'sunset.deleteDelay=5m',
-    ] + worker.get('values', [])
+    set_values = list(worker.get('values', []))
     port_forwards = []
     if not PREVIEW:
         set_values += ['debug=true', 'debugPort=%d' % DEBUG_PORT]
         port_forwards.append(port_forward(worker['debug_port'], DEBUG_PORT, name='debugpy'))
 
-    k8s_yaml(helm(
-        'infrastructure/squint-worker',
-        name=app,
-        namespace=NAMESPACE,
-        values=[values_file] if os.path.exists(values_file) else [],
-        set=set_values,
-    ))
-
-    objects = [app + ':podmonitor']
-    if values.get('autoscaling', {}).get('enabled'):
-        objects.append(app + '-hpa:workerresourcetemplate')
-
     # Attach with the "<app> (kind)" VS Code launch config
-    k8s_resource(
-        app,
-        objects=objects,
-        port_forwards=port_forwards,
-        resource_deps=['migrate'],
-        labels=['workers'],
-    )
+    deploy_worker(app, deploy_dir, set_values, port_forwards)
+
+# The TypeScript worker restarts itself on synced source changes in its dev image, and serves the
+# Node inspector on 9229 rather than using the chart's debugpy mode
+docker_build(
+    'squint-worker',
+    JS_SRC,
+    dockerfile=WORKER_SRC + '/Dockerfile',
+    target='' if PREVIEW else 'dev',
+    only=['worker', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc'],
+    ignore=['worker/deploy'],
+    live_update=[] if PREVIEW else [
+        sync(WORKER_SRC + '/src', '/app/worker/src'),
+    ],
+)
+
+deploy_worker(
+    'worker',
+    WORKER_SRC + '/deploy',
+    port_forwards=[] if PREVIEW else [port_forward(9230, 9229, name='inspector')],
+)
 
 # `task dev-hosts` points squint.loc at the gateway's load balancer IP
 UI_ORIGIN = 'https://squint.loc'

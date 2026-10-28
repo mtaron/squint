@@ -1,0 +1,7 @@
+env:
+  # The AWS SDK for JavaScript ignores AWS_CA_BUNDLE
+  NODE_EXTRA_CA_CERTS: /etc/squint/ca/ca.crt
+dragonfly:
+  enabled: false
+postgres:
+  enabled: false

@@ -7,6 +7,7 @@ import { sveltekitCookies } from "better-auth/svelte-kit";
 import { getRequestEvent } from "$app/server";
 import { db } from "#lib/server/db/index.ts";
 import { getDragonfly } from "#lib/server/dragonfly.ts";
+import { userResources } from "#lib/server/user-resources.ts";
 
 const KEY_PREFIX = "better-auth:";
 
@@ -45,8 +46,11 @@ export const auth = betterAuth({
   secret: building ? "unused-while-building" : BETTER_AUTH_SECRET,
   database: drizzleAdapter(db, { provider: "pg" }),
   secondaryStorage: dragonflyStorage,
+  // Per-user S3 bucket names embed the user id, and bucket names must be lowercase
+  advanced: { database: { generateId: "uuid" } },
   emailAndPassword: { enabled: true },
   plugins: [
+    userResources(),
     sveltekitCookies(getRequestEvent), // make sure this is the last plugin in the array
   ],
 });

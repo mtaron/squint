@@ -14,7 +14,7 @@ export const document = pgTable(
   "document",
   {
     id: uuid("id").primaryKey(),
-    userId: text("user_id")
+    userId: uuid("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
