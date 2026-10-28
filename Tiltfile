@@ -145,6 +145,14 @@ UI_ORIGIN = 'https://squint.loc'
 
 local_resource('gateway-cert', cmd='task gateway-cert', labels=['ui'])
 
+# Gives the gateway its external IP; runs for as long as Tilt does.
+# The Gateway API CRDs are installed manually, so its gateway controller stays off.
+local_resource(
+    'load-balancer',
+    serve_cmd='cloud-provider-kind --gateway-channel disabled',
+    labels=['ui'],
+)
+
 # Vite's dev server watches the synced source, including the db package's schema, and hot reloads
 # it. Other changes (dependencies, config) rebuild the image.
 # In preview mode the Dockerfile's final stage runs the production build, and every change rebuilds.
@@ -179,7 +187,7 @@ k8s_yaml(helm(
 k8s_resource(
     'ui',
     objects=['ui:httproute'],
-    resource_deps=['gateway-cert', 'migrate'],
+    resource_deps=['gateway-cert', 'load-balancer', 'migrate'],
     links=[link(UI_ORIGIN, 'squint')],
     port_forwards=[] if PREVIEW else [port_forward(9229, 9229, name='inspector')],
     labels=['ui'],

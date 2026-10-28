@@ -66,11 +66,6 @@ tasks:
       - kubectl get secret gateway-tls --namespace agentgateway-system
     silent: true
 
-  lb-dev-cluster:
-    desc: Run the dev cluster load balancer
-    if: "! pgrep --full '(^|/)cloud-provider-kind( |$)'"  # Run only a single instance
-    cmd: cloud-provider-kind --gateway-channel disabled # Gateway API CRDs are installed manually
-
   dev-hosts:
     desc: Point {{.GATEWAY_HOST}} and its subdomains at the dev cluster load balancer with a hostctl profile
     vars:
@@ -81,7 +76,7 @@ tasks:
         sh: kubectl get httproute --all-namespaces -o jsonpath='{.items[*].spec.hostnames[*]}'
     preconditions:
       - sh: test -n "{{.GATEWAY_IP}}"
-        msg: The gateway has no address; run `task lb-dev-cluster`
+        msg: The gateway has no address; check that Tilt's load-balancer resource is running
     cmd: printf '{{.GATEWAY_IP}} %s\n' {{.GATEWAY_HOST}} {{.ROUTE_HOSTNAMES}} | sudo "$(command -v hostctl)" replace squint --quiet
     silent: true
 
