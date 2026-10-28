@@ -1,6 +1,5 @@
 <script lang="ts">
   import { resolve } from "$app/paths";
-  import Button from "#lib/components/Button.svelte";
   import HeroDemo from "#lib/components/HeroDemo.svelte";
 
   const steps = [
@@ -35,8 +34,8 @@
       Scans, tables, and wonky forms included.
     </p>
     <div class="actions">
-      <Button href={resolve("/login")}>Get started</Button>
-      <Button href="#self-host" variant="quiet">Run it yourself</Button>
+      <a class="button" href={resolve("/login")}>Get started</a>
+      <a class="button quiet" href="#self-host">Run it yourself</a>
     </div>
   </div>
   <HeroDemo />

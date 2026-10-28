@@ -1,6 +1,5 @@
 <script lang="ts">
   import { signInOrUp } from "#lib/auth.remote.ts";
-  import Button from "#lib/components/Button.svelte";
   import Highlight from "#lib/components/Highlight.svelte";
 
   const { email, _password, name, action } = signInOrUp.fields;
@@ -36,10 +35,16 @@
     </p>
 
     <div class="actions">
-      <Button {...action.as("submit", "signIn")} disabled={!!signInOrUp.pending}>Sign in</Button>
-      <Button variant="quiet" {...action.as("submit", "signUp")} disabled={!!signInOrUp.pending}>
+      <button class="button" {...action.as("submit", "signIn")} disabled={!!signInOrUp.pending}>
+        Sign in
+      </button>
+      <button
+        class="button quiet"
+        {...action.as("submit", "signUp")}
+        disabled={!!signInOrUp.pending}
+      >
         Create account
-      </Button>
+      </button>
     </div>
   </form>
 </section>
