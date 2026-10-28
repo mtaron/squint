@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { enhance } from "$app/forms";
+  import { signInOrUp } from "#lib/auth.remote.ts";
   import Button from "#lib/components/Button.svelte";
   import Highlight from "#lib/components/Highlight.svelte";
-  import type { PageProps } from "./$types";
 
-  let { form }: PageProps = $props();
+  const { email, _password, name, action } = signInOrUp.fields;
 </script>
 
 <svelte:head>
@@ -15,25 +14,32 @@
   <h1>Hello <Highlight>again</Highlight>.</h1>
   <p class="lede">Sign in to get back to your documents, or create an account to start a pile.</p>
 
-  <form method="post" action="?/signInEmail" use:enhance>
+  <form {...signInOrUp}>
     <label>
       <span>Email</span>
-      <input type="email" name="email" autocomplete="email" required />
+      <input {...email.as("email")} autocomplete="email" required />
     </label>
     <label>
       <span>Password</span>
-      <input type="password" name="password" autocomplete="current-password" required />
+      <input {..._password.as("password")} autocomplete="current-password" required />
     </label>
     <label>
       <span>Name <small>(only for new accounts)</small></span>
-      <input name="name" autocomplete="name" />
+      <input {...name.as("text")} autocomplete="name" />
     </label>
 
-    <p class="error" aria-live="polite">{form?.message ?? ""}</p>
+    <p class="error" aria-live="polite">
+      {signInOrUp.fields
+        .allIssues()
+        ?.map((issue) => issue.message)
+        .join(" ")}
+    </p>
 
     <div class="actions">
-      <Button>Sign in</Button>
-      <Button variant="quiet" formaction="?/signUpEmail">Create account</Button>
+      <Button {...action.as("submit", "signIn")} disabled={!!signInOrUp.pending}>Sign in</Button>
+      <Button variant="quiet" {...action.as("submit", "signUp")} disabled={!!signInOrUp.pending}>
+        Create account
+      </Button>
     </div>
   </form>
 </section>

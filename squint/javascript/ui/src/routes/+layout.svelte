@@ -5,6 +5,7 @@
   import "../app.css";
   import { resolve } from "$app/paths";
   import favicon from "#lib/assets/favicon.svg";
+  import { signOut } from "#lib/auth.remote.ts";
   import ThemeToggle from "#lib/components/ThemeToggle.svelte";
   import Wordmark from "#lib/components/Wordmark.svelte";
   import type { LayoutProps } from "./$types";
@@ -23,7 +24,7 @@
       <ThemeToggle />
       {#if data.user}
         <span class="user">{data.user.name}</span>
-        <form method="post" action={resolve("/logout")}>
+        <form {...signOut}>
           <button class="nav-link">Sign out</button>
         </form>
       {:else}
