@@ -13,16 +13,15 @@ const text = requiredAtRuntime(v.pipe(v.string(), v.nonEmpty()));
 const url = requiredAtRuntime(v.pipe(v.string(), v.url()));
 
 export const variables = defineEnvVars({
-  PGHOST: { description: "Postgres host.", schema: text },
+  PGHOST: { schema: text },
   PGPORT: {
-    description: "Postgres port.",
     schema: requiredAtRuntime(
       v.pipe(v.string(), v.toNumber(), v.integer(), v.minValue(1), v.maxValue(65535)),
     ),
   },
-  PGUSER: { description: "Postgres user.", schema: text },
-  PGPASSWORD: { description: "Postgres password.", schema: text },
-  PGDATABASE: { description: "Postgres database name.", schema: text },
+  PGUSER: { schema: text },
+  PGPASSWORD: { schema: text },
+  PGDATABASE: { schema: text },
   TEMPORAL_ADDRESS: { description: "Temporal frontend address as `host:port`.", schema: text },
   TEMPORAL_TLS_SERVER_CA_CERT_PATH: {
     description: "Path to the CA certificate that signed the Temporal frontend's certificate.",
@@ -42,4 +41,8 @@ export const variables = defineEnvVars({
       "Secret used to sign tokens. Use at least 32 characters generated with high entropy. See [Better Auth installation](https://www.better-auth.com/docs/installation).",
     schema: requiredAtRuntime(v.pipe(v.string(), v.minLength(32))),
   },
+  AWS_ENDPOINT_URL: { schema: url },
+  AWS_REGION: { schema: text },
+  AWS_ACCESS_KEY_ID: { schema: text },
+  AWS_SECRET_ACCESS_KEY: { schema: text },
 });
