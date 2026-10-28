@@ -11,19 +11,26 @@ import { register } from "import-in-the-middle/register-hooks.mjs";
 const tracesEnabled = Boolean(process.env.OTEL_EXPORTER_OTLP_ENDPOINT);
 
 if (tracesEnabled) {
-  register();
+  const instrumentations = [
+    new HttpInstrumentation({
+      ignoreIncomingRequestHook: (request) => request.url === "/health",
+    }),
+    new RedisInstrumentation(),
+    new UndiciInstrumentation(),
+    new GrpcInstrumentation(),
+  ];
+
+  // Wrapping every module breaks live bindings in SvelteKit's server chunks (`hooks` stays unset)
+  register({
+    include: instrumentations.flatMap((instrumentation) =>
+      instrumentation.getModuleDefinitions().map((definition) => definition.name),
+    ),
+  });
 
   const sdk = new NodeSDK({
     serviceName: "squint-ui",
     traceExporter: new OTLPTraceExporter(),
-    instrumentations: [
-      new HttpInstrumentation({
-        ignoreIncomingRequestHook: (request) => request.url === "/health",
-      }),
-      new RedisInstrumentation(),
-      new UndiciInstrumentation(),
-      new GrpcInstrumentation(),
-    ],
+    instrumentations,
   });
 
   sdk.start();

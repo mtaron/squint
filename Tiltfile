@@ -160,7 +160,7 @@ docker_build(
     'squint-ui',
     JS_SRC,
     dockerfile=UI_SRC + '/Dockerfile',
-    target=None if PREVIEW else 'dev',
+    target='' if PREVIEW else 'dev',
     only=['ui', 'db', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc'],
     ignore=['db/drizzle'],
     live_update=[] if PREVIEW else [
