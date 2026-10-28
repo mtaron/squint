@@ -123,3 +123,11 @@ tasks:
         - name: ENVIRONMENT
           enum: [development, staging, production]
     cmd: helmfile --environment {{.ENVIRONMENT}} apply --skip-diff-on-install
+
+  migrate:
+    desc: Apply the database migrations, e.g. after `pnpm --filter @squint/db generate`
+    requires:
+      vars:
+        - name: ENVIRONMENT
+          enum: [development, staging, production]
+    cmd: helmfile --environment {{.ENVIRONMENT}} sync --selector name=migrate

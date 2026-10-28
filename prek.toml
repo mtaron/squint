@@ -9,7 +9,7 @@ exclude = {
     "**/*-lock.yaml",
     "**/*.svg",
     ".claude/skills/**",
-    "squint/javascript/ui/drizzle/**",
+    "squint/javascript/db/drizzle/**",
   ]
 }
 

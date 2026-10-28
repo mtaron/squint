@@ -3,6 +3,10 @@
 s3:
   region: us-west-2
 
+migrate:
+  # Built and pushed by hooks/dev-migrate-image.sh
+  image: registry.localhost/squint-migrate:dev
+
 gpu-operator:
   timeSlicing:
     # vLLM, the embed worker, and a new embed version while the old one drains

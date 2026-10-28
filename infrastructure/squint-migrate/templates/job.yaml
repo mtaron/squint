@@ -1,0 +1,26 @@
+# A hook so every install or upgrade migrates, even when the chart is unchanged
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Release.Name }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: {{ required "image is required" .Values.image }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: postgres
+            - secretRef:
+                name: postgres

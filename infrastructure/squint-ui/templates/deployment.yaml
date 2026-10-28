@@ -46,8 +46,6 @@ spec:
             httpGet:
               path: /health
               port: http
-            # Migrations run before the server starts listening
-            initialDelaySeconds: 30
           volumeMounts:
             - name: squint-ca
               mountPath: /etc/squint/ca

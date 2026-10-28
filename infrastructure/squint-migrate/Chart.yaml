@@ -1,0 +1,5 @@
+apiVersion: v2
+name: squint-migrate
+description: Applies the squint database migrations
+type: application
+version: 0.1.0

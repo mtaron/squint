@@ -1,12 +1,7 @@
-import { sequence, type Handle, type ServerInit } from "@sveltejs/kit/hooks";
+import { sequence, type Handle } from "@sveltejs/kit/hooks";
 import { building } from "$app/env";
 import { auth } from "#lib/server/auth.ts";
-import { runMigrations } from "#lib/server/db/migrate.ts";
 import { svelteKitHandler } from "better-auth/svelte-kit";
-
-export const init: ServerInit = async () => {
-  if (!building) await runMigrations();
-};
 
 const aboveTheFoldFonts = new Set([
   "node_modules/@fontsource-variable/fraunces/files/fraunces-latin-full-normal.woff2",

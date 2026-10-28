@@ -16,7 +16,9 @@ docker_prune_settings(disable=True)
 
 NAMESPACE = 'squint'
 PYTHON_SRC = 'squint/python'
-UI_SRC = 'squint/javascript/ui'
+JS_SRC = 'squint/javascript'
+UI_SRC = JS_SRC + '/ui'
+DB_SRC = JS_SRC + '/db'
 
 # Workers run under debugpy on this port in the pod
 DEBUG_PORT = 5678
@@ -46,6 +48,14 @@ PACKAGE_MANIFESTS = [
     for path in listdir(PYTHON_SRC + '/packages')
     if os.path.exists(path + '/pyproject.toml')
 ]
+
+# The same helmfile release that `task deploy` installs; services start once it has run
+local_resource(
+    'migrate',
+    cmd='task migrate',
+    deps=[DB_SRC + '/drizzle'],
+    labels=['db'],
+)
 
 # temporal-worker-controller turns each WorkerDeployment into one Deployment per worker version.
 # Each image rebuild is a new version; live updates keep the running one.
@@ -126,6 +136,7 @@ for app, worker in WORKERS.items():
         app,
         objects=objects,
         port_forwards=port_forwards,
+        resource_deps=['migrate'],
         labels=['workers'],
     )
 
@@ -134,16 +145,20 @@ UI_ORIGIN = 'https://squint.loc'
 
 local_resource('gateway-cert', cmd='task gateway-cert', labels=['ui'])
 
-# Vite's dev server watches the synced source and hot reloads it. Changes outside src/ and
-# static/ (dependencies, config, migrations) rebuild the image, and the new pod migrates on start.
+# Vite's dev server watches the synced source, including the db package's schema, and hot reloads
+# it. Other changes (dependencies, config) rebuild the image.
 # In preview mode the Dockerfile's final stage runs the production build, and every change rebuilds.
 docker_build(
     'squint-ui',
-    UI_SRC,
+    JS_SRC,
+    dockerfile=UI_SRC + '/Dockerfile',
     target=None if PREVIEW else 'dev',
+    only=['ui', 'db', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc'],
+    ignore=['db/drizzle'],
     live_update=[] if PREVIEW else [
-        sync(UI_SRC + '/src', '/app/src'),
-        sync(UI_SRC + '/static', '/app/static'),
+        sync(UI_SRC + '/src', '/app/ui/src'),
+        sync(UI_SRC + '/static', '/app/ui/static'),
+        sync(DB_SRC + '/src', '/app/db/src'),
     ],
 )
 
@@ -164,7 +179,7 @@ k8s_yaml(helm(
 k8s_resource(
     'ui',
     objects=['ui:httproute'],
-    resource_deps=['gateway-cert'],
+    resource_deps=['gateway-cert', 'migrate'],
     links=[link(UI_ORIGIN, 'squint')],
     port_forwards=[] if PREVIEW else [port_forward(9229, 9229, name='inspector')],
     labels=['ui'],

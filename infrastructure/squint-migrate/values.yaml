@@ -1,0 +1,3 @@
+# Built from squint/javascript/db/Dockerfile
+image: ""
+imagePullPolicy: IfNotPresent

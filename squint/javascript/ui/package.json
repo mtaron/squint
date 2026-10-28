@@ -1,5 +1,5 @@
 {
-  "name": "squint",
+  "name": "@squint/ui",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -14,18 +14,10 @@
     "prepare": "svelte-kit sync || echo ''",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
     "test:unit": "vitest",
     "test": "npm run test:unit -- --run && npm run test:e2e",
     "test:e2e": "playwright install && playwright test",
-    "db:push": "drizzle-kit push",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio",
-    "auth:schema": "auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
+    "auth:schema": "auth generate --config src/lib/server/auth.ts --output ../db/src/auth.schema.ts --yes"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.10.0",
@@ -44,6 +36,7 @@
     "@fontsource-variable/instrument-sans": "^5.3.0",
     "@iconify-json/ph": "^1.2.2",
     "@playwright/test": "^1.64.1",
+    "@squint/db": "workspace:*",
     "@sveltejs/adapter-node": "^6.0.0",
     "@sveltejs/enhanced-img": "^1.0.0",
     "@sveltejs/kit": "^3.1.0",
@@ -55,11 +48,8 @@
     "auth": "^1.7.11",
     "better-auth": "^1.7.11",
     "browserslist": "^4.29.4",
-    "drizzle-kit": "^0.31.11",
     "drizzle-orm": "^0.45.4",
     "lightningcss": "^1.33.0",
-    "oxfmt": "^0.73.0",
-    "oxlint": "^1.88.0",
     "playwright": "^1.64.1",
     "postgres": "^3.4.9",
     "svelte": "^5.57.2",
@@ -72,6 +62,5 @@
   },
   "browserslist": [
     "defaults"
-  ],
-  "packageManager": "pnpm@12.11.2"
+  ]
 }

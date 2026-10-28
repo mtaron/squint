@@ -57,7 +57,7 @@
             "address": "localhost",
             "port": 9229,
             "localRoot": "${workspaceFolder}/squint/javascript/ui",
-            "remoteRoot": "/app",
+            "remoteRoot": "/app/ui",
             "restart": true
         }
     ]

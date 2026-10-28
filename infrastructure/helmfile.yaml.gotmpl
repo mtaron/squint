@@ -610,3 +610,23 @@ releases:
     values:
       - s3:
           region: {{ .Values.s3.region }}
+
+  # Applies the migrations in squint/javascript/db/drizzle before the services that use them
+  # `task migrate` reruns it, since `apply` skips the release when only the migrations changed
+  - name: migrate
+    namespace: squint
+    chart: ./squint-migrate
+    {{- if eq .Environment.Name "development" }}
+    hooks:
+      - events: ["presync"]
+        command: bash
+        args: ["hooks/dev-migrate-image.sh", {{ .Values.migrate.image | quote }}]
+    {{- end }}
+    needs:
+      - squint/squint
+    values:
+      - image: {{ .Values.migrate.image }}
+        {{- if eq .Environment.Name "development" }}
+        # Rebuilt under the same tag
+        imagePullPolicy: Always
+        {{- end }}

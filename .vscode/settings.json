@@ -1,10 +1,10 @@
 {
     "files.exclude": {
-        "scratch": true,
         "squint/python/apps/ingest": true,
         "squint/python/apps/embed": true,
         "squint/python/apps/extract": true,
         "squint/javascript/ui": true,
+        "squint/javascript/db": true,
         "squint/python/packages/squint-core": true,
         "squint/python/packages/squint-vector": true
     }
