@@ -69,6 +69,7 @@
     --marker: #ffe45c;
     --marker-pink: light-dark(#ff6fa8, #ff8fbd);
     --on-marker: #1c2030;
+    --danger: light-dark(#b42343, #ff8095);
 
     --font-display: "Fraunces Variable", "Iowan Old Style", Georgia, serif;
     --font-body: "Instrument Sans Variable", system-ui, sans-serif;

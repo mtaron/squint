@@ -23,6 +23,15 @@ spec:
           env:
             - name: PORT
               value: {{ .Values.port | quote }}
+            # Uploads are capped at 2 GB per request by the app; this leaves room for multipart framing
+            - name: BODY_SIZE_LIMIT
+              value: "2100M"
+            # The AWS SDK for JavaScript ignores AWS_CA_BUNDLE
+            - name: NODE_EXTRA_CA_CERTS
+              valueFrom:
+                configMapKeyRef:
+                  name: s3
+                  key: AWS_CA_BUNDLE
             {{- range $name, $value := .Values.env }}
             - name: {{ $name }}
               value: {{ $value | quote }}
@@ -36,6 +45,10 @@ spec:
                 name: postgres
             - secretRef:
                 name: postgres
+            - configMapRef:
+                name: s3
+            - secretRef:
+                name: s3
             - secretRef:
                 name: ui
           readinessProbe:

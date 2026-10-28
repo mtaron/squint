@@ -1,6 +1,8 @@
 import asyncio
 
-from squint_core.hello import HelloWorkflow, say_hello
+from activities import rasterize_pdf, record_result
+from document import IngestDocumentWorkflow
+from library import LibraryWorkflow
 from squint_core.worker import run_worker
 
 TASK_QUEUE = "ingest"
@@ -11,8 +13,8 @@ def main():
     asyncio.run(
         run_worker(
             TASK_QUEUE,
-            [HelloWorkflow],
-            [say_hello],
+            [IngestDocumentWorkflow, LibraryWorkflow],
+            [rasterize_pdf, record_result],
             max_concurrent_activities=MAX_CONCURRENT_ACTIVITIES,
         )
     )

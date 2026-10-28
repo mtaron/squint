@@ -7,9 +7,20 @@ import adapter from "@sveltejs/adapter-node";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { presetIcons } from "@unocss/preset-icons";
 import UnoCSS from "@unocss/vite";
+import type { Plugin } from "vite";
+
+// Node ends requests after 5 minutes by default, which cuts off large uploads; server.js does the
+// same for the production server
+const uploadTimeout: Plugin = {
+  name: "squint:upload-timeout",
+  configureServer({ httpServer }) {
+    if (httpServer && "requestTimeout" in httpServer) httpServer.requestTimeout = 60 * 60 * 1000;
+  },
+};
 
 export default defineConfig({
   plugins: [
+    uploadTimeout,
     UnoCSS({
       presets: [
         presetIcons({

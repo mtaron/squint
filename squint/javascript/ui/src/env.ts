@@ -33,6 +33,13 @@ export const variables = defineEnvVars({
       "Dragonfly URL. TLS files are given as `ssl_ca_certs`, `ssl_certfile` and `ssl_keyfile` query parameters, as redis-py expects.",
     schema: url,
   },
+  AWS_ENDPOINT_URL: {
+    description: "S3 endpoint URL; uploads go to one bucket per user.",
+    schema: url,
+  },
+  AWS_REGION: { description: "S3 region.", schema: text },
+  AWS_ACCESS_KEY_ID: { description: "S3 access key, read by the AWS SDK.", schema: text },
+  AWS_SECRET_ACCESS_KEY: { description: "S3 secret key, read by the AWS SDK.", schema: text },
   ORIGIN: {
     description: "The app origin (base URL), e.g. `https://squint.loc`.",
     schema: url,

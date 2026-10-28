@@ -1,17 +1,25 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
+  import type {
+    HTMLAnchorAttributes,
+    HTMLButtonAttributes,
+    HTMLLabelAttributes,
+  } from "svelte/elements";
 
+  // A label wrapping a file input opens the system file picker, even without JavaScript
   type Props = { variant?: "primary" | "quiet"; children: Snippet } & (
-    | ({ href: string } & HTMLAnchorAttributes)
-    | ({ href?: undefined } & HTMLButtonAttributes)
+    | ({ href: string; as?: undefined } & HTMLAnchorAttributes)
+    | ({ as: "label"; href?: undefined } & HTMLLabelAttributes)
+    | ({ href?: undefined; as?: undefined } & HTMLButtonAttributes)
   );
 
-  let { variant = "primary", children, ...rest }: Props = $props();
+  let { variant = "primary", children, as, ...rest }: Props = $props();
 </script>
 
 {#if rest.href !== undefined}
   <a class="button {variant}" {...rest as HTMLAnchorAttributes}>{@render children()}</a>
+{:else if as === "label"}
+  <label class="button {variant}" {...rest as HTMLLabelAttributes}>{@render children()}</label>
 {:else}
   <button class="button {variant}" {...rest as HTMLButtonAttributes}>{@render children()}</button>
 {/if}
@@ -32,6 +40,12 @@
     transition:
       box-shadow 160ms var(--ease-out),
       background-color 160ms var(--ease-out);
+  }
+
+  label.button:has(:global(input:focus-visible)) {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px var(--marker);
   }
 
   .primary {
