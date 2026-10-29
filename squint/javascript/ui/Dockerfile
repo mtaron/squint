@@ -33,6 +33,9 @@ COPY --chown=node:node db db
 
 WORKDIR /app/ui
 
+# For dev tools run with `kubectl exec`, such as the auth CLI
+ENV PATH=/app/ui/node_modules/.bin:$PATH
+
 EXPOSE 3000 9229
 
 CMD ["node", "--inspect=0.0.0.0:9229", "node_modules/vite/bin/vite.js", "dev", "--host", "0.0.0.0", "--port", "3000"]

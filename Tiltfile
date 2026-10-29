@@ -190,6 +190,7 @@ docker_build(
     live_update=[] if PREVIEW else [
         sync(UI_SRC + '/src', '/app/ui/src'),
         sync(UI_SRC + '/static', '/app/ui/static'),
+        sync(UI_SRC + '/scripts', '/app/ui/scripts'),
         sync(DB_SRC + '/src', '/app/db/src'),
     ],
 )
@@ -204,6 +205,10 @@ k8s_yaml(helm(
         'env.ORIGIN=' + UI_ORIGIN,
         # Traces are viewed in Grafana's Explore view with the Tempo data source
         'env.OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo.monitoring.svc:4318',
+        # The dev admin account for `task create-admin` and `task remove-user`; the password Secret
+        # comes from infrastructure/hooks/dev-squint-secrets.sh
+        'env.ADMIN_EMAIL=admin@squint-docs.com',
+        'envFromSecrets={admin}',
     ],
 ))
 
@@ -214,5 +219,15 @@ k8s_resource(
     resource_deps=['gateway-cert', 'load-balancer', 'migrate'],
     links=[link(UI_ORIGIN, 'squint')],
     port_forwards=[] if PREVIEW else [port_forward(9229, 9229, name='inspector')],
+    labels=['ui'],
+)
+
+# Once per cluster; `task admin-credentials` prints the sign-in
+local_resource(
+    'create-admin',
+    cmd='task create-admin',
+    resource_deps=['ui'],
+    auto_init=False,
+    trigger_mode=TRIGGER_MODE_MANUAL,
     labels=['ui'],
 )

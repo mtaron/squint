@@ -78,6 +78,24 @@ tasks:
       done; echo "started {{.COUNT}} workflows on {{.QUEUE}}"'
 
 
+  create-admin:
+    desc: Create the dev admin account; needs the dev ui image, not `task preview`
+    cmd: >-
+      kubectl exec --namespace squint deploy/ui --
+      sh -c 'auth create-admin --config src/lib/server/auth.ts --yes
+      --name Admin --email "$ADMIN_EMAIL" --password "$ADMIN_PASSWORD"'
+
+  admin-credentials:
+    desc: Print the dev admin account's email and password
+    cmd: kubectl exec --namespace squint deploy/ui -- printenv ADMIN_EMAIL ADMIN_PASSWORD
+    silent: true
+
+  remove-user:
+    desc: "Delete a user and clean up their resources, e.g. `task remove-user EMAIL=test@example.com`"
+    requires:
+      vars: [EMAIL]
+    cmd: kubectl exec --namespace squint deploy/ui -- node scripts/remove-user.ts {{shellQuote .EMAIL}}
+
   update-python-dependencies:
     desc: Upgrade every Python project's uv.lock and sync its .venv
     vars:

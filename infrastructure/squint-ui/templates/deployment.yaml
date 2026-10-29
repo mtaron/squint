@@ -51,6 +51,10 @@ spec:
                 name: s3
             - secretRef:
                 name: ui
+            {{- range .Values.envFromSecrets }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /health

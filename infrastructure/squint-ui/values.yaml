@@ -4,6 +4,8 @@ replicas: 1
 port: 3000
 # Extra environment variables for the UI, as name: value. ORIGIN must be the URL users browse to.
 env: {}
+# Extra Secrets loaded as environment variables, by name
+envFromSecrets: []
 
 route:
   enabled: false

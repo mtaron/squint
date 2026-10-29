@@ -3,6 +3,7 @@ import { building } from "$app/env";
 import { betterAuth } from "better-auth/minimal";
 import type { SecondaryStorage } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { admin } from "better-auth/plugins/admin";
 import { sveltekitCookies } from "better-auth/svelte-kit";
 import { getRequestEvent } from "$app/server";
 import { db } from "#lib/server/db/index.ts";
@@ -51,6 +52,7 @@ export const auth = betterAuth({
   emailAndPassword: { enabled: true },
   plugins: [
     userResources(),
+    admin(),
     sveltekitCookies(getRequestEvent), // make sure this is the last plugin in the array
   ],
 });

@@ -34,3 +34,10 @@ if ! secret_exists ui; then
     --from-literal BETTER_AUTH_SECRET="$(head -c 32 /dev/urandom | base64)" \
     --dry-run=client --output yaml | kubectl apply --filename -
 fi
+
+# Signs in the dev admin account; see `task create-admin`
+if ! secret_exists admin; then
+  kubectl --namespace squint create secret generic admin \
+    --from-literal ADMIN_PASSWORD="$(head -c 24 /dev/urandom | base64)" \
+    --dry-run=client --output yaml | kubectl apply --filename -
+fi
