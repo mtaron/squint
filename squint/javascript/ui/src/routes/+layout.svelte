@@ -38,8 +38,7 @@
   </main>
 
   <footer>
-    <Wordmark />
-    <p>No documents were squinted at in the making of this page.</p>
+    <p>Copyright © 2026 Michael Taron</p>
   </footer>
 </div>
 
@@ -89,11 +88,6 @@
   }
 
   footer {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
     margin-block-start: var(--space-9);
     padding-block: var(--space-6);
     border-top: 1px solid var(--rule);

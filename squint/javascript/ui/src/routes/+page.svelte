@@ -10,10 +10,10 @@
   {#if data.user}
     <title>squint: documents</title>
   {:else}
-    <title>squint: structured data from piles of PDFs</title>
+    <title>squint: structured data from your documents</title>
     <meta
       name="description"
-      content="squint looks at every page of your PDFs and hands back the fields you asked for, as tidy rows. Self-hosted, vision-first document extraction."
+      content="squint applies a schema across your documents and shows where on the page each value came from. Vision-first and self-hostable."
     />
   {/if}
 </svelte:head>

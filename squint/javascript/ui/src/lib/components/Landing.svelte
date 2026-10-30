@@ -4,26 +4,26 @@
 
   const steps = [
     {
-      title: "Drop in your PDFs",
-      body: "A folder, a bucket, a pile on someone's desk. squint queues them up and works through every page.",
+      title: "Add your documents",
+      body: "Upload a single PDF or a whole folder. squint embeds each page as an image, with no OCR or PDF parsing.",
     },
     {
-      title: "Say which fields you want",
-      body: "Vendor, invoice number, total due. Name them and you're done, with no templates to draw and no regexes to babysit.",
+      title: "Define a schema",
+      body: "Name the fields you want, like vendor, invoice number, and total due. One schema covers every document, so you don't maintain a template for each layout.",
     },
     {
-      title: "Get rows back",
-      body: "One tidy row per document, ready for a spreadsheet, a database, or whatever comes next.",
+      title: "Get a table back",
+      body: "Each document becomes a row, and each value points to the spot on the page it came from, so you can check the results.",
     },
   ];
 </script>
 
 <section class="hero">
   <div class="pitch">
-    <h1>Squint at a thousand PDFs. Get one tidy table.</h1>
+    <h1>Turn a thousand PDFs into one table.</h1>
     <p class="lede">
-      squint looks at every page the way you would, then hands back just the fields you asked for.
-      Scans, tables, and wonky forms included.
+      Tell squint which fields you need. It finds them across your documents, scanned or digital,
+      and shows you where on the page each value came from.
     </p>
     <div class="actions">
       <a class="button" href={resolve("/login")}>Get started</a>
@@ -47,33 +47,36 @@
 
 <section class="vision" aria-labelledby="vision-heading">
   <div>
-    <h2 id="vision-heading">It looks instead of reads</h2>
+    <h2 id="vision-heading">No parsing, just pixels</h2>
     <p>
-      Most pipelines turn a page into text first and hope the layout survives the trip. squint works
-      from the page image itself, so where something sits on the page is part of what it
-      understands.
+      Most document pipelines start with OCR, page segmentation, and reading order reconstruction.
+      squint skips those steps. It embeds page images directly to find the right pages, then a
+      vision-language model reads them.
     </p>
   </div>
   <ul>
     <li>
-      <span class="i-ph-table-duotone" aria-hidden="true"></span>
+      <span class="i-ph-layout-duotone" aria-hidden="true"></span>
       <div>
-        <h3>Tables stay tables</h3>
-        <p>Rows and columns keep their meaning, even when the ruling lines are faint.</p>
+        <h3>Layout stays intact</h3>
+        <p>The model sees the whole page, so tables and forms keep their structure.</p>
       </div>
     </li>
     <li>
       <span class="i-ph-scan-duotone" aria-hidden="true"></span>
       <div>
-        <h3>Scans are welcome</h3>
-        <p>Photocopies, faxes, and the occasional coffee ring.</p>
+        <h3>Scans work too</h3>
+        <p>A scanned PDF goes through the same pipeline as a born-digital one.</p>
       </div>
     </li>
     <li>
-      <span class="i-ph-layout-duotone" aria-hidden="true"></span>
+      <span class="i-ph-gauge-duotone" aria-hidden="true"></span>
       <div>
-        <h3>Layout is a clue</h3>
-        <p>The big number at the bottom right of an invoice is probably the total.</p>
+        <h3>Small models, only when needed</h3>
+        <p>
+          squint favors small models and saves per-page work until a schema calls for it, which
+          keeps cost per page low.
+        </p>
       </div>
     </li>
   </ul>
@@ -83,8 +86,8 @@
   <span class="i-ph-hard-drives-duotone" aria-hidden="true"></span>
   <h2 id="self-host-heading">Your documents stay on your GPUs</h2>
   <p>
-    squint runs on your own Kubernetes cluster, right next to your data. Nothing gets mailed off to
-    someone else's API to be looked at.
+    squint runs on your own Kubernetes cluster, next to your data. The models run there too, so your
+    pages never leave your infrastructure.
   </p>
 </section>
 

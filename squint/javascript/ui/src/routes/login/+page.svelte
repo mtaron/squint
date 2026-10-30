@@ -10,8 +10,8 @@
 </svelte:head>
 
 <section>
-  <h1>Hello <Highlight>again</Highlight>.</h1>
-  <p class="lede">Sign in to get back to your documents, or create an account to start a pile.</p>
+  <h1>Welcome to <Highlight>squint</Highlight>.</h1>
+  <p class="lede">Sign in to get back to your documents, or create an account to get started.</p>
 
   <form {...signInOrUp}>
     <label>
