@@ -8,10 +8,7 @@ import {
   type S3Client,
 } from "@aws-sdk/client-s3";
 import { heartbeat } from "@temporalio/activity";
-
-export function userBucketName(userId: string): string {
-  return `squint-u-${userId}`;
-}
+import { userBucketName } from "@squint/db/storage";
 
 function isS3Error(error: unknown, name: string): boolean {
   return error instanceof Error && error.name === name;

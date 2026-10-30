@@ -18,6 +18,7 @@ FROM base AS manifests
 # Only the manifests, so source edits don't invalidate the dependency layer
 COPY --chown=node:node package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY --chown=node:node worker/package.json worker/
+COPY --chown=node:node db/package.json db/
 
 FROM manifests AS deps
 
@@ -28,6 +29,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store,uid=1000,gid=1000 \
 FROM deps AS dev
 
 COPY --chown=node:node worker worker
+COPY --chown=node:node db db
 
 WORKDIR /app/worker
 
@@ -52,6 +54,8 @@ COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=prod-deps /app/worker/node_modules node_modules
 COPY --chown=node:node worker/package.json ./
 COPY --chown=node:node worker/src src
+COPY --chown=node:node db/package.json /app/db/
+COPY --chown=node:node db/src /app/db/src
 
 EXPOSE 9090
 

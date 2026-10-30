@@ -151,10 +151,11 @@ docker_build(
     JS_SRC,
     dockerfile=WORKER_SRC + '/Dockerfile',
     target='' if PREVIEW else 'dev',
-    only=['worker', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc'],
-    ignore=['worker/deploy'],
+    only=['worker', 'db', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc'],
+    ignore=['worker/deploy', 'db/drizzle'],
     live_update=[] if PREVIEW else [
         sync(WORKER_SRC + '/src', '/app/worker/src'),
+        sync(DB_SRC + '/src', '/app/db/src'),
     ],
 )
 

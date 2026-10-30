@@ -1,6 +1,7 @@
 import asyncio
 import signal
 from collections.abc import Callable, Sequence
+from concurrent.futures import Executor
 from datetime import timedelta
 
 from temporalio.common import VersioningBehavior, WorkerDeploymentVersion
@@ -47,6 +48,7 @@ async def run_worker(
     activities: Sequence[Callable],
     *,
     max_concurrent_activities: int,
+    activity_executor: Executor | None = None,
 ) -> None:
     """Run a versioned worker until SIGTERM or SIGINT, then drain in-flight tasks."""
     version = deployment_version()
@@ -57,6 +59,7 @@ async def run_worker(
         workflows=workflows,
         activities=activities,
         max_concurrent_activities=max_concurrent_activities,
+        activity_executor=activity_executor,
         graceful_shutdown_timeout=GRACEFUL_SHUTDOWN_TIMEOUT,
         deployment_config=WorkerDeploymentConfig(
             version=version,

@@ -1,7 +1,8 @@
 import type { S3Client } from "@aws-sdk/client-s3";
 import { MockActivityEnvironment } from "@temporalio/testing";
 import { describe, expect, test } from "vitest";
-import { createActivities, userBucketName } from "./activities.ts";
+import { userBucketName } from "@squint/db/storage";
+import { createActivities } from "./activities.ts";
 
 const USER_ID = "0f8fad5b-d9cb-469f-a165-70867728950e";
 const BUCKET = `squint-u-${USER_ID}`;
