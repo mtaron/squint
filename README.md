@@ -9,7 +9,7 @@
 
 [ColPali](https://huggingface.co/blog/manu/colpali) was a paradigm shift in document retrieval. Instead of using a complex retrieval pipeline with OCR, page segmentation, reading order reconstruction, etc., ColPali-style models just embed page images directly. This project is a personal side quest to see how far I can take a "vision-only" document processing pipeline by combining late-interaction page embeddings for search ([NeoMME](https://huggingface.co/blog/Hcompany/neomme) in this case) with a vision-language model ([Qwen3-VL](https://github.com/qwenlm/qwen3-vl)).
 
-The fundamental job squint does is apply a schema across documents with grounding.
+The fundamental job squint does is apply a schema across documents with grounding. The late-interaction page embeddings allow it to do so efficiently over a large corpus.
 
 ## Principles
 - **Efficiency**: Many document-specific problems can be solved with smaller models for a very reasonable accuracy trade-off. You can always throw a bigger model at a problem, but I'm curious how low you can drive cost per page and pages per second while still having acceptable results.
