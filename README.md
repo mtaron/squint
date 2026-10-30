@@ -1,5 +1,11 @@
-# squint
-_A self-hostable, vision-first document processing pipeline_
+<p align="center">
+  <img src="squint/javascript/ui/src/lib/assets/favicon.svg" alt="squint logo" width="96">
+</p>
+
+<h1 align="center">
+  squint<br>
+  <sub><sub><em>A self-hostable, vision-first document processing pipeline</em></sub></sub>
+</h1>
 
 [ColPali](https://huggingface.co/blog/manu/colpali) was a paradigm shift in document retrivial. Instead of using a complex retrivial pipeline with OCR, page segementation, reading order reconstruction, etc., ColPali-style models just embed page images directly. This project is personal side quest to see how I can take a "vision only" document processing pipeline by combining a late-interaction page embeddings for search ([NeoMME](https://huggingface.co/blog/Hcompany/neomme) in this case) with a visual language model ([Qwen3-VL](https://github.com/qwenlm/qwen3-vl)).
 
