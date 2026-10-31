@@ -12,10 +12,10 @@ from activities import IngestError, IngestInput, PdfActivities
 FIXTURES = Path(__file__).parent / "fixtures"
 
 INPUT = IngestInput(
-    document_id=UUID("0193b4a4-7a39-7f5e-8a1b-4b3c2d1e0f00"),
+    document_id="V3kQ9xTz2m",
     user_id=UUID("0f8fad5b-d9cb-469f-a165-70867728950e"),
     bucket="squint-u-0f8fad5b-d9cb-469f-a165-70867728950e",
-    key="documents/0193b4a4-7a39-7f5e-8a1b-4b3c2d1e0f00.pdf",
+    key="documents/V3kQ9xTz2m.pdf",
 )
 
 

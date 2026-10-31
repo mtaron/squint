@@ -1,11 +1,13 @@
 import { createHash } from "node:crypto";
-import { documentObjectKey, userBucketName } from "@squint/db/storage";
-import { v7 as uuidv7 } from "uuid";
+import { documentIdFormat, documentObjectKey, userBucketName } from "@squint/db/storage";
+import { customAlphabet } from "nanoid";
 import type { UploadProgress } from "#lib/ingest.ts";
 import type { ObjectStorage } from "#lib/server/s3.ts";
 import { fileProblem } from "#lib/upload-limits.ts";
 
 const PROGRESS_INTERVAL_MS = 250;
+
+const newDocumentId = customAlphabet(documentIdFormat.alphabet, documentIdFormat.length);
 
 export interface NewDocument {
   id: string;
@@ -78,7 +80,7 @@ export function documentStore(dependencies: DocumentStoreDependencies) {
         return { problem };
       }
 
-      const documentId = uuidv7();
+      const documentId = newDocumentId();
       const bucket = userBucketName(userId);
       const key = documentObjectKey(documentId);
       const sha256 = sha256Passthrough();

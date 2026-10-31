@@ -1,11 +1,11 @@
 """Uploaded documents, stored in the `document` table defined in squint/javascript/db."""
 
 from datetime import datetime
-from uuid import UUID, uuid7
+from uuid import UUID
 
 import asyncpg
 from asyncpg.pool import PoolConnectionProxy
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 # Pass a connection rather than the pool to run inside its transaction
 type Executor = asyncpg.Pool | asyncpg.Connection | PoolConnectionProxy
@@ -14,7 +14,7 @@ type Executor = asyncpg.Pool | asyncpg.Connection | PoolConnectionProxy
 class Document(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    id: UUID
+    id: str
     user_id: UUID
     name: str
     sha256: str
@@ -24,7 +24,7 @@ class Document(BaseModel):
 
 
 class NewDocument(BaseModel):
-    id: UUID = Field(default_factory=uuid7)
+    id: str
     user_id: UUID
     name: str
     sha256: str
@@ -49,7 +49,7 @@ async def create_document(db: Executor, new: NewDocument) -> Document:
     return Document.model_validate(dict(row))
 
 
-async def get_document(db: Executor, id: UUID) -> Document | None:
+async def get_document(db: Executor, id: str) -> Document | None:
     row = await db.fetchrow("select * from document where id = $1", id)
     return Document.model_validate(dict(row)) if row else None
 
@@ -79,14 +79,14 @@ async def list_documents(db: Executor, user_id: UUID, *, limit: int) -> list[Doc
     return [Document.model_validate(dict(row)) for row in rows]
 
 
-async def set_page_count(db: Executor, id: UUID, page_count: int) -> Document | None:
+async def set_page_count(db: Executor, id: str, page_count: int) -> Document | None:
     row = await db.fetchrow(
         "update document set page_count = $2 where id = $1 returning *", id, page_count
     )
     return Document.model_validate(dict(row)) if row else None
 
 
-async def delete_document(db: Executor, id: UUID) -> bool:
+async def delete_document(db: Executor, id: str) -> bool:
     """Whether a document was deleted."""
     status = await db.execute("delete from document where id = $1", id)
     return status == "DELETE 1"

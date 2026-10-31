@@ -1,3 +1,14 @@
+const DOCUMENT_ID_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+const DOCUMENT_ID_LENGTH = 10;
+const DOCUMENT_ID_PATTERN = new RegExp(`^[${DOCUMENT_ID_ALPHABET}]{${DOCUMENT_ID_LENGTH}}$`);
+
+/** Nano IDs in base58, so they are short and have no look-alike characters. */
+export const documentIdFormat = { alphabet: DOCUMENT_ID_ALPHABET, length: DOCUMENT_ID_LENGTH };
+
+export function isDocumentId(value: string): boolean {
+  return DOCUMENT_ID_PATTERN.test(value);
+}
+
 /** Each user's documents live in their own bucket, created by the lifecycle worker. */
 export function userBucketName(userId: string): string {
   return `squint-u-${userId}`;

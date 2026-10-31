@@ -13,7 +13,7 @@ import { user } from "./auth.schema";
 export const document = pgTable(
   "document",
   {
-    id: uuid("id").primaryKey(),
+    id: text("id").primaryKey(),
     userId: uuid("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),

@@ -32,8 +32,8 @@
     "@temporalio/client": "^1.25.0",
     "@temporalio/workflow-streams": "^1.25.0",
     "import-in-the-middle": "^3.5.3",
-    "redis": "^6.3.0",
-    "uuid": "^11.1.1"
+    "nanoid": "^6.0.2",
+    "redis": "^6.3.0"
   },
   "devDependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",

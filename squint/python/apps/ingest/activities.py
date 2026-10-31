@@ -27,7 +27,7 @@ class IngestError(StrEnum):
 
 
 class IngestInput(CamelModel):
-    document_id: UUID
+    document_id: str
     user_id: UUID
     bucket: str
     key: str
