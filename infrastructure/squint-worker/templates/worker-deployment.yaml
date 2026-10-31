@@ -63,6 +63,10 @@ spec:
               {{- if .Values.debug }}
               - name: PYTHONPATH
                 value: /opt/devtools
+              # Lets debugpy stop in workflow code: no deadlock detection, and pydevd can import
+              # inside the sandbox
+              - name: TEMPORAL_DEBUG
+                value: "true"
               {{- end }}
             {{- if or .Values.s3.enabled .Values.dragonfly.enabled .Values.milvus.enabled .Values.postgres.enabled }}
             envFrom:

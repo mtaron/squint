@@ -28,7 +28,11 @@ mkcert = "latest"
 "github:tomlsmith/tomlsmith" = "latest"
 tilt = "latest"
 hostctl = "latest"
-prek = "latest"
+# The Git hook prek generates hardcodes the installed version's path
+prek = {
+    version = "latest",
+    postinstall = { run = 'prek --cd "$MISE_CONFIG_ROOT" install', when = "always" },
+}
 
 # python
 ty = "latest"
