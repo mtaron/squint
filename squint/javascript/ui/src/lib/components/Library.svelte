@@ -11,7 +11,7 @@
   } from "#lib/documents.remote.ts";
   import { droppedFiles, isFileDrag } from "#lib/drop.ts";
   import { ingestErrorMessage } from "#lib/ingest.ts";
-  import { UploadQueue } from "#lib/state/uploads.svelte.ts";
+  import { retriedBy, UploadQueue } from "#lib/state/uploads.svelte.ts";
 
   const queue = new UploadQueue();
   const progress = uploadProgress();
@@ -53,13 +53,20 @@
     dismissed.add(id);
   }
 
+  function upload(files: File[]) {
+    for (const { id } of retriedBy(failures, files)) {
+      dismissed.add(id);
+    }
+    queue.add(files);
+  }
+
   async function drop(event: DragEvent) {
     if (!isFileDrag(event) || !event.dataTransfer) {
       return;
     }
     event.preventDefault();
     dragDepth = 0;
-    queue.add(await droppedFiles(event.dataTransfer));
+    upload(await droppedFiles(event.dataTransfer));
   }
 </script>
 
@@ -77,7 +84,7 @@
 />
 
 {#if firstRun}
-  <FirstRun dragging={dragDepth > 0} onfiles={(files) => queue.add(files)} />
+  <FirstRun dragging={dragDepth > 0} onfiles={upload} />
 {:else}
   <DocumentList
     {documents}
@@ -87,7 +94,7 @@
     {statuses}
     {formIssues}
     dragging={dragDepth > 0}
-    onfiles={(files) => queue.add(files)}
+    onfiles={upload}
     ondismiss={dismiss}
   />
 {/if}

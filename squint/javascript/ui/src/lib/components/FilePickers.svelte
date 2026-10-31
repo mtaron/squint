@@ -7,7 +7,9 @@
     onfiles,
   }: { size?: "large" | "compact"; onfiles: (files: File[]) => void } = $props();
 
-  const { files } = uploadDocuments.fields;
+  // Only the name: the rest of `as` writes the form's state back to the input, which brings back
+  // earlier picks for `onfiles` to report again
+  const { name } = uploadDocuments.fields.files.as("file multiple");
 
   // Without JavaScript the inputs stay visible and the form posts all the chosen files at once
   let enhanced = $state(false);
@@ -26,12 +28,12 @@
   <label class="button hero">
     <span class="i-ph-folder-open-duotone" aria-hidden="true"></span>
     Choose a folder
-    <input {...files.as("file multiple")} webkitdirectory onchange={choose} />
+    <input type="file" multiple {name} webkitdirectory onchange={choose} />
   </label>
   <label class="button quiet">
     <span class="i-ph-file-pdf-duotone" aria-hidden="true"></span>
     Choose a PDF
-    <input {...files.as("file multiple")} accept="application/pdf,.pdf" onchange={choose} />
+    <input type="file" multiple {name} accept="application/pdf,.pdf" onchange={choose} />
   </label>
   {#if !enhanced}
     <button class="button submit">Upload</button>

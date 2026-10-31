@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { UploadQueue } from "./uploads.svelte.ts";
+import { UploadQueue, retriedBy } from "./uploads.svelte.ts";
 
 const pdf = (name: string) => new File(["%PDF-1.7"], name);
 
@@ -36,6 +36,27 @@ describe("UploadQueue", () => {
     expect(queue.items[0].file).toBeUndefined();
   });
 
+  test("replaces a failed upload when a file with the same name is added", () => {
+    const queue = new UploadQueue();
+    queue.add([pdf("a.pdf"), pdf("b.pdf")]);
+    const [a, b] = queue.items;
+    queue.settle(a.id, ["The upload failed. Try again."]);
+    queue.settle(b.id, ["The upload failed. Try again."]);
+
+    queue.add([pdf("a.pdf")]);
+
+    expect(statuses(queue)).toEqual(["b.pdf failed", "a.pdf uploading"]);
+  });
+
+  test("leaves uploads in progress alone when the same name is added again", () => {
+    const queue = new UploadQueue();
+    queue.add([pdf("a.pdf")]);
+
+    queue.add([pdf("a.pdf")]);
+
+    expect(statuses(queue)).toEqual(["a.pdf uploading", "a.pdf uploading"]);
+  });
+
   test("rejects empty files without uploading them", () => {
     const queue = new UploadQueue();
     queue.add([new File([], "blank.pdf")]);
@@ -64,5 +85,13 @@ describe("UploadQueue", () => {
     queue.dismiss(queue.items[0].id);
 
     expect(queue.items).toEqual([]);
+  });
+});
+
+describe("retriedBy", () => {
+  test("finds the failures that the new files retry, by name", () => {
+    const failures = [{ name: "a.pdf" }, { name: "b.pdf" }];
+
+    expect(retriedBy(failures, [pdf("b.pdf"), pdf("c.pdf")])).toEqual([{ name: "b.pdf" }]);
   });
 });
