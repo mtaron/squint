@@ -6,4 +6,6 @@ Do not start long running background tasks like `tilt up` inside the agent shell
 
 Use `task remove-user EMAIL=<email>` to clean up test accounts unless leaving them is required for further debugging.
 
+Pass `--interactive=false` to `kubectl delete`. Otherwise it prompts for confirmation, which cancels the delete in an agent shell.
+
 Use code comments sparingly; prefer descriptive code instead.
