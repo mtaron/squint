@@ -25,6 +25,7 @@ spec:
         labels:
           app.kubernetes.io/name: {{ .Release.Name }}
       spec:
+        terminationGracePeriodSeconds: {{ .Values.shutdownGracePeriodSeconds }}
         {{- if gt (int .Values.gpu) 0 }}
         tolerations:
           - key: nvidia.com/gpu
@@ -40,12 +41,8 @@ spec:
             command:
               - python
               - -m
-              - watchfiles
-              - --filter
-              - python
-              # Frozen stdlib modules can make debugpy miss breakpoints
-              - python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:{{ .Values.debugPort }} main.py
-              - /app
+              - debug_worker
+              - {{ .Values.debugPort | quote }}
             {{- else }}
             {{- with .Values.command }}
             command:
@@ -55,8 +52,10 @@ spec:
             ports:
               - name: metrics
                 containerPort: 9090
-            {{- if or .Values.env .Values.debug }}
             env:
+              # Short enough for the worker to report what it couldn't finish before the SIGKILL
+              - name: WORKER_SHUTDOWN_TIMEOUT_SECONDS
+                value: {{ sub .Values.shutdownGracePeriodSeconds 5 | quote }}
               {{- range $name, $value := .Values.env }}
               - name: {{ $name }}
                 value: {{ $value | quote }}
@@ -65,7 +64,6 @@ spec:
               - name: PYTHONPATH
                 value: /opt/devtools
               {{- end }}
-            {{- end }}
             {{- if or .Values.s3.enabled .Values.dragonfly.enabled .Values.milvus.enabled .Values.postgres.enabled }}
             envFrom:
               {{- if .Values.s3.enabled }}

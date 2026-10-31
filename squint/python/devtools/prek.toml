@@ -1,0 +1,16 @@
+#:schema https://www.schemastore.org/prek.json
+
+[[repos]]
+repo = "local"
+hooks = [
+  {
+    id = "ty",
+    name = "ty check",
+    language = "system",
+    entry = "mise exec -- ty check --python .venv",
+    types_or = ["python", "pyi", "jupyter"],
+    pass_filenames = false,
+    always_run = true,
+    require_serial = true,
+  },
+]

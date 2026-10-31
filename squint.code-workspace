@@ -23,6 +23,9 @@
 		},
 		{
 			"path": "squint/python/packages/squint-vector"
+		},
+		{
+			"path": "squint/python/devtools"
 		}
 	],
 	"settings": {

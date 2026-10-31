@@ -12,8 +12,6 @@ from squint_core.config import require_env
 from squint_core.temporal import create_client
 
 METRICS_ADDRESS = "0.0.0.0:9090"
-# Kubernetes sends SIGKILL 30s after SIGTERM by default
-GRACEFUL_SHUTDOWN_TIMEOUT = timedelta(seconds=25)
 
 
 def deployment_version() -> WorkerDeploymentVersion:
@@ -22,6 +20,12 @@ def deployment_version() -> WorkerDeploymentVersion:
         deployment_name=require_env("TEMPORAL_DEPLOYMENT_NAME"),
         build_id=require_env("TEMPORAL_WORKER_BUILD_ID"),
     )
+
+
+def shutdown_timeout() -> timedelta:
+    """How long in-flight activities get to finish, which the squint-worker chart keeps below the
+    pod's termination grace period."""
+    return timedelta(seconds=int(require_env("WORKER_SHUTDOWN_TIMEOUT_SECONDS")))
 
 
 def create_runtime(version: WorkerDeploymentVersion) -> Runtime:
@@ -60,7 +64,7 @@ async def run_worker(
         activities=activities,
         max_concurrent_activities=max_concurrent_activities,
         activity_executor=activity_executor,
-        graceful_shutdown_timeout=GRACEFUL_SHUTDOWN_TIMEOUT,
+        graceful_shutdown_timeout=shutdown_timeout(),
         deployment_config=WorkerDeploymentConfig(
             version=version,
             use_worker_versioning=True,

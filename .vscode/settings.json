@@ -6,6 +6,7 @@
         "squint/javascript/ui": true,
         "squint/javascript/db": true,
         "squint/python/packages/squint-core": true,
-        "squint/python/packages/squint-vector": true
+        "squint/python/packages/squint-vector": true,
+        "squint/python/devtools": true
     }
 }

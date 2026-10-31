@@ -10,6 +10,9 @@ env: {}
 # Run under debugpy, listening on debugPort, and restart on source changes
 debug: false
 debugPort: 5678
+# How long a pod that's being removed has to finish its in-flight activities. Set it to the longest
+# an activity can run, or scaling down and rollouts kill the work and it restarts after a timeout.
+shutdownGracePeriodSeconds: 30
 
 temporal:
   # temporal-worker-controller Connection, from the squint chart

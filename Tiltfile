@@ -73,14 +73,8 @@ k8s_kind(
 if not PREVIEW:
     docker_build(
         'squint-devtools',
-        PYTHON_SRC,
-        ignore=['*'],
-        dockerfile_contents='''
-FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim AS build
-RUN uv pip install --target /devtools --compile-bytecode debugpy watchfiles
-FROM scratch
-COPY --from=build /devtools /
-''',
+        PYTHON_SRC + '/devtools',
+        only=['pyproject.toml', 'uv.lock', 'debug_worker.py'],
     )
 
 def deploy_worker(app, deploy_dir, set_values=[], port_forwards=[]):
