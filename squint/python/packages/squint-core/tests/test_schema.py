@@ -11,18 +11,21 @@ from uuid import UUID
 import pytest
 from pydantic import BaseModel
 
-from squint_core.documents import Document
+from squint_core.documents import Document, DocumentPage
 
 MIGRATIONS = Path(__file__).parents[4] / "javascript" / "db" / "drizzle"
 
 TABLE_MODELS: dict[str, type[BaseModel]] = {
     "document": Document,
+    "document_page": DocumentPage,
 }
 
 PYTHON_TYPES = {
     "uuid": UUID,
     "text": str,
     "integer": int,
+    "integer[]": list[int],
+    "real": float,
     "bigint": int,
     "boolean": bool,
     "timestamp": datetime,
@@ -55,4 +58,4 @@ def test_model_matches_table(table: str):
     for name, column in columns.items():
         python_type, nullable = split_optional(model.model_fields[name].annotation)
         assert nullable == (not column["notNull"]), f"{table}.{name} nullability"
-        assert python_type is PYTHON_TYPES[column["type"]], f"{table}.{name} type"
+        assert python_type == PYTHON_TYPES[column["type"]], f"{table}.{name} type"

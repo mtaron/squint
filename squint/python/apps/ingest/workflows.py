@@ -11,7 +11,6 @@ with workflow.unsafe.imports_passed_through():
         IngestError,
         IngestEvent,
         IngestInput,
-        PdfActivities,
     )
 
 # Subscribers poll for new events, so the final one stays readable for a while after the
@@ -28,8 +27,9 @@ def failure_reason(error: ActivityError) -> IngestError:
 
 @workflow.defn
 class IngestDocumentWorkflow:
-    """Validates an uploaded PDF and records its page count. Started by the UI once the upload
-    has finished; progress is published on the `status` topic of the workflow's stream."""
+    """Validates an uploaded PDF, stores an image of each page, and records the page count.
+    Started by the UI once the upload has finished; progress is published on the `status` topic
+    of the workflow's stream, by the activity while it works through the pages."""
 
     @workflow.init
     def __init__(self, input: IngestInput) -> None:
@@ -41,9 +41,9 @@ class IngestDocumentWorkflow:
         self.status.publish(IngestEvent(state="validating"))
         try:
             page_count = await workflow.execute_activity_method(
-                PdfActivities.rasterize_pdf,
+                DocumentActivities.rasterize_pdf,
                 input,
-                start_to_close_timeout=timedelta(minutes=10),
+                start_to_close_timeout=timedelta(hours=1),
                 heartbeat_timeout=timedelta(minutes=1),
                 retry_policy=RetryPolicy(maximum_attempts=5),
             )
@@ -54,7 +54,7 @@ class IngestDocumentWorkflow:
             await workflow.execute_activity_method(
                 DocumentActivities.discard_document,
                 input,
-                start_to_close_timeout=timedelta(minutes=1),
+                start_to_close_timeout=timedelta(minutes=5),
             )
         else:
             await workflow.execute_activity_method(

@@ -8,9 +8,15 @@ from temporalio.contrib.workflow_streams import WorkflowStreamClient
 from temporalio.exceptions import ApplicationError
 from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
-from test_activities import INPUT
+from test_activities import FIXTURES, INPUT, FakeDb, FakeS3
 
-from activities import IngestError, IngestEvent, IngestInput
+from activities import (
+    DocumentActivities,
+    IngestError,
+    IngestEvent,
+    IngestInput,
+    PageWorkers,
+)
 from workflows import IngestDocumentWorkflow
 
 
@@ -48,7 +54,7 @@ async def read_status(client: Client, workflow_id: str) -> list[IngestEvent]:
     events = []
     async for item in stream.topic("status", type=IngestEvent).subscribe():
         events.append(item.data)
-        if item.data.state != "validating":
+        if item.data.state in ("ingested", "failed"):
             return events
     return events
 
@@ -84,6 +90,50 @@ async def test_records_the_page_count(env: WorkflowEnvironment):
     assert fakes.calls == ["rasterize_pdf", "record_page_count 3"]
     assert events == [
         IngestEvent(state="validating"),
+        IngestEvent(state="ingested", page_count=3),
+    ]
+
+
+async def test_progress_from_the_activity_arrives_before_the_final_event(
+    env: WorkflowEnvironment,
+):
+    task_queue = f"test-{uuid.uuid4()}"
+    db = FakeDb()
+    with PageWorkers(1) as page_workers:
+        activities = DocumentActivities(
+            db,  # ty: ignore[invalid-argument-type]
+            FakeS3(FIXTURES / "three-pages.pdf"),  # ty: ignore[invalid-argument-type]
+            page_workers,
+        )
+
+        async def record_page_count(_input: IngestInput, _page_count: int) -> None:
+            pass
+
+        record_page_count = activity.defn(name="record_page_count")(record_page_count)
+
+        async with Worker(
+            env.client,
+            task_queue=task_queue,
+            workflows=[IngestDocumentWorkflow],
+            activities=[
+                activities.rasterize_pdf,
+                record_page_count,
+                activities.discard_document,
+            ],
+        ):
+            handle = await env.client.start_workflow(
+                IngestDocumentWorkflow.run,
+                INPUT,
+                id=f"ingest-{uuid.uuid4()}",
+                task_queue=task_queue,
+            )
+            events = await read_status(env.client, handle.id)
+            await handle.result()
+
+    assert events == [
+        IngestEvent(state="validating"),
+        IngestEvent(state="rasterizing", page_count=3, pages_done=0),
+        IngestEvent(state="rasterizing", page_count=3, pages_done=3),
         IngestEvent(state="ingested", page_count=3),
     ]
 
@@ -139,8 +189,13 @@ async def test_publishes_error_codes_for_the_ui(env: WorkflowEnvironment):
         raw = []
         async for item in stream.subscribe("status"):
             raw.append(item.data)
-            if item.data["state"] != "validating":
+            if item.data["state"] == "failed":
                 break
         await handle.result()
 
-    assert raw[-1] == {"state": "failed", "pageCount": None, "error": "too_many_pages"}
+    assert raw[-1] == {
+        "state": "failed",
+        "pageCount": None,
+        "pagesDone": None,
+        "error": "too_many_pages",
+    }

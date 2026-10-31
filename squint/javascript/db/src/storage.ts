@@ -14,6 +14,15 @@ export function userBucketName(userId: string): string {
   return `squint-u-${userId}`;
 }
 
+// Mirrored in squint/python/packages/squint-core/src/squint_core/documents.py
 export function documentObjectKey(documentId: string): string {
-  return `documents/${documentId}.pdf`;
+  return `documents/${documentId}/original.pdf`;
+}
+
+export function pageImageKey(documentId: string, pageNumber: number): string {
+  return `documents/${documentId}/pages/${pageNumber}.jpg`;
+}
+
+export function thumbnailKey(documentId: string, pageNumber: number): string {
+  return `documents/${documentId}/thumbnails/${pageNumber}.webp`;
 }

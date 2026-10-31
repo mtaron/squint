@@ -1,4 +1,4 @@
-"""Uploaded documents, stored in the `document` table defined in squint/javascript/db."""
+"""Uploaded documents, stored in the tables defined in squint/javascript/db."""
 
 from datetime import datetime
 from uuid import UUID
@@ -11,6 +11,19 @@ from pydantic import BaseModel, ConfigDict
 type Executor = asyncpg.Pool | asyncpg.Connection | PoolConnectionProxy
 
 
+def document_prefix(document_id: str) -> str:
+    """Every object belonging to a document starts with this. Mirrors squint/javascript/db/src/storage.ts."""
+    return f"documents/{document_id}/"
+
+
+def page_image_key(document_id: str, page_number: int) -> str:
+    return f"{document_prefix(document_id)}pages/{page_number}.jpg"
+
+
+def thumbnail_key(document_id: str, page_number: int) -> str:
+    return f"{document_prefix(document_id)}thumbnails/{page_number}.webp"
+
+
 class Document(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -21,6 +34,20 @@ class Document(BaseModel):
     size_bytes: int
     page_count: int | None
     uploaded_at: datetime
+
+
+class DocumentPage(BaseModel):
+    """What ingestion learned about a page. Pixel values are relative to its image in S3."""
+
+    model_config = ConfigDict(frozen=True)
+
+    document_id: str
+    page_number: int
+    width: int
+    height: int
+    is_scan: bool
+    skew_degrees: float | None
+    content_box: list[int] | None
 
 
 class NewDocument(BaseModel):
@@ -90,3 +117,38 @@ async def delete_document(db: Executor, id: str) -> bool:
     """Whether a document was deleted."""
     status = await db.execute("delete from document where id = $1", id)
     return status == "DELETE 1"
+
+
+async def upsert_pages(db: Executor, pages: list[DocumentPage]) -> None:
+    await db.executemany(
+        """
+        insert into document_page
+            (document_id, page_number, width, height, is_scan, skew_degrees, content_box)
+        values ($1, $2, $3, $4, $5, $6, $7)
+        on conflict (document_id, page_number) do update set
+            width = excluded.width,
+            height = excluded.height,
+            is_scan = excluded.is_scan,
+            skew_degrees = excluded.skew_degrees,
+            content_box = excluded.content_box
+        """,
+        [
+            (
+                page.document_id,
+                page.page_number,
+                page.width,
+                page.height,
+                page.is_scan,
+                page.skew_degrees,
+                page.content_box,
+            )
+            for page in pages
+        ],
+    )
+
+
+async def pages_recorded(db: Executor, document_id: str) -> int:
+    """How many of the document's pages are recorded. Pages are recorded in order."""
+    return await db.fetchval(
+        "select count(*) from document_page where document_id = $1", document_id
+    )

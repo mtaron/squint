@@ -4,12 +4,14 @@
 
   let {
     name,
+    href,
     sizeBytes,
     pageCount = null,
     tone,
     status,
   }: {
     name: string;
+    href?: string;
     sizeBytes: number;
     pageCount?: number | null;
     tone?: "quiet" | "problem";
@@ -21,7 +23,13 @@
 </script>
 
 <li class={["row", tone]}>
-  <span class="name">{name}</span>
+  <span class="name">
+    {#if href}
+      <a {href}>{name}</a>
+    {:else}
+      {name}
+    {/if}
+  </span>
   <span class="pages">
     {#if pageCount !== null}
       {pageCount.toLocaleString("en")}
@@ -49,6 +57,14 @@
   .name {
     font-weight: 600;
     overflow-wrap: anywhere;
+  }
+
+  .name a {
+    color: inherit;
+    text-decoration-color: var(--marker);
+    text-decoration-thickness: 0.2em;
+    text-underline-offset: 0.15em;
+    text-decoration-skip-ink: none;
   }
 
   .pages,

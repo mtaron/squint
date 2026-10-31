@@ -5,9 +5,14 @@ export type IngestError = "password_protected" | "damaged" | "too_many_pages" | 
 
 /** Published on the `status` topic of each ingestion workflow's stream, by squint/python/apps/ingest. */
 export interface IngestEvent {
-  state: "validating" | "ingested" | "failed";
+  state: "validating" | "rasterizing" | "ingested" | "failed";
   pageCount?: number | null;
+  pagesDone?: number | null;
   error?: IngestError | null;
+}
+
+export function isFinalIngestEvent({ state }: IngestEvent): boolean {
+  return state === "ingested" || state === "failed";
 }
 
 const ingestErrorMessages: Record<IngestError, string> = {

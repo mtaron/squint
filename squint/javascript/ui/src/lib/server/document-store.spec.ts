@@ -65,6 +65,9 @@ describe("documentStore.add", () => {
     }
     expect(isDocumentId(outcome.documentId)).toBe(true);
     expect(outcome.documentId).toHaveLength(10);
+    expect(documentObjectKey(outcome.documentId)).toBe(
+      `documents/${outcome.documentId}/original.pdf`,
+    );
     expect(objects.has(`${BUCKET}/${documentObjectKey(outcome.documentId)}`)).toBe(true);
   });
 
@@ -75,7 +78,9 @@ describe("documentStore.add", () => {
 
     if (!("documentId" in outcome)) throw new Error(outcome.problem);
     const { documentId } = outcome;
-    expect(objects).toEqual(new Map([[`${BUCKET}/documents/${documentId}.pdf`, CONTENTS]]));
+    expect(objects).toEqual(
+      new Map([[`${BUCKET}/documents/${documentId}/original.pdf`, CONTENTS]]),
+    );
     expect(rows).toEqual([
       {
         id: documentId,

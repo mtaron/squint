@@ -1,2 +1,4 @@
 autoscaling:
   enabled: true
+# rasterize_pdf's start_to_close_timeout, so a pod being removed can finish its document
+shutdownGracePeriodSeconds: 3600

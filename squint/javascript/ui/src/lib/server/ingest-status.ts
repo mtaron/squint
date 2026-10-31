@@ -1,13 +1,11 @@
 import { setTimeout as sleep } from "node:timers/promises";
 import { WorkflowStreamClient } from "@temporalio/workflow-streams/client";
-import { ingestWorkflowId, type IngestEvent } from "#lib/ingest.ts";
+import { ingestWorkflowId, isFinalIngestEvent, type IngestEvent } from "#lib/ingest.ts";
 import { pageCount } from "#lib/server/documents.ts";
 import { getTemporalClient } from "#lib/server/temporal.ts";
 
 // The workflow may not have started yet, or the stream ended without a final event
 const RECHECK_DELAY_MS = 2000;
-
-const isFinal = (event: IngestEvent) => event.state !== "validating";
 
 async function readStream(
   documentId: string,
@@ -22,7 +20,7 @@ async function readStream(
     ).topic<IngestEvent>("status");
     for await (const { data } of status.subscribe()) {
       onEvent(data);
-      if (isFinal(data)) {
+      if (isFinalIngestEvent(data)) {
         return data;
       }
     }

@@ -26,7 +26,7 @@ export interface IngestInput {
 }
 
 export interface DocumentStoreDependencies {
-  storage: ObjectStorage;
+  storage: Pick<ObjectStorage, "put" | "delete">;
   /** Inserts the row, or returns the name of the user's earlier upload with the same contents. */
   insert(row: NewDocument): Promise<{ duplicateOf?: string }>;
   remove(documentId: string): Promise<void>;

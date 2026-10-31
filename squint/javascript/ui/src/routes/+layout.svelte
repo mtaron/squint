@@ -4,6 +4,7 @@
   import "virtual:uno.css";
   import "../app.css";
   import { resolve } from "$app/paths";
+  import { page } from "$app/state";
   import favicon from "#lib/assets/favicon.svg";
   import { signOut } from "#lib/auth.remote.ts";
   import ThemeToggle from "#lib/components/ThemeToggle.svelte";
@@ -11,13 +12,16 @@
   import type { LayoutProps } from "./$types";
 
   let { data, children }: LayoutProps = $props();
+
+  // The document viewer takes all the room the header leaves
+  const fullScreen = $derived(page.route.id === "/documents/[id]");
 </script>
 
 <svelte:head>
   <link rel="icon" href={favicon} />
 </svelte:head>
 
-<div class="shell">
+<div class={["shell", { "full-screen": fullScreen }]}>
   <header>
     <a class="home" href={resolve("/")} aria-label="squint home"><Wordmark /></a>
     <nav>
@@ -37,9 +41,11 @@
     {@render children()}
   </main>
 
-  <footer>
-    <p>Copyright © 2026 Michael Taron</p>
-  </footer>
+  {#if !fullScreen}
+    <footer>
+      <p>Copyright © 2026 Michael Taron</p>
+    </footer>
+  {/if}
 </div>
 
 <style>
@@ -49,6 +55,17 @@
     min-height: 100dvh;
     width: min(100% - 2 * var(--gutter), var(--page-width));
     margin-inline: auto;
+  }
+
+  .full-screen {
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100dvh;
+    width: 100%;
+
+    header {
+      padding-inline: var(--gutter);
+      padding-block: var(--space-3);
+    }
   }
 
   header {

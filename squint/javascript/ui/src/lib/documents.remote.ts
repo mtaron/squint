@@ -1,8 +1,15 @@
+import { isDocumentId } from "@squint/db/storage";
 import { error, invalid } from "@sveltejs/kit";
+import * as v from "valibot";
 import { form, getRequestEvent, query } from "$app/server";
 import type { DocumentIngestion, UploadProgress } from "#lib/ingest.ts";
 import type { AnnouncedDocument } from "#lib/server/document-store.ts";
-import { documents, documentsBeingIngested, listDocuments } from "#lib/server/documents.ts";
+import {
+  documents,
+  documentsBeingIngested,
+  documentWithPages,
+  listDocuments,
+} from "#lib/server/documents.ts";
 import { followIngestion } from "#lib/server/ingest-status.ts";
 import { Changes, channels, subscribe } from "#lib/server/user-events.ts";
 import { uploadSchema } from "#lib/upload-limits.ts";
@@ -23,6 +30,14 @@ function liveQueryLifetime() {
 }
 
 export const getDocuments = query(() => listDocuments(requireUser().id));
+
+export const getDocumentPages = query(v.string(), async (id) => {
+  const document = isDocumentId(id) ? await documentWithPages(requireUser().id, id) : undefined;
+  if (!document) {
+    error(404, "This document doesn't exist.");
+  }
+  return document;
+});
 
 export const uploadDocuments = form(uploadSchema, async ({ files, uploadId }, issue) => {
   const user = requireUser();

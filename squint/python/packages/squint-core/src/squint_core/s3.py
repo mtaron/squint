@@ -1,12 +1,7 @@
 import ssl
 
-from capo_s3 import AsyncS3Client, S3Client
-from zapros import (
-    AsyncIOTransport,
-    AsyncStdNetworkHandler,
-    StdNetworkHandler,
-    SyncTransport,
-)
+from capo_s3 import AsyncS3Client
+from zapros import AsyncIOTransport, AsyncStdNetworkHandler
 
 from squint_core.config import require_env
 
@@ -31,16 +26,6 @@ def create_client() -> AsyncS3Client:
     return AsyncS3Client(
         http_handler=AsyncStdNetworkHandler(
             transport=AsyncIOTransport(ssl_context=_ssl_context())
-        ),
-        **_connection_settings(),
-    )
-
-
-def create_sync_client() -> S3Client:
-    """For sync activities, which run outside the event loop."""
-    return S3Client(
-        http_handler=StdNetworkHandler(
-            transport=SyncTransport(ssl_context=_ssl_context())
         ),
         **_connection_settings(),
     )

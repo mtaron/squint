@@ -1,5 +1,5 @@
-import { document } from "@squint/db";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { document, documentPage } from "@squint/db";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { ingestWorkflowId } from "#lib/ingest.ts";
 import { db } from "#lib/server/db/index.ts";
 import { documentStore } from "#lib/server/document-store.ts";
@@ -9,6 +9,8 @@ import { channels, publish } from "#lib/server/user-events.ts";
 
 // Served by the Python worker in squint/python/apps/ingest
 const INGEST_TASK_QUEUE = "ingest";
+
+export const storage = s3Storage();
 
 export function listDocuments(userId: string) {
   return db
@@ -40,8 +42,25 @@ export async function pageCount(documentId: string): Promise<number | null | und
   return row?.pageCount;
 }
 
+/** The user's document and its page sizes, or undefined if they have no such document. */
+export async function documentWithPages(userId: string, documentId: string) {
+  const [row] = await db
+    .select({ name: document.name, pageCount: document.pageCount })
+    .from(document)
+    .where(and(eq(document.id, documentId), eq(document.userId, userId)));
+  if (!row) {
+    return undefined;
+  }
+  const pages = await db
+    .select({ width: documentPage.width, height: documentPage.height })
+    .from(documentPage)
+    .where(eq(documentPage.documentId, documentId))
+    .orderBy(asc(documentPage.pageNumber));
+  return { name: row.name, ready: row.pageCount !== null, pages };
+}
+
 export const documents = documentStore({
-  storage: s3Storage(),
+  storage,
 
   async insert(row) {
     const inserted = await db

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from "$app/paths";
   import DocumentRow from "#lib/components/DocumentRow.svelte";
   import FilePickers from "#lib/components/FilePickers.svelte";
   import type { DocumentIngestion, UploadProgress } from "#lib/ingest.ts";
@@ -43,10 +44,6 @@
 
   const uploadTones = { queued: "quiet", uploading: undefined, failed: "problem" } as const;
 </script>
-
-{#snippet checking()}
-  Checking the PDF…
-{/snippet}
 
 <section class={["library", { dragging }]} aria-labelledby="library-heading">
   <header>
@@ -96,11 +93,25 @@
     {#each documents as document (document.id)}
       {@const latest = statuses[document.id]?.latest}
       {@const pageCount = document.pageCount ?? latest?.pageCount ?? null}
+      {@const ready = document.pageCount !== null || latest?.state === "ingested"}
+      {#snippet preparing()}
+        {#if latest?.state === "rasterizing"}
+          <span id="preparing-{document.id}">Preparing pages</span>
+          <progress
+            aria-labelledby="preparing-{document.id}"
+            max={latest.pageCount ?? 1}
+            value={latest.pagesDone ?? 0}
+          ></progress>
+        {:else}
+          Checking the PDF…
+        {/if}
+      {/snippet}
       <DocumentRow
         name={document.name}
+        href={ready ? resolve("/documents/[id]", { id: document.id }) : undefined}
         sizeBytes={document.sizeBytes}
         {pageCount}
-        status={pageCount === null ? checking : undefined}
+        status={ready ? undefined : preparing}
       />
     {/each}
   </ol>
