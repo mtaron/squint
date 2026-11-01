@@ -18,7 +18,10 @@
 {:else}
   <section class="preparing">
     <h1>{document.name}</h1>
-    <p>Its pages are still being prepared. <a href={resolve("/")}>Back to your documents</a></p>
+    <p>
+      Its pages are still being prepared.
+      <a href={resolve("/documents")}>Back to your documents</a>
+    </p>
   </section>
 {/if}
 

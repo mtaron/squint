@@ -1,18 +1,12 @@
 import { isDocumentId } from "@squint/db/storage";
-import { error, invalid } from "@sveltejs/kit";
+import { error } from "@sveltejs/kit";
 import * as v from "valibot";
-import { form, getRequestEvent, query } from "$app/server";
-import type { DocumentIngestion, UploadProgress } from "#lib/ingest.ts";
+import { getRequestEvent, query } from "$app/server";
+import type { DocumentIngestion } from "#lib/ingest.ts";
 import type { AnnouncedDocument } from "#lib/server/document-store.ts";
-import {
-  documents,
-  documentsBeingIngested,
-  documentWithPages,
-  listDocuments,
-} from "#lib/server/documents.ts";
+import { documentsBeingIngested, documentWithPages, listDocuments } from "#lib/server/documents.ts";
 import { followIngestion } from "#lib/server/ingest-status.ts";
 import { Changes, channels, subscribe } from "#lib/server/user-events.ts";
-import { uploadSchema } from "#lib/upload-limits.ts";
 
 function requireUser() {
   const { user } = getRequestEvent().locals;
@@ -37,53 +31,6 @@ export const getDocumentPages = query(v.string(), async (id) => {
     error(404, "This document doesn't exist.");
   }
   return document;
-});
-
-export const uploadDocuments = form(uploadSchema, async ({ files, uploadId }, issue) => {
-  const user = requireUser();
-  const documentIds: string[] = [];
-  const problems = [];
-  for (const [index, file] of files.entries()) {
-    const outcome = await documents.add(user.id, file, uploadId);
-    if ("problem" in outcome) {
-      // An upload with an id has its own row beside the file's name; without JavaScript the
-      // problems are listed together, so they name the file
-      const message = uploadId ? outcome.problem : `${file.name}: ${outcome.problem}`;
-      problems.push(issue.files[index](message));
-    } else {
-      documentIds.push(outcome.documentId);
-    }
-  }
-
-  void getDocuments().refresh();
-  if (problems.length > 0) {
-    invalid(...problems);
-  }
-  return { documentIds };
-});
-
-/** Bytes sent to S3 so far for each of the user's uploads, keyed by the client's upload id. */
-export const uploadProgress = query.live(async function* () {
-  const user = requireUser();
-  const lifetime = liveQueryLifetime();
-  const progress: Record<string, UploadProgress> = {};
-  const changes = new Changes();
-  try {
-    await subscribe<UploadProgress>(
-      channels.uploads(user.id),
-      (update) => {
-        progress[update.uploadId] = update;
-        changes.notify();
-      },
-      lifetime.signal,
-    );
-    while (!lifetime.signal.aborted) {
-      yield { ...progress };
-      await changes.next(lifetime.signal);
-    }
-  } finally {
-    lifetime.end();
-  }
 });
 
 /**

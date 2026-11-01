@@ -10,12 +10,7 @@ export interface StoredObject {
 
 export interface ObjectStorage {
   /** Streams `body` to the object, buffering at most a few multipart parts at once. */
-  put(
-    bucket: string,
-    key: string,
-    body: ReadableStream<Uint8Array>,
-    onProgress: (loaded: number) => void,
-  ): Promise<void>;
+  put(bucket: string, key: string, body: ReadableStream<Uint8Array>): Promise<void>;
   /** Streams the object, or returns undefined if there isn't one. */
   get(bucket: string, key: string): Promise<StoredObject | undefined>;
   delete(bucket: string, key: string): Promise<void>;
@@ -24,7 +19,7 @@ export interface ObjectStorage {
 // The endpoint, region and credentials come from the AWS_* environment variables
 export function s3Storage(client = new S3Client({ forcePathStyle: true })): ObjectStorage {
   return {
-    async put(bucket, key, body, onProgress) {
+    async put(bucket, key, body) {
       const upload = new Upload({
         client,
         params: {
@@ -34,7 +29,6 @@ export function s3Storage(client = new S3Client({ forcePathStyle: true })): Obje
           ContentType: "application/pdf",
         },
       });
-      upload.on("httpUploadProgress", ({ loaded }) => onProgress(loaded ?? 0));
       await upload.done();
     },
 

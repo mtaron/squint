@@ -2,7 +2,6 @@ import { getDragonfly } from "#lib/server/dragonfly.ts";
 
 /** Per-user Dragonfly channels, so a live query sees events from whichever UI replica handled the upload. */
 export const channels = {
-  uploads: (userId: string) => `squint:uploads:${userId}`,
   documents: (userId: string) => `squint:documents:${userId}`,
 };
 

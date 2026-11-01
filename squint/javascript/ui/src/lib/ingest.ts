@@ -33,12 +33,6 @@ export interface DocumentIngestion {
   latest: IngestEvent;
 }
 
-export interface UploadProgress {
-  uploadId: string;
-  loaded: number;
-  total: number;
-}
-
 export function ingestWorkflowId(documentId: string): string {
   return `ingest-${documentId}`;
 }

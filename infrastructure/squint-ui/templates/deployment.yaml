@@ -23,9 +23,9 @@ spec:
           env:
             - name: PORT
               value: {{ .Values.port | quote }}
-            # Uploads are capped at 2 GB per request by the app; this leaves room for multipart framing
+            # Each upload is one PDF sent as the raw request body, so this matches MAX_PDF_BYTES
             - name: BODY_SIZE_LIMIT
-              value: "2100M"
+              value: "500M"
             # The AWS SDK for JavaScript ignores AWS_CA_BUNDLE
             - name: NODE_EXTRA_CA_CERTS
               valueFrom:

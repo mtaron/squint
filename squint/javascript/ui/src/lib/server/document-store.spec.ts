@@ -18,10 +18,8 @@ function fakes(overrides: Partial<DocumentStoreDependencies> = {}) {
   const calls: string[] = [];
   const dependencies: DocumentStoreDependencies = {
     storage: {
-      async put(bucket, key, body, onProgress) {
-        const text = await new Response(body).text();
-        objects.set(`${bucket}/${key}`, text);
-        onProgress(text.length);
+      async put(bucket, key, body) {
+        objects.set(`${bucket}/${key}`, await new Response(body).text());
       },
       async delete(bucket, key) {
         objects.delete(`${bucket}/${key}`);
@@ -40,9 +38,6 @@ function fakes(overrides: Partial<DocumentStoreDependencies> = {}) {
     },
     async startIngestion(input) {
       calls.push(`startIngestion ${input.documentId}`);
-    },
-    async reportProgress(_userId, { loaded, total }) {
-      calls.push(`progress ${loaded}/${total}`);
     },
     async announce(_userId, { id }) {
       calls.push(`announce ${id}`);
@@ -74,7 +69,7 @@ describe("documentStore.add", () => {
   test("streams the file to the user's bucket, records it, and starts ingesting it", async () => {
     const { store, objects, rows, calls } = fakes();
 
-    const outcome = await store.add(USER_ID, pdf(), crypto.randomUUID());
+    const outcome = await store.add(USER_ID, pdf());
 
     if (!("documentId" in outcome)) throw new Error(outcome.problem);
     const { documentId } = outcome;
@@ -90,11 +85,7 @@ describe("documentStore.add", () => {
         sizeBytes: CONTENTS.length,
       },
     ]);
-    expect(calls).toEqual([
-      `progress ${CONTENTS.length}/${CONTENTS.length}`,
-      `startIngestion ${documentId}`,
-      `announce ${documentId}`,
-    ]);
+    expect(calls).toEqual([`startIngestion ${documentId}`, `announce ${documentId}`]);
   });
 
   test("skips a file the user already uploaded and deletes the copy", async () => {

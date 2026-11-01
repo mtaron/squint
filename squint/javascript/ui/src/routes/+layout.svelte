@@ -9,9 +9,12 @@
   import { signOut } from "#lib/auth.remote.ts";
   import ThemeToggle from "#lib/components/ThemeToggle.svelte";
   import Wordmark from "#lib/components/Wordmark.svelte";
+  import { Ingestion, setIngestion } from "#lib/state/ingestion.svelte.ts";
   import type { LayoutProps } from "./$types";
 
   let { data, children }: LayoutProps = $props();
+
+  const ingestion = setIngestion(new Ingestion());
 
   // The document viewer takes all the room the header leaves
   const fullScreen = $derived(page.route.id === "/documents/[id]");
@@ -28,7 +31,12 @@
       <ThemeToggle />
       {#if data.user}
         <span class="user">{data.user.name}</span>
-        <form {...signOut}>
+        <form
+          {...signOut.enhance(async ({ submit }) => {
+            ingestion.clear();
+            await submit();
+          })}
+        >
           <button class="nav-link">Sign out</button>
         </form>
       {:else}

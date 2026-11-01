@@ -6,11 +6,15 @@ export interface QueuedUpload {
   id: string;
   name: string;
   size: number;
+  loaded: number;
   status: "queued" | "uploading" | "failed";
   /** Released once the upload settles */
   file?: File;
   problems: string[];
 }
+
+/** Sends a file, resolving to what stopped it from being added, if anything. */
+export type SendUpload = (file: File, onProgress: (loaded: number) => void) => Promise<string[]>;
 
 function skippedMessage(names: string[]): string {
   const shown = names.slice(0, SKIPPED_NAMES_SHOWN).join(", ");
@@ -31,9 +35,11 @@ export function retriedBy<Failure extends { name: string }>(
 /** Files waiting to upload, uploading, or rejected, uploading a few at a time. */
 export class UploadQueue {
   items: QueuedUpload[] = $state([]);
+  #send: SendUpload;
   #limit: number;
 
-  constructor(limit = MAX_CONCURRENT_UPLOADS) {
+  constructor(send: SendUpload, limit = MAX_CONCURRENT_UPLOADS) {
+    this.#send = send;
     this.#limit = limit;
   }
 
@@ -61,6 +67,7 @@ export class UploadQueue {
         id: crypto.randomUUID(),
         name: file.name,
         size: file.size,
+        loaded: 0,
         ...(problem
           ? { status: "failed", problems: [problem] }
           : { status: "queued", file, problems: [] }),
@@ -72,6 +79,7 @@ export class UploadQueue {
         id: crypto.randomUUID(),
         name: notPdfs.length === 1 ? notPdfs[0] : `${notPdfs.length} files`,
         size: 0,
+        loaded: 0,
         status: "failed",
         problems: [
           notPdfs.length === 1
@@ -101,16 +109,34 @@ export class UploadQueue {
     this.items = this.items.filter((item) => item.id !== id);
   }
 
+  clear(): void {
+    this.items = [];
+  }
+
   #startNext(): void {
     let uploading = this.uploading.length;
     for (const item of this.items) {
       if (uploading >= this.#limit) {
         return;
       }
-      if (item.status === "queued") {
+      if (item.status === "queued" && item.file) {
         item.status = "uploading";
         uploading += 1;
+        void this.#upload(item, item.file);
       }
+    }
+  }
+
+  async #upload(item: QueuedUpload, file: File): Promise<void> {
+    try {
+      this.settle(
+        item.id,
+        await this.#send(file, (loaded) => {
+          item.loaded = loaded;
+        }),
+      );
+    } catch {
+      this.settle(item.id, ["The upload failed. Try again."]);
     }
   }
 }

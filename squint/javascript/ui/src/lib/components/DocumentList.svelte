@@ -2,7 +2,7 @@
   import { resolve } from "$app/paths";
   import DocumentRow from "#lib/components/DocumentRow.svelte";
   import FilePickers from "#lib/components/FilePickers.svelte";
-  import type { DocumentIngestion, UploadProgress } from "#lib/ingest.ts";
+  import type { DocumentIngestion } from "#lib/ingest.ts";
   import type { QueuedUpload } from "#lib/state/uploads.svelte.ts";
 
   interface ListedDocument {
@@ -23,9 +23,7 @@
     documents,
     failures,
     uploads,
-    progress,
     statuses,
-    formIssues,
     dragging,
     onfiles,
     ondismiss,
@@ -33,10 +31,7 @@
     documents: ListedDocument[];
     failures: FailedDocument[];
     uploads: QueuedUpload[];
-    progress: Record<string, UploadProgress>;
     statuses: Record<string, DocumentIngestion>;
-    /** Problems from a post made without JavaScript */
-    formIssues: string[];
     dragging: boolean;
     onfiles: (files: File[]) => void;
     ondismiss: (id: string) => void;
@@ -51,17 +46,6 @@
     <FilePickers size="compact" {onfiles} />
   </header>
 
-  {#if formIssues.length > 0}
-    <div class="form-issues" role="alert">
-      <ul>
-        {#each formIssues as message, index (index)}
-          <li>{message}</li>
-        {/each}
-      </ul>
-      <a href="/">Dismiss</a>
-    </div>
-  {/if}
-
   <ol>
     {#each uploads as upload (upload.id)}
       <DocumentRow name={upload.name} sizeBytes={upload.size} tone={uploadTones[upload.status]}>
@@ -73,7 +57,7 @@
             <progress
               aria-labelledby="uploading-{upload.id}"
               max={upload.size}
-              value={progress[upload.id]?.loaded ?? 0}
+              value={upload.loaded}
             ></progress>
           {:else}
             <p role="alert">{upload.problems.join(" ")}</p>
@@ -142,22 +126,6 @@
 
   h1 {
     font-size: clamp(var(--step-3), 4vw, var(--step-4));
-  }
-
-  .form-issues {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: start;
-    justify-content: space-between;
-    gap: var(--space-3);
-    padding: var(--space-4);
-    border-inline-start: 0.25rem solid var(--marker-pink);
-    background: var(--surface);
-    font-size: var(--step-0);
-
-    ul {
-      padding-inline-start: var(--space-4);
-    }
   }
 
   ol {

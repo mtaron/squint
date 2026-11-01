@@ -1,21 +1,8 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import { uploadDocuments } from "#lib/documents.remote.ts";
-
   let {
     size = "large",
     onfiles,
   }: { size?: "large" | "compact"; onfiles: (files: File[]) => void } = $props();
-
-  // Only the name: the rest of `as` writes the form's state back to the input, which brings back
-  // earlier picks for `onfiles` to report again
-  const { name } = uploadDocuments.fields.files.as("file multiple");
-
-  // Without JavaScript the inputs stay visible and the form posts all the chosen files at once
-  let enhanced = $state(false);
-  onMount(() => {
-    enhanced = true;
-  });
 
   function choose(event: Event & { currentTarget: HTMLInputElement }) {
     const input = event.currentTarget;
@@ -24,21 +11,19 @@
   }
 </script>
 
-<form {...uploadDocuments} enctype="multipart/form-data" class={["pickers", size, { enhanced }]}>
+<div class={["pickers", size]}>
   <label class="button hero">
     <span class="i-ph-folder-open-duotone" aria-hidden="true"></span>
     Choose a folder
-    <input type="file" multiple {name} webkitdirectory onchange={choose} />
+    <input type="file" multiple webkitdirectory onchange={choose} />
   </label>
   <label class="button quiet">
     <span class="i-ph-file-pdf-duotone" aria-hidden="true"></span>
     Choose a PDF
-    <input type="file" multiple {name} accept="application/pdf,.pdf" onchange={choose} />
+    <input type="file" multiple accept="application/pdf,.pdf" onchange={choose} />
   </label>
-  {#if !enhanced}
-    <button class="button submit">Upload</button>
-  {/if}
-</form>
+</div>
+<noscript><p>Uploading needs JavaScript.</p></noscript>
 
 <style>
   .pickers {
@@ -84,12 +69,6 @@
   }
 
   input {
-    flex-basis: 100%;
-    font-size: var(--step--1);
-    font-weight: 400;
-  }
-
-  .enhanced input {
     position: absolute;
     width: 1px;
     height: 1px;

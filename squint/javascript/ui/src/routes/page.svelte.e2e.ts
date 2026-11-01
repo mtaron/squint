@@ -11,3 +11,8 @@ test("sign in links to the login page", async ({ page }) => {
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 });
+
+test("the document list asks visitors to sign in", async ({ page }) => {
+  await page.goto("/documents");
+  await expect(page).toHaveURL(/\/login$/);
+});

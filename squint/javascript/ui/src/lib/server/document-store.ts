@@ -1,11 +1,8 @@
 import { createHash } from "node:crypto";
 import { documentIdFormat, documentObjectKey, userBucketName } from "@squint/db/storage";
 import { customAlphabet } from "nanoid";
-import type { UploadProgress } from "#lib/ingest.ts";
 import type { ObjectStorage } from "#lib/server/s3.ts";
 import { fileProblem } from "#lib/upload-limits.ts";
-
-const PROGRESS_INTERVAL_MS = 250;
 
 const newDocumentId = customAlphabet(documentIdFormat.alphabet, documentIdFormat.length);
 
@@ -31,7 +28,6 @@ export interface DocumentStoreDependencies {
   insert(row: NewDocument): Promise<{ duplicateOf?: string }>;
   remove(documentId: string): Promise<void>;
   startIngestion(input: IngestInput): Promise<void>;
-  reportProgress(userId: string, progress: UploadProgress): Promise<void>;
   /** Tells the user's other requests about a document whose ingestion has started. */
   announce(userId: string, document: AnnouncedDocument): Promise<void>;
 }
@@ -58,23 +54,9 @@ function sha256Passthrough() {
 export function documentStore(dependencies: DocumentStoreDependencies) {
   const { storage } = dependencies;
 
-  function progressReporter(userId: string, uploadId: string | undefined, total: number) {
-    let lastReportedAt = 0;
-    return (loaded: number) => {
-      const now = Date.now();
-      if (!uploadId || (loaded < total && now - lastReportedAt < PROGRESS_INTERVAL_MS)) {
-        return;
-      }
-      lastReportedAt = now;
-      dependencies.reportProgress(userId, { uploadId, loaded, total }).catch((error) => {
-        console.error("Failed to report upload progress", error);
-      });
-    };
-  }
-
   return {
     /** Streams the file to the user's bucket, records it, and starts ingesting it. */
-    async add(userId: string, file: File, uploadId?: string): Promise<AddOutcome> {
+    async add(userId: string, file: Pick<File, "name" | "size" | "stream">): Promise<AddOutcome> {
       const problem = fileProblem(file);
       if (problem) {
         return { problem };
@@ -86,12 +68,7 @@ export function documentStore(dependencies: DocumentStoreDependencies) {
       const sha256 = sha256Passthrough();
 
       try {
-        await storage.put(
-          bucket,
-          key,
-          file.stream().pipeThrough(sha256.stream),
-          progressReporter(userId, uploadId, file.size),
-        );
+        await storage.put(bucket, key, file.stream().pipeThrough(sha256.stream));
       } catch (error) {
         console.error(`Failed to upload ${file.name}`, error);
         return { problem: "The upload failed. Try again." };

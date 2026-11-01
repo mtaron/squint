@@ -1,63 +1,45 @@
 <script lang="ts">
-  import { SvelteSet } from "svelte/reactivity";
+  import { afterNavigate, goto } from "$app/navigation";
+  import { resolve } from "$app/paths";
+  import { page } from "$app/state";
   import DocumentList from "#lib/components/DocumentList.svelte";
   import FirstRun from "#lib/components/FirstRun.svelte";
-  import UploadForm from "#lib/components/UploadForm.svelte";
-  import {
-    getDocuments,
-    ingestStatus,
-    uploadDocuments,
-    uploadProgress,
-  } from "#lib/documents.remote.ts";
+  import { getDocuments } from "#lib/documents.remote.ts";
   import { droppedFiles, isFileDrag } from "#lib/drop.ts";
-  import { ingestErrorMessage } from "#lib/ingest.ts";
-  import { retriedBy, UploadQueue } from "#lib/state/uploads.svelte.ts";
+  import { getIngestion } from "#lib/state/ingestion.svelte.ts";
 
-  const queue = new UploadQueue();
-  const progress = uploadProgress();
-  const ingestion = ingestStatus();
+  const ingestion = getIngestion();
+
+  afterNavigate(syncRoute);
 
   const stored = $derived(await getDocuments());
-  const statuses = $derived(ingestion.current ?? {});
-
-  // A document that fails ingestion is deleted, so its row comes from its status until dismissed
-  const dismissed = new SvelteSet<string>();
-  const failures = $derived(
-    Object.entries(statuses)
-      .filter(([id, { latest }]) => latest.state === "failed" && !dismissed.has(id))
-      .map(([id, { name, sizeBytes, latest }]) => ({
-        id,
-        name,
-        sizeBytes,
-        error: ingestErrorMessage(latest.error),
-      })),
-  );
   const documents = $derived(
-    stored.filter((document) => statuses[document.id]?.latest.state !== "failed"),
-  );
-  const formIssues = $derived(
-    uploadDocuments.fields.allIssues()?.map((issue) => issue.message) ?? [],
+    stored.filter((document) => ingestion.statuses[document.id]?.latest.state !== "failed"),
   );
   const firstRun = $derived(
-    documents.length === 0 &&
-      failures.length === 0 &&
-      queue.items.length === 0 &&
-      formIssues.length === 0,
+    documents.length === 0 && ingestion.failures.length === 0 && ingestion.queue.items.length === 0,
   );
+  // An upload leaves the queue just before its document reaches `stored`
+  const showFirstRun = $derived(firstRun && page.route.id === "/");
 
   // dragenter and dragleave fire for every child element crossed, so count them
   let dragDepth = $state(0);
 
+  function syncRoute() {
+    const route = resolve(firstRun ? "/" : "/documents");
+    if (page.url.pathname !== route) {
+      void goto(route, { replace: true });
+    }
+  }
+
   function dismiss(id: string) {
-    queue.dismiss(id);
-    dismissed.add(id);
+    ingestion.dismiss(id);
+    syncRoute();
   }
 
   function upload(files: File[]) {
-    for (const { id } of retriedBy(failures, files)) {
-      dismissed.add(id);
-    }
-    queue.add(files);
+    ingestion.upload(files);
+    syncRoute();
   }
 
   async function drop(event: DragEvent) {
@@ -83,22 +65,16 @@
   ondrop={drop}
 />
 
-{#if firstRun}
+{#if showFirstRun}
   <FirstRun dragging={dragDepth > 0} onfiles={upload} />
 {:else}
   <DocumentList
     {documents}
-    {failures}
-    uploads={queue.items}
-    progress={progress.current ?? {}}
-    {statuses}
-    {formIssues}
+    failures={ingestion.failures}
+    uploads={ingestion.queue.items}
+    statuses={ingestion.statuses}
     dragging={dragDepth > 0}
     onfiles={upload}
     ondismiss={dismiss}
   />
 {/if}
-
-{#each queue.uploading as upload (upload.id)}
-  <UploadForm {upload} onsettled={(problems) => queue.settle(upload.id, problems)} />
-{/each}

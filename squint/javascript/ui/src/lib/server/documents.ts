@@ -26,6 +26,15 @@ export function listDocuments(userId: string) {
     .orderBy(desc(document.uploadedAt));
 }
 
+export async function hasDocuments(userId: string): Promise<boolean> {
+  const rows = await db
+    .select({ id: document.id })
+    .from(document)
+    .where(eq(document.userId, userId))
+    .limit(1);
+  return rows.length > 0;
+}
+
 export function documentsBeingIngested(userId: string) {
   return db
     .select({ id: document.id, name: document.name, sizeBytes: document.sizeBytes })
@@ -90,8 +99,6 @@ export const documents = documentStore({
       args: [input],
     });
   },
-
-  reportProgress: (userId, progress) => publish(channels.uploads(userId), progress),
 
   announce: (userId, announced) => publish(channels.documents(userId), announced),
 });
