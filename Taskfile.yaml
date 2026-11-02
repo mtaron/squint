@@ -64,7 +64,7 @@ tasks:
       - test -d models/kernels/flash-attn2
 
   temporal-load:
-    desc: "Start hello-world workflows on a worker's task queue, e.g. `task temporal-load QUEUE=embed COUNT=200 DELAY=10`"
+    desc: "Start hello-world workflows on a worker's task queue, e.g. `task temporal-load QUEUE=extract COUNT=200 DELAY=10`"
     vars:
       QUEUE: '{{default "extract" .QUEUE}}'
       COUNT: '{{default "100" .COUNT}}'
@@ -76,6 +76,13 @@ tasks:
       temporal workflow start --namespace default --task-queue {{.QUEUE}} --type HelloWorkflow
       --input "{\"name\": \"load $i\", \"delay_seconds\": {{.DELAY}}}" > /dev/null || exit 1;
       done; echo "started {{.COUNT}} workflows on {{.QUEUE}}"'
+
+  embed-smoke:
+    desc: Check retrieval through the cluster's Milvus, in the embed pod that already has the GPU and certs
+    cmd: >-
+      kubectl exec --namespace squint
+      "$(kubectl get pod --namespace squint --selector app.kubernetes.io/name=embed --output name | head -1)"
+      -- python smoke.py
 
 
   create-admin:

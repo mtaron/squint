@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { document, documentPage } from "@squint/db";
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, exists, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import { ingestWorkflowId } from "#lib/ingest.ts";
 import { db } from "#lib/server/db/index.ts";
 import { documentStore } from "#lib/server/document-store.ts";
@@ -29,20 +29,34 @@ export function listDocuments(userId: string) {
     .orderBy(desc(document.uploadedAt));
 }
 
+/** Documents without a page count, or with pages that aren't embedded. */
 export function documentsBeingIngested(userId: string) {
+  const unembeddedPages = db
+    .select({ pageNumber: documentPage.pageNumber })
+    .from(documentPage)
+    .where(and(eq(documentPage.documentId, document.id), isNull(documentPage.embeddedAt)));
   return db
     .select({ id: document.id, name: document.name, sizeBytes: document.sizeBytes })
     .from(document)
-    .where(and(eq(document.userId, userId), isNull(document.pageCount)));
+    .where(
+      and(eq(document.userId, userId), or(isNull(document.pageCount), exists(unembeddedPages))),
+    );
 }
 
-/** The document's page count, null while it's being ingested, or undefined once it's gone. */
-export async function pageCount(documentId: string): Promise<number | null | undefined> {
+/** The document's page count, null while it's being ingested, and how many pages are embedded. */
+export async function storedPages(documentId: string) {
   const [row] = await db
     .select({ pageCount: document.pageCount })
     .from(document)
     .where(eq(document.id, documentId));
-  return row?.pageCount;
+  if (!row) {
+    return undefined;
+  }
+  const [embedded] = await db
+    .select({ pages: count() })
+    .from(documentPage)
+    .where(and(eq(documentPage.documentId, documentId), isNotNull(documentPage.embeddedAt)));
+  return { pageCount: row.pageCount, pagesEmbedded: embedded?.pages ?? 0 };
 }
 
 /** The user's document and its page sizes, or undefined if they have no such document. */

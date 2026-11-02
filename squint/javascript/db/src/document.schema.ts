@@ -47,6 +47,8 @@ export const documentPage = pgTable(
     skewDegrees: real("skew_degrees"),
     /** [left, top, right, bottom] around the page's ink, or null if the page is blank. */
     contentBox: integer("content_box").array(),
+    /** When the page's vectors were stored in Milvus, or null if they haven't been. */
+    embeddedAt: timestamp("embedded_at", { withTimezone: true }),
   },
   (table) => [primaryKey({ columns: [table.documentId, table.pageNumber] })],
 );

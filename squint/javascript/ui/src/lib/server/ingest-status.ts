@@ -1,7 +1,7 @@
 import { setTimeout as sleep } from "node:timers/promises";
 import { WorkflowStreamClient } from "@temporalio/workflow-streams/client";
 import { ingestWorkflowId, isFinalIngestEvent, type IngestEvent } from "#lib/ingest.ts";
-import { pageCount } from "#lib/server/documents.ts";
+import { storedPages } from "#lib/server/documents.ts";
 import { getTemporalClient } from "#lib/server/temporal.ts";
 
 // The workflow may not have started yet, or the stream ended without a final event
@@ -30,11 +30,11 @@ async function readStream(
 
 /** The final state from the database, for when the workflow's stream is no longer readable. */
 async function storedState(documentId: string): Promise<IngestEvent | undefined> {
-  const pages = await pageCount(documentId);
-  if (pages === undefined) {
+  const pages = await storedPages(documentId);
+  if (!pages) {
     return { state: "failed", error: "unexpected" };
   }
-  return pages === null ? undefined : { state: "ingested", pageCount: pages };
+  return pages.pageCount === null ? undefined : { state: "ingested", ...pages };
 }
 
 /** Reports a document's ingestion events until it's ingested or failed, or `signal` aborts. */

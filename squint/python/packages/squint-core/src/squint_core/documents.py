@@ -6,9 +6,19 @@ from uuid import UUID
 import asyncpg
 from asyncpg.pool import PoolConnectionProxy
 from pydantic import BaseModel, ConfigDict
+from temporalio.exceptions import ApplicationError
 
 # Pass a connection rather than the pool to run inside its transaction
 type Executor = asyncpg.Pool | asyncpg.Connection | PoolConnectionProxy
+
+# The type of the failure raised when a worker finds that the user deleted its document
+DOCUMENT_DELETED = "document_deleted"
+
+
+def document_deleted() -> ApplicationError:
+    return ApplicationError(
+        "The document was deleted", type=DOCUMENT_DELETED, non_retryable=True
+    )
 
 
 def document_prefix(document_id: str) -> str:
@@ -48,6 +58,7 @@ class DocumentPage(BaseModel):
     is_scan: bool
     skew_degrees: float | None
     content_box: list[int] | None
+    embedded_at: datetime | None = None
 
 
 class NewDocument(BaseModel):
@@ -147,8 +158,39 @@ async def upsert_pages(db: Executor, pages: list[DocumentPage]) -> None:
     )
 
 
-async def pages_recorded(db: Executor, document_id: str) -> int:
-    """How many of the document's pages are recorded. Pages are recorded in order."""
-    return await db.fetchval(
-        "select count(*) from document_page where document_id = $1", document_id
+async def recorded_pages(db: Executor, document_id: str) -> set[int]:
+    """The numbers of the document's recorded pages, which may be recorded out of order."""
+    rows = await db.fetch(
+        "select page_number from document_page where document_id = $1", document_id
     )
+    return {row["page_number"] for row in rows}
+
+
+async def content_boxes(
+    db: Executor, document_id: str, page_numbers: list[int]
+) -> dict[int, list[int] | None]:
+    """Each recorded page's content box, by page number."""
+    rows = await db.fetch(
+        """
+        select page_number, content_box from document_page
+        where document_id = $1 and page_number = any($2)
+        """,
+        document_id,
+        page_numbers,
+    )
+    return {row["page_number"]: row["content_box"] for row in rows}
+
+
+async def mark_pages_embedded(
+    db: Executor, document_id: str, page_numbers: list[int]
+) -> int:
+    """How many pages were marked, which is none once the document has been deleted."""
+    status = await db.execute(
+        """
+        update document_page set embedded_at = now()
+        where document_id = $1 and page_number = any($2)
+        """,
+        document_id,
+        page_numbers,
+    )
+    return int(status.removeprefix("UPDATE "))

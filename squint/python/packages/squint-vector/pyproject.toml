@@ -5,6 +5,8 @@ description = "Vector database client for squint"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "numpy>=2.5.4",
+    "pydantic>=2.14.1",
     "pymilvus>=3.0.2",
     "squint-core",
 ]

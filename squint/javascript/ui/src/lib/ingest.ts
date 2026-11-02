@@ -5,14 +5,25 @@ export type IngestError = "password_protected" | "damaged" | "too_many_pages" | 
 
 /** Published on the `status` topic of each ingestion workflow's stream, by squint/python/apps/ingest. */
 export interface IngestEvent {
-  state: "validating" | "rasterizing" | "ingested" | "failed" | "deleted";
+  state: "validating" | "rasterizing" | "embedding" | "ingested" | "failed" | "deleted";
   pageCount?: number | null;
   pagesDone?: number | null;
+  pagesEmbedded?: number | null;
   error?: IngestError | null;
 }
 
 export function isFinalIngestEvent({ state }: IngestEvent): boolean {
   return state === "ingested" || state === "failed" || state === "deleted";
+}
+
+/** How many pages of a finished document can't be found by search, since embedding them failed. */
+export function unindexedPages({ state, pageCount, pagesEmbedded }: IngestEvent): number {
+  return state === "ingested" ? (pageCount ?? 0) - (pagesEmbedded ?? 0) : 0;
+}
+
+export function unindexedPagesMessage(pages: number, locale: string): string {
+  const count = pages.toLocaleString(locale);
+  return pages === 1 ? "1 page couldn't be indexed" : `${count} pages couldn't be indexed`;
 }
 
 const ingestErrorMessages: Record<IngestError, string> = {

@@ -19,12 +19,12 @@ async def run() -> None:
             activities = DocumentActivities(db, s3.create_client(), page_workers)
             await run_worker(
                 TASK_QUEUE,
-                [IngestDocumentWorkflow],
                 [
                     activities.rasterize_pdf,
                     activities.record_page_count,
                     activities.discard_document,
                 ],
+                workflows=[IngestDocumentWorkflow],
                 max_concurrent_activities=PARALLELISM,
             )
     finally:

@@ -1,14 +1,13 @@
 """A hello-world workflow every worker registers until it has real work."""
 
 import asyncio
-from dataclasses import dataclass
 from datetime import timedelta
 
+from pydantic import BaseModel
 from temporalio import activity, workflow
 
 
-@dataclass
-class HelloInput:
+class HelloInput(BaseModel):
     name: str
     # Holds an activity slot for this long, to exercise autoscaling
     delay_seconds: float = 0

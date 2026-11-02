@@ -115,6 +115,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "jdeskew" },
     { name = "pillow" },
+    { name = "pydantic" },
     { name = "pypdfium2" },
     { name = "squint-core" },
 ]
@@ -129,6 +130,7 @@ dev = [
 requires-dist = [
     { name = "jdeskew", specifier = ">=0.4.2" },
     { name = "pillow", specifier = ">=12.3.0" },
+    { name = "pydantic", specifier = ">=2.14.1" },
     { name = "pypdfium2", specifier = ">=5.13.0" },
     { name = "squint-core", editable = "../../packages/squint-core" },
 ]

@@ -5,7 +5,7 @@
   import DocumentRow from "#lib/components/DocumentRow.svelte";
   import FilePickers from "#lib/components/FilePickers.svelte";
   import SelectionBar from "#lib/components/SelectionBar.svelte";
-  import type { DocumentIngestion } from "#lib/ingest.ts";
+  import { type DocumentIngestion, unindexedPages, unindexedPagesMessage } from "#lib/ingest.ts";
   import { DocumentSelection } from "#lib/state/document-selection.svelte.ts";
   import type { QueuedUpload } from "#lib/state/uploads.svelte.ts";
   import { groupByUploadDay, uploadedAtLabel } from "#lib/upload-days.ts";
@@ -207,15 +207,30 @@
           {#each day.documents as document (document.id)}
             {@const latest = statuses[document.id]?.latest}
             {@const pageCount = document.pageCount ?? latest?.pageCount ?? null}
-            {@const ready = document.pageCount !== null || latest?.state === "ingested"}
+            {@const ready =
+              document.pageCount !== null ||
+              latest?.state === "embedding" ||
+              latest?.state === "ingested"}
+            {@const working = latest?.state === "rasterizing" || latest?.state === "embedding"}
+            {@const unindexed = latest ? unindexedPages(latest) : 0}
             {#snippet preparing()}
-              {#if latest?.state === "rasterizing"}
-                <span id="preparing-{document.id}">Preparing pages</span>
-                <progress
-                  aria-labelledby="preparing-{document.id}"
-                  max={latest.pageCount ?? 1}
-                  value={latest.pagesDone ?? 0}
-                ></progress>
+              {#if working}
+                Processing…
+                <span class="bars">
+                  <progress
+                    aria-label="Preparing pages"
+                    max={latest?.pageCount ?? 1}
+                    value={latest?.pagesDone ?? 0}
+                  ></progress>
+                  <progress
+                    class="embedding"
+                    aria-label="Indexing pages"
+                    max={latest?.pageCount ?? 1}
+                    value={latest?.pagesEmbedded ?? 0}
+                  ></progress>
+                </span>
+              {:else if unindexed > 0}
+                {unindexedPagesMessage(unindexed, page.data.locale)}
               {:else}
                 Checking the PDF…
               {/if}
@@ -231,7 +246,7 @@
               confirming={confirming.has(document.id)}
               onselect={(range) => selectRow(document.id, range)}
               ondelete={(event) => askToDelete([document.id], event.currentTarget)}
-              status={ready ? undefined : preparing}
+              status={working || unindexed > 0 || !ready ? preparing : undefined}
             />
           {/each}
         </ol>
@@ -367,6 +382,7 @@
   }
 
   progress {
+    --fill: var(--marker);
     flex: 1;
     height: 0.5rem;
     appearance: none;
@@ -380,11 +396,29 @@
     }
 
     &::-webkit-progress-value {
-      background: var(--marker);
+      background: var(--fill);
     }
 
     &::-moz-progress-bar {
-      background: var(--marker);
+      background: var(--fill);
+    }
+
+    &.embedding {
+      --fill: var(--marker-pink);
+    }
+  }
+
+  /* Together they're the height of a single bar, sharing its rounded ends */
+  .bars {
+    flex: 1;
+    display: grid;
+    border-radius: 999px;
+    overflow: hidden;
+
+    & progress {
+      width: 100%;
+      height: 0.25rem;
+      border-radius: 0;
     }
   }
 

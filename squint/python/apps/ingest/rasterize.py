@@ -2,7 +2,6 @@
 about it. Embedding and extraction rescale this image rather than render the PDF again."""
 
 import io
-from dataclasses import dataclass
 from math import ceil, floor
 
 import numpy as np
@@ -11,6 +10,7 @@ import pypdfium2.raw as pdfium_c
 from jdeskew.estimator import get_angle
 from jdeskew.utility import rotate
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
+from pydantic import BaseModel, ConfigDict
 
 # Removing a page's margins typically leaves 80% of its long side, which keeps the 2048 px NeoMME
 # takes without upscaling
@@ -39,8 +39,9 @@ KEEP_ALL_CHROMA = 0
 THUMBNAIL_LONG_SIDE = 320
 
 
-@dataclass(frozen=True)
-class RasterizedPage:
+class RasterizedPage(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     image: bytes
     thumbnail: bytes
     width: int

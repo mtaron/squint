@@ -47,9 +47,9 @@ def create_runtime(version: WorkerDeploymentVersion) -> Runtime:
 
 async def run_worker(
     task_queue: str,
-    workflows: Sequence[type],
     activities: Sequence[Callable],
     *,
+    workflows: Sequence[type] = (),
     max_concurrent_activities: int,
 ) -> None:
     """Run a versioned worker until SIGTERM or SIGINT, then drain in-flight tasks."""

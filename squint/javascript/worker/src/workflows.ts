@@ -13,6 +13,17 @@ const { deleteDocumentObjects, deleteUserBucket } = proxyActivities<Activities>(
   heartbeatTimeout: "1 minute",
 });
 
+/** Served by the Python worker in squint/python/apps/embed, the only one that talks to Milvus. */
+interface VectorActivities {
+  deleteDocumentVectors(documentIds: string[]): Promise<void>;
+  deleteUserVectors(userId: string): Promise<void>;
+}
+
+const { deleteDocumentVectors, deleteUserVectors } = proxyActivities<VectorActivities>({
+  taskQueue: "embed",
+  startToCloseTimeout: "1 minute",
+});
+
 export interface UserResourcesInput {
   userId: string;
 }
@@ -30,12 +41,14 @@ export async function createUserResources({ userId }: UserResourcesInput): Promi
 /** Removes what `createUserResources` provisioned. Started by the UI when the user is deleted. */
 export async function cleanupUserResources({ userId }: UserResourcesInput): Promise<void> {
   await deleteUserBucket(userId);
+  await deleteUserVectors(userId);
 }
 
-/** Removes the stored files of ingested documents. Started by the UI as it deletes their rows. */
+/** Removes what's stored for ingested documents. Started by the UI as it deletes their rows. */
 export async function cleanupDocuments({
   userId,
   documentIds,
 }: CleanupDocumentsInput): Promise<void> {
   await deleteDocumentObjects(userId, documentIds);
+  await deleteDocumentVectors(documentIds);
 }

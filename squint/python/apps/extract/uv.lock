@@ -699,12 +699,16 @@ name = "squint-vector"
 version = "0.1.0"
 source = { editable = "../../packages/squint-vector" }
 dependencies = [
+    { name = "numpy" },
+    { name = "pydantic" },
     { name = "pymilvus" },
     { name = "squint-core" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "numpy", specifier = ">=2.5.4" },
+    { name = "pydantic", specifier = ">=2.14.1" },
     { name = "pymilvus", specifier = ">=3.0.2" },
     { name = "squint-core", editable = "../../packages/squint-core" },
 ]

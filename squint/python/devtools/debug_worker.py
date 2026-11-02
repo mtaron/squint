@@ -5,17 +5,23 @@ and a worker needs as long as its activities take to drain.
 """
 # ruff: noqa: T100
 
+import contextlib
 import logging
+import os
 import runpy
 import signal
+import socket
 import subprocess
 import sys
 import threading
+import time
 
 import debugpy
 import watchfiles
 
 SOURCE = "/app"
+# How long debugpy's adapter gets to notice that its worker has gone
+PORT_RELEASE_TIMEOUT_SECONDS = 10
 
 
 def run_worker(debug_port: int) -> None:
@@ -25,7 +31,8 @@ def run_worker(debug_port: int) -> None:
 
 def start_worker(debug_port: int) -> subprocess.Popen[bytes]:
     """A plain subprocess, since a multiprocessing child would make its own pools spawn processes
-    rather than use the forkserver as they do in production."""
+    rather than use the forkserver as they do in production. Its own session lets stop_worker find
+    those processes."""
     return subprocess.Popen(
         [
             sys.executable,
@@ -33,13 +40,28 @@ def start_worker(debug_port: int) -> subprocess.Popen[bytes]:
             "-Xfrozen_modules=off",
             "-c",
             f"from debug_worker import run_worker; run_worker({debug_port})",
-        ]
+        ],
+        start_new_session=True,
     )
 
 
-def stop_worker(worker: subprocess.Popen[bytes]) -> None:
+def wait_for_port_release(debug_port: int) -> None:
+    deadline = time.monotonic() + PORT_RELEASE_TIMEOUT_SECONDS
+    while time.monotonic() < deadline:
+        with socket.socket() as probe:
+            if probe.connect_ex(("127.0.0.1", debug_port)) != 0:
+                return
+        time.sleep(0.1)
+
+
+def stop_worker(worker: subprocess.Popen[bytes], debug_port: int) -> None:
+    """A worker stopped mid-startup hasn't installed its SIGTERM handler, so it leaves its process
+    pools behind. They inherit its debugpy connection, which keeps the adapter on the port."""
     worker.terminate()
     worker.wait()
+    with contextlib.suppress(ProcessLookupError):
+        os.killpg(worker.pid, signal.SIGKILL)
+    wait_for_port_release(debug_port)
 
 
 def main() -> None:
@@ -53,9 +75,9 @@ def main() -> None:
     for _ in watchfiles.watch(
         SOURCE, watch_filter=watchfiles.PythonFilter(), stop_event=stopping
     ):
-        stop_worker(worker)
+        stop_worker(worker, debug_port)
         worker = start_worker(debug_port)
-    stop_worker(worker)
+    stop_worker(worker, debug_port)
 
 
 if __name__ == "__main__":

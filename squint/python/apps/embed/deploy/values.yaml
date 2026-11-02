@@ -1,3 +1,8 @@
 gpu: 1
 milvus:
   enabled: true
+env:
+  # Shrinks what the batch sizes reserve, on a GPU that's shared in development
+  PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+# embed_pages' start_to_close_timeout, so a pod being removed can finish its batch
+shutdownGracePeriodSeconds: 300

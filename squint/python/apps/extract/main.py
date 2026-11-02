@@ -11,8 +11,8 @@ def main():
     asyncio.run(
         run_worker(
             TASK_QUEUE,
-            [HelloWorkflow],
             [say_hello],
+            workflows=[HelloWorkflow],
             max_concurrent_activities=MAX_CONCURRENT_ACTIVITIES,
         )
     )

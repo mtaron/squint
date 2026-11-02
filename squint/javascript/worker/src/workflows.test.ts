@@ -40,12 +40,27 @@ async function runWithActivities<Input>(
     workflowsPath: fileURLToPath(new URL("./workflows.ts", import.meta.url)),
     activities,
   });
-  await worker.runUntil(
-    env.client.workflow.execute(workflow, {
-      taskQueue,
-      workflowId: `${workflow.name}-${USER_ID}`,
-      args: [input],
-    }),
+  // Stands in for the Python worker in squint/python/apps/embed
+  const embedWorker = await Worker.create({
+    connection: env.nativeConnection,
+    taskQueue: "embed",
+    activities: {
+      async deleteDocumentVectors(documentIds: string[]) {
+        calls.push(`deleteDocumentVectors ${documentIds.join(" ")}`);
+      },
+      async deleteUserVectors(userId: string) {
+        calls.push(`deleteUserVectors ${userId}`);
+      },
+    },
+  });
+  await embedWorker.runUntil(
+    worker.runUntil(
+      env.client.workflow.execute(workflow, {
+        taskQueue,
+        workflowId: `${workflow.name}-${USER_ID}`,
+        args: [input],
+      }),
+    ),
   );
   return calls;
 }
@@ -56,15 +71,17 @@ test("createUserResources creates the user's bucket", async () => {
   ]);
 }, 60_000);
 
-test("cleanupUserResources deletes the user's bucket", async () => {
+test("cleanupUserResources deletes the user's bucket, then their vectors", async () => {
   expect(await runWithActivities(cleanupUserResources, { userId: USER_ID })).toEqual([
     `deleteUserBucket ${USER_ID}`,
+    `deleteUserVectors ${USER_ID}`,
   ]);
 }, 60_000);
 
-test("cleanupDocuments deletes the documents' objects", async () => {
+test("cleanupDocuments deletes the documents' objects, then their vectors", async () => {
   const input = { userId: USER_ID, documentIds: ["first", "second"] };
   expect(await runWithActivities(cleanupDocuments, input)).toEqual([
     `deleteDocumentObjects ${USER_ID} first second`,
+    "deleteDocumentVectors first second",
   ]);
 }, 60_000);
