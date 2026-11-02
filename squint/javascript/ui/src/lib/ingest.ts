@@ -5,14 +5,14 @@ export type IngestError = "password_protected" | "damaged" | "too_many_pages" | 
 
 /** Published on the `status` topic of each ingestion workflow's stream, by squint/python/apps/ingest. */
 export interface IngestEvent {
-  state: "validating" | "rasterizing" | "ingested" | "failed";
+  state: "validating" | "rasterizing" | "ingested" | "failed" | "deleted";
   pageCount?: number | null;
   pagesDone?: number | null;
   error?: IngestError | null;
 }
 
 export function isFinalIngestEvent({ state }: IngestEvent): boolean {
-  return state === "ingested" || state === "failed";
+  return state === "ingested" || state === "failed" || state === "deleted";
 }
 
 const ingestErrorMessages: Record<IngestError, string> = {
@@ -39,12 +39,12 @@ export function ingestWorkflowId(documentId: string): string {
 
 const byteUnits = ["byte", "kilobyte", "megabyte", "gigabyte"] as const;
 
-export function formatBytes(bytes: number): string {
+export function formatBytes(bytes: number, locale: string): string {
   const exponent = Math.min(
     byteUnits.length - 1,
     Math.floor(Math.log(Math.max(bytes, 1)) / Math.log(1024)),
   );
-  return new Intl.NumberFormat("en", {
+  return new Intl.NumberFormat(locale, {
     style: "unit",
     unit: byteUnits[exponent],
     // "828 bytes" rather than the short form's "828 byte"

@@ -22,6 +22,18 @@ export interface IngestInput {
   key: string;
 }
 
+/** The workflow input of cleanupDocuments in squint/javascript/worker */
+export interface CleanupDocumentsInput {
+  userId: string;
+  documentIds: string[];
+}
+
+export interface RemovedDocument {
+  id: string;
+  /** Null if the document was still being ingested */
+  pageCount: number | null;
+}
+
 export interface DocumentStoreDependencies {
   storage: Pick<ObjectStorage, "put" | "delete">;
   /** Inserts the row, or returns the name of the user's earlier upload with the same contents. */
@@ -30,6 +42,13 @@ export interface DocumentStoreDependencies {
   startIngestion(input: IngestInput): Promise<void>;
   /** Tells the user's other requests about a document whose ingestion has started. */
   announce(userId: string, document: AnnouncedDocument): Promise<void>;
+  /** Removes the rows of those documents the user owns, undoing it if `afterRemoving` throws. */
+  removeOwned(
+    userId: string,
+    documentIds: string[],
+    afterRemoving: (removed: RemovedDocument[]) => Promise<void>,
+  ): Promise<void>;
+  startCleanup(input: CleanupDocumentsInput): Promise<void>;
 }
 
 export interface AnnouncedDocument {
@@ -103,6 +122,19 @@ export function documentStore(dependencies: DocumentStoreDependencies) {
         sizeBytes: file.size,
       });
       return { documentId };
+    },
+
+    /**
+     * Deletes the user's documents. Ingestion stops once it finds its row gone and removes the
+     * document's files itself, so only the files of ingested documents need cleaning up here.
+     */
+    async delete(userId: string, documentIds: string[]): Promise<void> {
+      await dependencies.removeOwned(userId, documentIds, async (removed) => {
+        const ingested = removed.filter(({ pageCount }) => pageCount !== null);
+        if (ingested.length > 0) {
+          await dependencies.startCleanup({ userId, documentIds: ingested.map(({ id }) => id) });
+        }
+      });
     },
   };
 }

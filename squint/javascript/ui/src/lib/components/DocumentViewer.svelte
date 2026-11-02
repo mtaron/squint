@@ -33,7 +33,10 @@
 <div class="viewer">
   <header>
     <h1>{name}</h1>
-    <p>Page {(current + 1).toLocaleString("en")} of {pages.length.toLocaleString("en")}</p>
+    <p>
+      Page {(current + 1).toLocaleString(page.data.locale)} of
+      {pages.length.toLocaleString(page.data.locale)}
+    </p>
   </header>
 
   <nav class="strip" aria-label="Page thumbnails">

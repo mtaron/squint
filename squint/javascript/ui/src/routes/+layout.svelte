@@ -3,6 +3,7 @@
   import "@fontsource-variable/instrument-sans";
   import "virtual:uno.css";
   import "../app.css";
+  import { onMount } from "svelte";
   import { resolve } from "$app/paths";
   import { page } from "$app/state";
   import favicon from "#lib/assets/favicon.svg";
@@ -10,6 +11,7 @@
   import ThemeToggle from "#lib/components/ThemeToggle.svelte";
   import Wordmark from "#lib/components/Wordmark.svelte";
   import { Ingestion, setIngestion } from "#lib/state/ingestion.svelte.ts";
+  import { rememberTimeZone } from "#lib/viewer-preferences.ts";
   import type { LayoutProps } from "./$types";
 
   let { data, children }: LayoutProps = $props();
@@ -18,6 +20,8 @@
 
   // The document viewer takes all the room the header leaves
   const fullScreen = $derived(page.route.id === "/documents/[id]");
+
+  onMount(rememberTimeZone);
 </script>
 
 <svelte:head>

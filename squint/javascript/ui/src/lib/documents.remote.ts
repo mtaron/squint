@@ -1,12 +1,20 @@
 import { isDocumentId } from "@squint/db/storage";
 import { error } from "@sveltejs/kit";
 import * as v from "valibot";
-import { getRequestEvent, query } from "$app/server";
+import { command, getRequestEvent, query } from "$app/server";
 import type { DocumentIngestion } from "#lib/ingest.ts";
 import type { AnnouncedDocument } from "#lib/server/document-store.ts";
-import { documentsBeingIngested, documentWithPages, listDocuments } from "#lib/server/documents.ts";
+import {
+  documents,
+  documentsBeingIngested,
+  documentWithPages,
+  listDocuments,
+} from "#lib/server/documents.ts";
 import { followIngestion } from "#lib/server/ingest-status.ts";
 import { Changes, channels, subscribe } from "#lib/server/user-events.ts";
+
+// Keeps one delete within a single query's parameter limit
+const MAX_DOCUMENTS_PER_DELETE = 10_000;
 
 function requireUser() {
   const { user } = getRequestEvent().locals;
@@ -32,6 +40,18 @@ export const getDocumentPages = query(v.string(), async (id) => {
   }
   return document;
 });
+
+export const deleteDocuments = command(
+  v.pipe(
+    v.array(v.pipe(v.string(), v.check(isDocumentId))),
+    v.minLength(1),
+    v.maxLength(MAX_DOCUMENTS_PER_DELETE),
+  ),
+  async (ids) => {
+    await documents.delete(requireUser().id, ids);
+    void getDocuments().refresh();
+  },
+);
 
 /**
  * The latest ingestion event for each document that was being ingested while the query was

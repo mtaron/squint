@@ -7,12 +7,14 @@ from pathlib import Path
 from typing import Self
 from uuid import UUID
 
+import asyncpg
 import pytest
 from temporalio.exceptions import ApplicationError
 from temporalio.testing import ActivityEnvironment
 
 import activities
 from activities import (
+    DOCUMENT_DELETED,
     DocumentActivities,
     IngestError,
     IngestEvent,
@@ -278,6 +280,38 @@ async def test_rejects_pdfs_over_the_page_limit(
         await rasterize(FakeS3(FIXTURES / "three-pages.pdf"), FakeDb(), page_workers)
 
     assert error.value.type == IngestError.TOO_MANY_PAGES
+
+
+@pytest.mark.usefixtures("progress")
+async def test_stops_when_the_document_is_deleted_while_rasterizing(
+    page_workers: PageWorkers,
+):
+    class DeletedDb(FakeDb):
+        async def executemany(self, _query: str, rows: list[tuple]) -> None:
+            raise asyncpg.ForeignKeyViolationError("document is gone")
+
+    with pytest.raises(ApplicationError) as error:
+        await rasterize(FakeS3(FIXTURES / "three-pages.pdf"), DeletedDb(), page_workers)
+
+    assert error.value.type == DOCUMENT_DELETED
+    assert error.value.non_retryable
+
+
+async def test_recording_the_page_count_notices_a_deleted_document(
+    page_workers: PageWorkers,
+):
+    class DeletedDb(FakeDb):
+        async def fetchrow(self, _query: str, _id: str, _page_count: int) -> None:
+            return None
+
+    s3 = FakeS3(FIXTURES / "three-pages.pdf")
+    document_activities = DocumentActivities(DeletedDb(), s3, page_workers)  # ty: ignore[invalid-argument-type]
+
+    with pytest.raises(ApplicationError) as error:
+        await ActivityEnvironment().run(document_activities.record_page_count, INPUT, 3)
+
+    assert error.value.type == DOCUMENT_DELETED
+    assert error.value.non_retryable
 
 
 async def test_discarding_removes_every_object_of_the_document(

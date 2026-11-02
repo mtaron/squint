@@ -42,6 +42,15 @@ function fakes(overrides: Partial<DocumentStoreDependencies> = {}) {
     async announce(_userId, { id }) {
       calls.push(`announce ${id}`);
     },
+    async removeOwned(userId, documentIds, afterRemoving) {
+      calls.push(`removeOwned ${userId} ${documentIds.join(" ")}`);
+      await afterRemoving(
+        documentIds.map((id) => ({ id, pageCount: id === "ingesting" ? null : 3 })),
+      );
+    },
+    async startCleanup({ userId, documentIds }) {
+      calls.push(`startCleanup ${userId} ${documentIds.join(" ")}`);
+    },
     ...overrides,
   };
   return { store: documentStore(dependencies), objects, rows, calls };
@@ -122,5 +131,66 @@ describe("documentStore.add", () => {
     expect(outcome).toEqual({ problem: "This PDF couldn't be processed. Try again." });
     expect(objects.size).toBe(0);
     expect(calls).toEqual([expect.stringMatching(/^remove /)]);
+  });
+});
+
+describe("documentStore.delete", () => {
+  test("removes the rows, then has the worker remove the files", async () => {
+    const { store, calls } = fakes();
+
+    await store.delete(USER_ID, ["first", "second"]);
+
+    expect(calls).toEqual([
+      `removeOwned ${USER_ID} first second`,
+      `startCleanup ${USER_ID} first second`,
+    ]);
+  });
+
+  test("leaves a document that's still ingesting to its workflow", async () => {
+    const { store, calls } = fakes();
+
+    await store.delete(USER_ID, ["ingesting", "second"]);
+
+    expect(calls).toContain(`startCleanup ${USER_ID} second`);
+  });
+
+  test("starts no cleanup when nothing is ingested", async () => {
+    const { store, calls } = fakes();
+
+    await store.delete(USER_ID, ["ingesting"]);
+
+    expect(calls).toEqual([`removeOwned ${USER_ID} ingesting`]);
+  });
+
+  test("only cleans up what was actually removed", async () => {
+    const { store, calls } = fakes({
+      async removeOwned(_userId, _documentIds, afterRemoving) {
+        await afterRemoving([]);
+      },
+    });
+
+    await store.delete(USER_ID, ["someone-elses"]);
+
+    expect(calls).toEqual([]);
+  });
+
+  test("fails inside the removal, so the rows are restored if cleanup can't start", async () => {
+    let failure: unknown;
+    const { store } = fakes({
+      async removeOwned(_userId, documentIds, afterRemoving) {
+        try {
+          await afterRemoving(documentIds.map((id) => ({ id, pageCount: 3 })));
+        } catch (error) {
+          failure = error;
+          throw error;
+        }
+      },
+      async startCleanup() {
+        throw new Error("Temporal is down");
+      },
+    });
+
+    await expect(store.delete(USER_ID, ["first"])).rejects.toThrow("Temporal is down");
+    expect(failure).toBeInstanceOf(Error);
   });
 });

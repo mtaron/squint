@@ -1,7 +1,7 @@
 import type { S3Client } from "@aws-sdk/client-s3";
 import { MockActivityEnvironment } from "@temporalio/testing";
 import { describe, expect, test } from "vitest";
-import { userBucketName } from "@squint/db/storage";
+import { documentPrefix, userBucketName } from "@squint/db/storage";
 import { createActivities } from "./activities.ts";
 
 const USER_ID = "0f8fad5b-d9cb-469f-a165-70867728950e";
@@ -136,5 +136,60 @@ describe("deleteUserBucket", () => {
       "a: AccessDenied",
     );
     expect(s3.sent.map(({ command }) => command)).not.toContain("DeleteBucketCommand");
+  });
+});
+
+describe("deleteDocumentObjects", () => {
+  test("deletes each document's objects by its own prefix", async () => {
+    const s3 = fakeS3({
+      ListObjectsV2Command: ({ Prefix }) => ({
+        Contents: [{ Key: `${Prefix}original.pdf` }],
+        IsTruncated: false,
+      }),
+    });
+
+    await run(createActivities(s3.client).deleteDocumentObjects, USER_ID, ["first", "second"]);
+
+    expect(s3.sent).toEqual([
+      {
+        command: "ListObjectsV2Command",
+        input: { Bucket: BUCKET, Prefix: documentPrefix("first"), ContinuationToken: undefined },
+      },
+      {
+        command: "DeleteObjectsCommand",
+        input: {
+          Bucket: BUCKET,
+          Delete: { Objects: [{ Key: "documents/first/original.pdf" }], Quiet: true },
+        },
+      },
+      {
+        command: "ListObjectsV2Command",
+        input: { Bucket: BUCKET, Prefix: documentPrefix("second"), ContinuationToken: undefined },
+      },
+      {
+        command: "DeleteObjectsCommand",
+        input: {
+          Bucket: BUCKET,
+          Delete: { Objects: [{ Key: "documents/second/original.pdf" }], Quiet: true },
+        },
+      },
+    ]);
+  });
+
+  test("leaves the bucket in place", async () => {
+    const s3 = fakeS3();
+    await run(createActivities(s3.client).deleteDocumentObjects, USER_ID, ["first"]);
+    expect(s3.sent.map(({ command }) => command)).toEqual(["ListObjectsV2Command"]);
+  });
+
+  test("succeeds when the bucket doesn't exist", async () => {
+    const s3 = fakeS3({
+      ListObjectsV2Command: () => {
+        throw s3Error("NoSuchBucket");
+      },
+    });
+    await expect(
+      run(createActivities(s3.client).deleteDocumentObjects, USER_ID, ["first"]),
+    ).resolves.toBeUndefined();
   });
 });

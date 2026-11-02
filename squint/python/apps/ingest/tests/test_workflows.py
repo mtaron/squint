@@ -11,6 +11,7 @@ from temporalio.worker import Worker
 from test_activities import FIXTURES, INPUT, FakeDb, FakeS3
 
 from activities import (
+    DOCUMENT_DELETED,
     DocumentActivities,
     IngestError,
     IngestEvent,
@@ -29,8 +30,13 @@ async def env():
 
 
 class FakeActivities:
-    def __init__(self, rasterize_error: Exception | None = None) -> None:
+    def __init__(
+        self,
+        rasterize_error: Exception | None = None,
+        record_error: Exception | None = None,
+    ) -> None:
         self.rasterize_error = rasterize_error
+        self.record_error = record_error
         self.calls: list[str] = []
 
     @activity.defn(name="rasterize_pdf")
@@ -43,6 +49,8 @@ class FakeActivities:
     @activity.defn(name="record_page_count")
     async def record_page_count(self, input: IngestInput, page_count: int) -> None:
         self.calls.append(f"record_page_count {page_count}")
+        if self.record_error:
+            raise self.record_error
 
     @activity.defn(name="discard_document")
     async def discard_document(self, input: IngestInput) -> None:
@@ -54,7 +62,7 @@ async def read_status(client: Client, workflow_id: str) -> list[IngestEvent]:
     events = []
     async for item in stream.topic("status", type=IngestEvent).subscribe():
         events.append(item.data)
-        if item.data.state in ("ingested", "failed"):
+        if item.data.state in ("ingested", "failed", "deleted"):
             return events
     return events
 
@@ -162,6 +170,32 @@ async def test_reports_unexpected_errors_without_details(env: WorkflowEnvironmen
 
     assert fakes.calls == ["rasterize_pdf", "discard_document"]
     assert events[-1] == IngestEvent(state="failed", error=IngestError.UNEXPECTED)
+
+
+async def test_cleans_up_a_document_deleted_while_rasterizing(env: WorkflowEnvironment):
+    fakes = FakeActivities(
+        rasterize_error=ApplicationError(
+            "gone", type=DOCUMENT_DELETED, non_retryable=True
+        )
+    )
+
+    events = await ingest(env, fakes)
+
+    assert fakes.calls == ["rasterize_pdf", "discard_document"]
+    assert events[-1] == IngestEvent(state="deleted")
+
+
+async def test_cleans_up_a_document_deleted_before_its_page_count_is_recorded(
+    env: WorkflowEnvironment,
+):
+    fakes = FakeActivities(
+        record_error=ApplicationError("gone", type=DOCUMENT_DELETED, non_retryable=True)
+    )
+
+    events = await ingest(env, fakes)
+
+    assert fakes.calls == ["rasterize_pdf", "record_page_count 3", "discard_document"]
+    assert events[-1] == IngestEvent(state="deleted")
 
 
 async def test_publishes_error_codes_for_the_ui(env: WorkflowEnvironment):

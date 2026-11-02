@@ -10,7 +10,10 @@ declare global {
     }
 
     // interface Error {}
-    // interface PageData {}
+    interface PageData {
+      locale: string;
+      timeZone: string;
+    }
     // interface PageState {}
     // interface Platform {}
   }

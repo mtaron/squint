@@ -7,6 +7,7 @@ from temporalio.exceptions import ActivityError, ApplicationError
 
 with workflow.unsafe.imports_passed_through():
     from activities import (
+        DOCUMENT_DELETED,
         DocumentActivities,
         IngestError,
         IngestEvent,
@@ -18,11 +19,14 @@ with workflow.unsafe.imports_passed_through():
 STREAM_LINGER = timedelta(seconds=30)
 
 
-def failure_reason(error: ActivityError) -> IngestError:
+def failure_event(error: ActivityError) -> IngestEvent:
     cause = error.cause
-    if isinstance(cause, ApplicationError) and cause.type in IngestError:
-        return IngestError(cause.type)
-    return IngestError.UNEXPECTED
+    if isinstance(cause, ApplicationError):
+        if cause.type == DOCUMENT_DELETED:
+            return IngestEvent(state="deleted")
+        if cause.type in IngestError:
+            return IngestEvent(state="failed", error=IngestError(cause.type))
+    return IngestEvent(state="failed", error=IngestError.UNEXPECTED)
 
 
 @workflow.defn
@@ -47,20 +51,18 @@ class IngestDocumentWorkflow:
                 heartbeat_timeout=timedelta(minutes=1),
                 retry_policy=RetryPolicy(maximum_attempts=5),
             )
-        except ActivityError as error:
-            self.status.publish(
-                IngestEvent(state="failed", error=failure_reason(error))
+            await workflow.execute_activity_method(
+                DocumentActivities.record_page_count,
+                args=[input, page_count],
+                start_to_close_timeout=timedelta(minutes=1),
             )
+        except ActivityError as error:
+            self.status.publish(failure_event(error))
             await workflow.execute_activity_method(
                 DocumentActivities.discard_document,
                 input,
                 start_to_close_timeout=timedelta(minutes=5),
             )
         else:
-            await workflow.execute_activity_method(
-                DocumentActivities.record_page_count,
-                args=[input, page_count],
-                start_to_close_timeout=timedelta(minutes=1),
-            )
             self.status.publish(IngestEvent(state="ingested", page_count=page_count))
         await workflow.sleep(STREAM_LINGER)

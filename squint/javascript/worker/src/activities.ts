@@ -8,7 +8,7 @@ import {
   type S3Client,
 } from "@aws-sdk/client-s3";
 import { heartbeat } from "@temporalio/activity";
-import { userBucketName } from "@squint/db/storage";
+import { documentPrefix, userBucketName } from "@squint/db/storage";
 
 function isS3Error(error: unknown, name: string): boolean {
   return error instanceof Error && error.name === name;
@@ -36,13 +36,17 @@ async function abortMultipartUploads(s3: S3Client, bucket: string) {
   }
 }
 
-async function deleteAllObjects(s3: S3Client, bucket: string) {
+async function deleteAllObjects(s3: S3Client, bucket: string, prefix?: string) {
   let continuationToken: string | undefined;
   let truncated = true;
   while (truncated) {
     // Each page holds at most 1000 keys, the DeleteObjects limit
     const page = await s3.send(
-      new ListObjectsV2Command({ Bucket: bucket, ContinuationToken: continuationToken }),
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      }),
     );
     const objects = (page.Contents ?? []).map(({ Key }) => ({ Key }));
     if (objects.length > 0) {
@@ -80,6 +84,19 @@ export function createActivities(s3: S3Client) {
         await abortMultipartUploads(s3, bucket);
         await deleteAllObjects(s3, bucket);
         await s3.send(new DeleteBucketCommand({ Bucket: bucket }));
+      } catch (error) {
+        if (!isS3Error(error, "NoSuchBucket")) {
+          throw error;
+        }
+      }
+    },
+
+    async deleteDocumentObjects(userId: string, documentIds: string[]): Promise<void> {
+      const bucket = userBucketName(userId);
+      try {
+        for (const documentId of documentIds) {
+          await deleteAllObjects(s3, bucket, documentPrefix(documentId));
+        }
       } catch (error) {
         if (!isS3Error(error, "NoSuchBucket")) {
           throw error;

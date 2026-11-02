@@ -27,7 +27,7 @@ export const signInOrUp = form(
       throw error;
     }
 
-    redirect(303, "/");
+    redirect(303, "/documents");
   },
 );
 

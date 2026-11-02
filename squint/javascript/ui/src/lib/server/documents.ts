@@ -1,5 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { document, documentPage } from "@squint/db";
-import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import { ingestWorkflowId } from "#lib/ingest.ts";
 import { db } from "#lib/server/db/index.ts";
 import { documentStore } from "#lib/server/document-store.ts";
@@ -9,6 +10,8 @@ import { channels, publish } from "#lib/server/user-events.ts";
 
 // Served by the Python worker in squint/python/apps/ingest
 const INGEST_TASK_QUEUE = "ingest";
+// Served by the TypeScript worker in squint/javascript/worker
+const LIFECYCLE_TASK_QUEUE = "lifecycle";
 
 export const storage = s3Storage();
 
@@ -24,15 +27,6 @@ export function listDocuments(userId: string) {
     .from(document)
     .where(eq(document.userId, userId))
     .orderBy(desc(document.uploadedAt));
-}
-
-export async function hasDocuments(userId: string): Promise<boolean> {
-  const rows = await db
-    .select({ id: document.id })
-    .from(document)
-    .where(eq(document.userId, userId))
-    .limit(1);
-  return rows.length > 0;
 }
 
 export function documentsBeingIngested(userId: string) {
@@ -101,4 +95,23 @@ export const documents = documentStore({
   },
 
   announce: (userId, announced) => publish(channels.documents(userId), announced),
+
+  async removeOwned(userId, documentIds, afterRemoving) {
+    await db.transaction(async (transaction) => {
+      const removed = await transaction
+        .delete(document)
+        .where(and(eq(document.userId, userId), inArray(document.id, documentIds)))
+        .returning({ id: document.id, pageCount: document.pageCount });
+      await afterRemoving(removed);
+    });
+  },
+
+  async startCleanup(input) {
+    const client = await getTemporalClient();
+    await client.workflow.start("cleanupDocuments", {
+      taskQueue: LIFECYCLE_TASK_QUEUE,
+      workflowId: `cleanup-documents-${randomUUID()}`,
+      args: [input],
+    });
+  },
 });

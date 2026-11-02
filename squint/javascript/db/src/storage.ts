@@ -15,14 +15,18 @@ export function userBucketName(userId: string): string {
 }
 
 // Mirrored in squint/python/packages/squint-core/src/squint_core/documents.py
+export function documentPrefix(documentId: string): string {
+  return `documents/${documentId}/`;
+}
+
 export function documentObjectKey(documentId: string): string {
-  return `documents/${documentId}/original.pdf`;
+  return `${documentPrefix(documentId)}original.pdf`;
 }
 
 export function pageImageKey(documentId: string, pageNumber: number): string {
-  return `documents/${documentId}/pages/${pageNumber}.jpg`;
+  return `${documentPrefix(documentId)}pages/${pageNumber}.jpg`;
 }
 
 export function thumbnailKey(documentId: string, pageNumber: number): string {
-  return `documents/${documentId}/thumbnails/${pageNumber}.webp`;
+  return `${documentPrefix(documentId)}thumbnails/${pageNumber}.webp`;
 }

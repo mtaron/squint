@@ -27,6 +27,8 @@ from rasterize import RasterizedPage, rasterize_page
 MAX_PDF_PAGES = 2000
 # A retry resumes from the last recorded page, and progress is reported as pages are recorded
 PAGES_PER_RECORD = 25
+# The type of the failure raised when ingestion finds that the user deleted its document
+DOCUMENT_DELETED = "document_deleted"
 
 
 class IngestError(StrEnum):
@@ -46,7 +48,7 @@ class IngestInput(CamelModel):
 
 
 class IngestEvent(CamelModel):
-    state: Literal["validating", "rasterizing", "ingested", "failed"]
+    state: Literal["validating", "rasterizing", "ingested", "failed", "deleted"]
     page_count: int | None = None
     pages_done: int | None = None
     error: IngestError | None = None
@@ -55,6 +57,12 @@ class IngestEvent(CamelModel):
 def invalid_document(error: IngestError, detail: str) -> ApplicationError:
     """A failure the user has to fix by uploading a different file, so retrying can't help."""
     return ApplicationError(detail, type=error, non_retryable=True)
+
+
+def document_deleted() -> ApplicationError:
+    return ApplicationError(
+        "The document was deleted", type=DOCUMENT_DELETED, non_retryable=True
+    )
 
 
 async def download(s3: AsyncS3Client, input: IngestInput, destination: Path) -> None:
@@ -206,7 +214,12 @@ class DocumentActivities:
                     )
                     for page_number in page_numbers
                 ]
-            await documents.upsert_pages(self.db, [page.result() for page in stored])
+            try:
+                await documents.upsert_pages(
+                    self.db, [page.result() for page in stored]
+                )
+            except asyncpg.ForeignKeyViolationError as error:
+                raise document_deleted() from error
             report_progress(page_numbers[-1])
 
     @activity.defn
@@ -229,11 +242,15 @@ class DocumentActivities:
 
     @activity.defn
     async def record_page_count(self, input: IngestInput, page_count: int) -> None:
-        await documents.set_page_count(self.db, input.document_id, page_count)
+        if (
+            await documents.set_page_count(self.db, input.document_id, page_count)
+            is None
+        ):
+            raise document_deleted()
 
     @activity.defn
     async def discard_document(self, input: IngestInput) -> None:
-        """Removes a document that failed ingestion, so it disappears from the user's list."""
+        """Removes what's left of a document that failed ingestion or was deleted during it."""
         await delete_objects_under(
             self.s3, input.bucket, documents.document_prefix(input.document_id)
         )
