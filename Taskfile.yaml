@@ -84,6 +84,30 @@ tasks:
       "$(kubectl get pod --namespace squint --selector app.kubernetes.io/name=embed --output name | head -1)"
       -- python smoke.py
 
+  search-bench:
+    desc: Time dense and multi-vector searches through the cluster's Milvus, to choose DENSE_SEARCH_MIN_PAGES
+    vars:
+      POD:
+        sh: kubectl get pod --namespace squint --selector app.kubernetes.io/name=embed --output jsonpath='{.items[0].metadata.name}'
+      POD_DIR: /tmp/search-bench
+    cmds:
+      - task: render-search-bench
+      # The pages are 2.8 GB, so the pod keeps the vectors it encodes from them instead
+      - >-
+        kubectl exec --namespace squint {{.POD}} -- test -f {{.POD_DIR}}/vectors.npz ||
+        tar --create --directory datasets/search-bench . |
+        kubectl exec --stdin --namespace squint {{.POD}} --
+        sh -c 'mkdir -p {{.POD_DIR}} && tar --extract --directory {{.POD_DIR}}'
+      - kubectl exec --namespace squint {{.POD}} -- python search_bench.py {{.POD_DIR}}
+
+  render-search-bench:
+    internal: true
+    dir: squint/python/apps/ingest
+    cmd: >-
+      uv run --with pyarrow python render_benchmark_pages.py
+      {{.ROOT_DIR}}/datasets/vidore/vidore_v3_finance_en {{.ROOT_DIR}}/datasets/search-bench
+    status:
+      - test -f {{.ROOT_DIR}}/datasets/search-bench/queries.json
 
   create-admin:
     desc: Create the dev admin account; needs the dev ui image, not `task preview`
