@@ -7,7 +7,7 @@
   <sub><sub><em>A self-hostable, vision-first document processing pipeline</em></sub></sub>
 </h1>
 
-[ColPali](https://huggingface.co/blog/manu/colpali) was a paradigm shift in document retrieval. Instead of using a complex retrieval pipeline with OCR, page segmentation, reading order reconstruction, etc., ColPali-style models just embed page images directly. This project is a personal side quest to see how far I can take a "vision-only" document processing pipeline by combining late-interaction page embeddings for search ([NeoMME](https://huggingface.co/blog/Hcompany/neomme) in this case) with a vision-language model ([Qwen3-VL](https://github.com/qwenlm/qwen3-vl)).
+[ColPali](https://huggingface.co/blog/manu/colpali) was a paradigm shift in document retrieval. Instead of using a complex retrieval pipeline with OCR, page segmentation, reading order reconstruction, etc., ColPali-style models just embed page images directly. This project is a personal side quest to see how far I can take a "vision-only" document processing pipeline by combining late-interaction page embeddings for search ([NeoMME](https://huggingface.co/blog/Hcompany/neomme) in this case) with a vision-language model ([Qwen3.5](https://huggingface.co/Qwen/Qwen3.5-4B)).
 
 The fundamental job squint does is apply a schema across documents with grounding. The late-interaction page embeddings allow it to do so efficiently over a large corpus.
 
@@ -19,7 +19,7 @@ The fundamental job squint does is apply a schema across documents with groundin
 
 ## Components
 - Embeddings: [NeoMME](https://huggingface.co/blog/Hcompany/neomme)
-- VLM: [Qwen3-VL](https://github.com/qwenlm/qwen3-vl)
+- VLM: [Qwen3.5](https://huggingface.co/Qwen/Qwen3.5-4B)
 - Durable worker orchestration: [Temporal](https://docs.temporal.io/)
 - Vector store: [Milvus](https://milvus.io/docs)
 - Web UI: [SvelteKit](https://svelte.dev/docs/kit/introduction) with remote functions and async enabled

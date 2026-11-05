@@ -453,10 +453,10 @@ releases:
       {{- end }}
 
   # vLLM production stack
-  # Serves Qwen3-VL for extraction; the vLLM image tag is in modelSpec below
+  # Serves Qwen3.5-4B (FP8) for extraction; the vLLM image tag is in modelSpec below
   # https://github.com/vllm-project/production-stack
   # https://github.com/vllm-project/vllm
-  - name: qwen3-vl
+  - name: vlm
     namespace: vllm
     createNamespace: true
     chart: vllm/vllm-stack
@@ -483,7 +483,7 @@ releases:
             - name: vllm
               repository: vllm/vllm-openai
               tag: v0.33.0
-              modelURL: /mnt/models/Qwen3-VL-4B-Instruct
+              modelURL: /mnt/models/Qwen3.5-4B-FP8-dynamic
               replicaCount: 1
               requestCPU: 4
               requestMemory: 12Gi
@@ -494,13 +494,19 @@ releases:
                 # The dev GPU also runs the desktop and the embed worker (~1.9 GiB peak)
                 gpuMemoryUtilization: {{ eq .Environment.Name "development" | ternary 0.72 0.85 }}
                 {{- if eq .Environment.Name "development" }}
-                # The dev KV cache holds about one full-length request; more sequences only add
-                # CUDA graph memory
+                # The dev KV cache holds about 10 full-length requests; more sequences add CUDA
+                # graph memory
                 maxNumSeqs: 8
                 {{- end }}
                 extraArgs:
                   - --served-model-name
-                  - qwen3-vl
+                  - vlm
+                  # Qwen3.5 thinks by default; requests opt in with
+                  # chat_template_kwargs {"enable_thinking": true}
+                  - --default-chat-template-kwargs
+                  - '{"enable_thinking": false}'
+                  - --reasoning-parser
+                  - qwen3
                   - --limit-mm-per-prompt
                   - '{"image": 1, "video": 0}'
                   # 4096 visual tokens of 32x32 px (4.2 MP). Small type needs more than a 144 dpi

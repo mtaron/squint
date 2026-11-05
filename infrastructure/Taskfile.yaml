@@ -81,8 +81,8 @@ tasks:
     silent: true
 
   vllm:
-    desc: Forward the Qwen3-VL vLLM server to http://localhost:8000
-    cmd: kubectl port-forward --namespace vllm svc/qwen3-vl-vllm-engine-service 8000:80
+    desc: Forward the VLM server to http://localhost:8000
+    cmd: kubectl port-forward --namespace vllm svc/vlm-vllm-engine-service 8000:80
 
   vendor-crds:
     desc: Download vendored custom resource definitions
