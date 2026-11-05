@@ -5,6 +5,7 @@ description = "squint extraction worker"
 readme = "README.md"
 requires-python = ">=3.14.4"
 dependencies = [
+    "openai>=3.42.1",
     "squint-core",
     "squint-vector",
 ]
@@ -15,6 +16,7 @@ squint-vector = { path = "../../packages/squint-vector", editable = true }
 
 [dependency-groups]
 dev = [
+    "pillow>=13.0.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.1",
 ]
@@ -22,3 +24,8 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+
+[tool.ruff.lint.isort]
+known-first-party = ["activities", "cutoff", "workflows"]

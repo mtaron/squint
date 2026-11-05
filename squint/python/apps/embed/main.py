@@ -11,7 +11,6 @@ from activities import EmbedActivities
 from encoder import Encoder, load_model
 from token_compression import limit_to_one_thread
 
-# The GPU embeds one batch at a time
 MAX_CONCURRENT_ACTIVITIES = 1
 
 
@@ -33,6 +32,7 @@ async def run() -> None:
                 EMBED_TASK_QUEUE,
                 activities=[
                     activities.embed_pages,
+                    activities.encode_query,
                     activities.delete_document_vectors,
                     activities.delete_user_vectors,
                 ],

@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { tick } from "svelte";
+  import { tick, type Snippet } from "svelte";
   import { resolve } from "$app/paths";
   import { page } from "$app/state";
   import DocumentRow from "#lib/components/DocumentRow.svelte";
   import FilePickers from "#lib/components/FilePickers.svelte";
+  import SearchBar from "#lib/components/SearchBar.svelte";
   import SelectionBar from "#lib/components/SelectionBar.svelte";
   import { type DocumentIngestion, unindexedPages, unindexedPagesMessage } from "#lib/ingest.ts";
   import { DocumentSelection } from "#lib/state/document-selection.svelte.ts";
@@ -34,6 +35,7 @@
     onfiles,
     ondismiss,
     ondelete,
+    results,
   }: {
     documents: ListedDocument[];
     failures: FailedDocument[];
@@ -43,6 +45,8 @@
     onfiles: (files: File[]) => void;
     ondismiss: (id: string) => void;
     ondelete: (ids: string[]) => Promise<void>;
+    /** Search results, which take the place of the list */
+    results?: Snippet;
   } = $props();
 
   const uploadTones = { queued: "quiet", uploading: undefined, failed: "problem" } as const;
@@ -152,119 +156,131 @@
 >
   <header>
     <h1 id="library-heading" tabindex="-1" bind:this={heading}>Documents</h1>
-    <FilePickers size="compact" {onfiles} />
+    <div class="actions">
+      <SearchBar label="Search all documents" />
+      <FilePickers size="compact" {onfiles} />
+    </div>
   </header>
 
-  <div class="columns">
-    {#if uploads.length > 0 || failures.length > 0}
-      <ol class="arriving">
-        {#each uploads as upload (upload.id)}
-          <DocumentRow name={upload.name} sizeBytes={upload.size} tone={uploadTones[upload.status]}>
-            {#snippet status()}
-              {#if upload.status === "queued"}
-                Waiting to upload
-              {:else if upload.status === "uploading"}
-                <span id="uploading-{upload.id}">Uploading</span>
-                <progress
-                  aria-labelledby="uploading-{upload.id}"
-                  max={upload.size}
-                  value={upload.loaded}
-                ></progress>
-              {:else}
-                <p role="alert">{upload.problems.join(" ")}</p>
-                <button class="dismiss" onclick={() => ondismiss(upload.id)}>Dismiss</button>
-              {/if}
-            {/snippet}
-          </DocumentRow>
-        {/each}
-        {#each failures as failure (failure.id)}
-          <DocumentRow name={failure.name} sizeBytes={failure.sizeBytes} tone="problem">
-            {#snippet status()}
-              <p role="alert">{failure.error}</p>
-              <button class="dismiss" onclick={() => ondismiss(failure.id)}>Dismiss</button>
-            {/snippet}
-          </DocumentRow>
-        {/each}
-      </ol>
-    {/if}
-
-    {#each days as day (day.key)}
-      {@const dayIds = day.documents.map(({ id }) => id)}
-      {@const daySelected = selection.within(dayIds).length}
-      <section class="day" aria-labelledby="day-{day.key}">
-        <div class="day-heading">
-          <input
-            class="select-day"
-            type="checkbox"
-            aria-label="Select all from {day.label}"
-            checked={daySelected === dayIds.length}
-            indeterminate={daySelected > 0 && daySelected < dayIds.length}
-            onclick={() => selectMany(dayIds, daySelected < dayIds.length)}
-          />
-          <h2 id="day-{day.key}">{day.label}</h2>
-        </div>
-        <ol>
-          {#each day.documents as document (document.id)}
-            {@const latest = statuses[document.id]?.latest}
-            {@const pageCount = document.pageCount ?? latest?.pageCount ?? null}
-            {@const ready =
-              document.pageCount !== null ||
-              latest?.state === "embedding" ||
-              latest?.state === "ingested"}
-            {@const working = latest?.state === "rasterizing" || latest?.state === "embedding"}
-            {@const unindexed = latest ? unindexedPages(latest) : 0}
-            {#snippet preparing()}
-              {#if working}
-                Processing…
-                <span class="bars">
-                  <progress
-                    aria-label="Preparing pages"
-                    max={latest?.pageCount ?? 1}
-                    value={latest?.pagesDone ?? 0}
-                  ></progress>
-                  <progress
-                    class="embedding"
-                    aria-label="Indexing pages"
-                    max={latest?.pageCount ?? 1}
-                    value={latest?.pagesEmbedded ?? 0}
-                  ></progress>
-                </span>
-              {:else if unindexed > 0}
-                {unindexedPagesMessage(unindexed, page.data.locale)}
-              {:else}
-                Checking the PDF…
-              {/if}
-            {/snippet}
+  {#if results}
+    {@render results()}
+  {:else}
+    <div class="columns">
+      {#if uploads.length > 0 || failures.length > 0}
+        <ol class="arriving">
+          {#each uploads as upload (upload.id)}
             <DocumentRow
-              name={document.name}
-              href={ready ? resolve("/documents/[id]", { id: document.id }) : undefined}
-              sizeBytes={document.sizeBytes}
-              {pageCount}
-              tone={ready ? undefined : "quiet"}
-              title={uploadedAtLabel(document.uploadedAt, page.data)}
-              selected={selection.has(document.id)}
-              confirming={confirming.has(document.id)}
-              onselect={(range) => selectRow(document.id, range)}
-              ondelete={(event) => askToDelete([document.id], event.currentTarget)}
-              status={working || unindexed > 0 || !ready ? preparing : undefined}
-            />
+              name={upload.name}
+              sizeBytes={upload.size}
+              tone={uploadTones[upload.status]}
+            >
+              {#snippet status()}
+                {#if upload.status === "queued"}
+                  Waiting to upload
+                {:else if upload.status === "uploading"}
+                  <span id="uploading-{upload.id}">Uploading</span>
+                  <progress
+                    aria-labelledby="uploading-{upload.id}"
+                    max={upload.size}
+                    value={upload.loaded}
+                  ></progress>
+                {:else}
+                  <p role="alert">{upload.problems.join(" ")}</p>
+                  <button class="dismiss" onclick={() => ondismiss(upload.id)}>Dismiss</button>
+                {/if}
+              {/snippet}
+            </DocumentRow>
+          {/each}
+          {#each failures as failure (failure.id)}
+            <DocumentRow name={failure.name} sizeBytes={failure.sizeBytes} tone="problem">
+              {#snippet status()}
+                <p role="alert">{failure.error}</p>
+                <button class="dismiss" onclick={() => ondismiss(failure.id)}>Dismiss</button>
+              {/snippet}
+            </DocumentRow>
           {/each}
         </ol>
-      </section>
-    {/each}
-  </div>
+      {/if}
 
-  {#if selected.length > 0 || confirming.size > 0}
-    <SelectionBar
-      message={barMessage}
-      confirming={confirming.size > 0}
-      {deleting}
-      canSelectAll={selected.length < ids.length}
-      onselectall={() => selectMany(ids, true)}
-      onclear={clearSelection}
-      onkeep={keep}
-      ondelete={(button) => (confirming.size > 0 ? confirmDelete() : askToDelete(selected, button))}
-    />
+      {#each days as day (day.key)}
+        {@const dayIds = day.documents.map(({ id }) => id)}
+        {@const daySelected = selection.within(dayIds).length}
+        <section class="day" aria-labelledby="day-{day.key}">
+          <div class="day-heading">
+            <input
+              class="select-day"
+              type="checkbox"
+              aria-label="Select all from {day.label}"
+              checked={daySelected === dayIds.length}
+              indeterminate={daySelected > 0 && daySelected < dayIds.length}
+              onclick={() => selectMany(dayIds, daySelected < dayIds.length)}
+            />
+            <h2 id="day-{day.key}">{day.label}</h2>
+          </div>
+          <ol>
+            {#each day.documents as document (document.id)}
+              {@const latest = statuses[document.id]?.latest}
+              {@const pageCount = document.pageCount ?? latest?.pageCount ?? null}
+              {@const ready =
+                document.pageCount !== null ||
+                latest?.state === "embedding" ||
+                latest?.state === "ingested"}
+              {@const working = latest?.state === "rasterizing" || latest?.state === "embedding"}
+              {@const unindexed = latest ? unindexedPages(latest) : 0}
+              {#snippet preparing()}
+                {#if working}
+                  Processing…
+                  <span class="bars">
+                    <progress
+                      aria-label="Preparing pages"
+                      max={latest?.pageCount ?? 1}
+                      value={latest?.pagesDone ?? 0}
+                    ></progress>
+                    <progress
+                      class="embedding"
+                      aria-label="Indexing pages"
+                      max={latest?.pageCount ?? 1}
+                      value={latest?.pagesEmbedded ?? 0}
+                    ></progress>
+                  </span>
+                {:else if unindexed > 0}
+                  {unindexedPagesMessage(unindexed, page.data.locale)}
+                {:else}
+                  Checking the PDF…
+                {/if}
+              {/snippet}
+              <DocumentRow
+                name={document.name}
+                href={ready ? resolve("/documents/[id]", { id: document.id }) : undefined}
+                sizeBytes={document.sizeBytes}
+                {pageCount}
+                tone={ready ? undefined : "quiet"}
+                title={uploadedAtLabel(document.uploadedAt, page.data)}
+                selected={selection.has(document.id)}
+                confirming={confirming.has(document.id)}
+                onselect={(range) => selectRow(document.id, range)}
+                ondelete={(event) => askToDelete([document.id], event.currentTarget)}
+                status={working || unindexed > 0 || !ready ? preparing : undefined}
+              />
+            {/each}
+          </ol>
+        </section>
+      {/each}
+    </div>
+
+    {#if selected.length > 0 || confirming.size > 0}
+      <SelectionBar
+        message={barMessage}
+        confirming={confirming.size > 0}
+        {deleting}
+        canSelectAll={selected.length < ids.length}
+        onselectall={() => selectMany(ids, true)}
+        onclear={clearSelection}
+        onkeep={keep}
+        ondelete={(button) =>
+          confirming.size > 0 ? confirmDelete() : askToDelete(selected, button)}
+      />
+    {/if}
   {/if}
 
   <p class="visually-hidden" aria-live="polite">
@@ -293,6 +309,13 @@
     align-items: end;
     justify-content: space-between;
     gap: var(--space-4);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
   }
 
   h1 {

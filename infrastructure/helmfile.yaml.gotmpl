@@ -529,6 +529,9 @@ releases:
           enableRouter: false
       - grafanaDashboards:
           enabled: true
+      {{- with .Values | get "vlm.values" nil }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
 
   # agentgateway
   # Gateway API implementation

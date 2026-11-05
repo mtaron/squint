@@ -12,7 +12,9 @@ from squint_core.embedding import (
     DELETE_DOCUMENT_VECTORS_ACTIVITY,
     DELETE_USER_VECTORS_ACTIVITY,
     EMBED_PAGES_ACTIVITY,
+    ENCODE_QUERY_ACTIVITY,
     EmbedPagesInput,
+    EncodedQuery,
 )
 from squint_vector import pages
 from squint_vector.pages import PageVectors
@@ -92,6 +94,13 @@ class EmbedActivities:
         )
         if not marked:
             raise document_deleted()
+
+    @activity.defn(name=ENCODE_QUERY_ACTIVITY)
+    async def encode_query(self, query: str) -> EncodedQuery:
+        [encoded] = await asyncio.to_thread(self.encoder.encode_queries, [query])
+        return EncodedQuery(
+            dense=encoded.dense.tolist(), tokens=encoded.tokens.tolist()
+        )
 
     @activity.defn(name=DELETE_DOCUMENT_VECTORS_ACTIVITY)
     async def delete_document_vectors(self, document_ids: list[str]) -> None:

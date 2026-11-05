@@ -8,7 +8,7 @@ import pytest
 from capo_s3.errors import NoSuchKey
 from PIL import Image
 from squint_core.documents import DOCUMENT_DELETED
-from squint_core.embedding import EmbedPagesInput
+from squint_core.embedding import EmbedPagesInput, EncodedQuery
 from temporalio.exceptions import ApplicationError
 from temporalio.testing import ActivityEnvironment
 
@@ -87,6 +87,15 @@ class FakeEncoder:
             for _ in images
         ]
 
+    def encode_queries(self, queries: list[str]) -> list[Encoded]:
+        return [
+            Encoded(
+                dense=np.full(1024, 0.5, dtype=np.float32),
+                tokens=np.full((len(query.split()), 128), -3, dtype=np.int8),
+            )
+            for query in queries
+        ]
+
 
 def rows() -> list[dict]:
     return [
@@ -163,3 +172,18 @@ async def test_deletes_vectors_by_document_and_by_user():
 
     assert milvus.deleted[0]["filter_params"] == {"document_ids": [DOCUMENT_ID]}
     assert milvus.deleted[1]["filter_params"] == {"user_id": str(USER_ID)}
+
+
+async def test_encodes_a_query_into_plain_lists_for_the_search_workflow():
+    activities = EmbedActivities(
+        FakeDb([]),  # ty: ignore[invalid-argument-type]
+        FakeS3(),  # ty: ignore[invalid-argument-type]
+        FakeMilvus(),  # ty: ignore[invalid-argument-type]
+        FakeEncoder(),  # ty: ignore[invalid-argument-type]
+    )
+
+    encoded = await ActivityEnvironment().run(activities.encode_query, "net revenue")
+
+    assert isinstance(encoded, EncodedQuery)
+    assert len(encoded.dense) == 1024
+    assert encoded.tokens == [[-3] * 128, [-3] * 128]

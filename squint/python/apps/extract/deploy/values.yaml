@@ -2,3 +2,12 @@ milvus:
   enabled: true
 autoscaling:
   enabled: true
+env:
+  # Late-interaction vectors search is more expensive than dense search,
+  # so we rerank the results of a dense search as a performance optimization.
+  # However, this optimization is not needed if the number of pages is small.
+  # This environment variable controls the threshold for when to use a dense
+  # search first and rerank vs just running a late-interaction search over all pages.
+  DENSE_SEARCH_MIN_PAGES: "50"
+  # The vlm release in infrastructure/helmfile.yaml.gotmpl
+  VLLM_URL: http://vlm-vllm-engine-service.vllm.svc.cluster.local/v1

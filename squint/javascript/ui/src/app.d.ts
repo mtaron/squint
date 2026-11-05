@@ -14,7 +14,10 @@ declare global {
       locale: string;
       timeZone: string;
     }
-    // interface PageState {}
+    interface PageState {
+      /** Set by the search bar, so a page can tell a new search from a link to its results */
+      searched?: boolean;
+    }
     // interface Platform {}
   }
 }

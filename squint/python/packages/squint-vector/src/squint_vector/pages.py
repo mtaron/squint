@@ -36,6 +36,25 @@ class PageMatch(BaseModel):
     score: float
 
 
+class SearchOptions(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    user_id: str
+    document_id: str | None = None
+
+    def filter(self) -> tuple[str, dict[str, str]]:
+        if self.document_id is None:
+            return "user_id == {user_id}", {"user_id": self.user_id}
+        return (
+            "user_id == {user_id} and document_id == {document_id}",
+            {"user_id": self.user_id, "document_id": self.document_id},
+        )
+
+
+def page_id(document_id: str, page_number: int) -> str:
+    return f"{document_id}-{page_number}"
+
+
 async def ensure_collection(
     client: AsyncMilvusClient, collection: str = COLLECTION
 ) -> None:
@@ -61,7 +80,7 @@ async def ensure_collection(
 
     indexes = client.prepare_index_params()
     indexes.add_index("document_id", index_type="INVERTED")
-    indexes.add_index("dense", index_type="AUTOINDEX", metric_type="COSINE")
+    indexes.add_index(field_name="dense", index_type="AUTOINDEX", metric_type="COSINE")
     # Milvus only indexes int8 embedding lists with the HNSW family, so AUTOINDEX isn't an option
     indexes.add_index(
         TOKENS_FIELD,
@@ -84,7 +103,7 @@ async def upsert_pages(
         collection,
         [
             {
-                "id": f"{page.document_id}-{page.page_number}",
+                "id": page_id(page.document_id, page.page_number),
                 "user_id": page.user_id,
                 "document_id": page.document_id,
                 "page_number": page.page_number,
@@ -96,25 +115,7 @@ async def upsert_pages(
     )
 
 
-async def search_pages(
-    client: AsyncMilvusClient,
-    user_id: str,
-    query_tokens: np.ndarray,
-    *,
-    limit: int,
-    collection: str = COLLECTION,
-) -> list[PageMatch]:
-    """The user's pages that best match a query's quantized tokens, best first."""
-    results = await client.search(
-        collection,
-        data=[EmbeddingList(query_tokens, dtype=DataType.INT8_VECTOR)],
-        anns_field=TOKENS_FIELD,
-        search_params={"metric_type": TOKENS_METRIC},
-        filter="user_id == {user_id}",
-        filter_params={"user_id": user_id},
-        limit=limit,
-        output_fields=["document_id", "page_number"],
-    )
+def matches(results: list) -> list[PageMatch]:
     return [
         PageMatch(
             document_id=hit["entity"]["document_id"],
@@ -123,6 +124,70 @@ async def search_pages(
         )
         for hit in results[0]
     ]
+
+
+async def count_pages(
+    client: AsyncMilvusClient, options: SearchOptions, collection: str = COLLECTION
+) -> int:
+    filter, filter_params = options.filter()
+    [row] = await client.query(
+        collection,
+        filter=filter,
+        filter_params=filter_params,
+        output_fields=["count(*)"],
+    )
+    return row["count(*)"]
+
+
+async def dense_search(
+    client: AsyncMilvusClient,
+    options: SearchOptions,
+    query_dense: np.ndarray,
+    *,
+    limit: int,
+    collection: str = COLLECTION,
+) -> list[PageMatch]:
+    filter, filter_params = options.filter()
+    results = await client.search(
+        collection,
+        data=[query_dense],
+        anns_field="dense",
+        search_params={"metric_type": "COSINE"},
+        filter=filter,
+        filter_params=filter_params,
+        limit=limit,
+        output_fields=["document_id", "page_number"],
+    )
+    return matches(results)
+
+
+async def late_search(
+    client: AsyncMilvusClient,
+    options: SearchOptions,
+    query_tokens: np.ndarray,
+    *,
+    limit: int,
+    candidates: list[PageMatch] | None = None,
+    collection: str = COLLECTION,
+) -> list[PageMatch]:
+    filter, filter_params = options.filter()
+    if candidates is not None:
+        filter = f"{filter} and id in {{ids}}"
+        filter_params = {
+            **filter_params,
+            "ids": [page_id(page.document_id, page.page_number) for page in candidates],
+        }
+    results = await client.search(
+        collection,
+        data=[EmbeddingList(query_tokens, dtype=DataType.INT8_VECTOR)],
+        anns_field=TOKENS_FIELD,
+        search_params={"metric_type": TOKENS_METRIC},
+        filter=filter,
+        filter_params=filter_params,
+        limit=limit,
+        output_fields=["document_id", "page_number"],
+    )
+    return matches(results)
 
 
 async def delete_documents(

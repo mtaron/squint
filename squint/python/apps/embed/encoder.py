@@ -60,8 +60,7 @@ class Encoder:
         tokens = output.embeddings.float().cpu()
         masks = inputs["attention_mask"].bool().cpu()
         dense = output.dense_embeddings.float().cpu().numpy()
-        # An idle worker shouldn't keep a batch's memory on a shared GPU, and `task embed-smoke`
-        # needs room next to it
+        # An idle worker shouldn't keep a batch's memory on a shared GPU
         del inputs, output
         torch.cuda.empty_cache()
         return [row[mask] for row, mask in zip(tokens, masks, strict=True)], dense

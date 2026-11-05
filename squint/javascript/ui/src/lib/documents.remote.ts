@@ -3,6 +3,7 @@ import { error } from "@sveltejs/kit";
 import * as v from "valibot";
 import { command, getRequestEvent, query } from "$app/server";
 import type { DocumentIngestion } from "#lib/ingest.ts";
+import { isFinalSearchEvent, MAX_QUERY_LENGTH, type SearchEvent } from "#lib/search.ts";
 import type { AnnouncedDocument } from "#lib/server/document-store.ts";
 import {
   documents,
@@ -11,6 +12,7 @@ import {
   listDocuments,
 } from "#lib/server/documents.ts";
 import { followIngestion } from "#lib/server/ingest-status.ts";
+import { followSearch } from "#lib/server/search.ts";
 import { Changes, channels, subscribe } from "#lib/server/user-events.ts";
 
 // Keeps one delete within a single query's parameter limit
@@ -93,3 +95,40 @@ export const ingestStatus = query.live(async function* () {
     lifetime.end();
   }
 });
+
+/** A search of all the user's pages, or one document's, as its results come in. */
+export const search = query.live(
+  v.object({
+    query: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(MAX_QUERY_LENGTH)),
+    documentId: v.optional(v.pipe(v.string(), v.check(isDocumentId))),
+  }),
+  async function* ({ query, documentId }) {
+    const user = requireUser();
+    const lifetime = liveQueryLifetime();
+    let latest: SearchEvent = { state: "searching", pages: [] };
+    const changes = new Changes();
+
+    void followSearch(
+      { userId: user.id, query, documentId },
+      (event) => {
+        latest = event;
+        changes.notify();
+      },
+      lifetime.signal,
+    );
+
+    try {
+      while (!lifetime.signal.aborted) {
+        // `latest` can move on while the yield waits for the client, so check the one it sent
+        const sent = latest;
+        yield sent;
+        if (isFinalSearchEvent(sent)) {
+          return;
+        }
+        await changes.next(lifetime.signal);
+      }
+    } finally {
+      lifetime.end();
+    }
+  },
+);

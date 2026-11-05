@@ -1,9 +1,12 @@
 <script lang="ts">
+  import { page } from "$app/state";
   import DocumentList from "#lib/components/DocumentList.svelte";
   import FirstRun from "#lib/components/FirstRun.svelte";
+  import SearchResults from "#lib/components/SearchResults.svelte";
   import { deleteDocuments, getDocuments } from "#lib/documents.remote.ts";
   import { droppedFiles, isFileDrag } from "#lib/drop.ts";
   import { getIngestion } from "#lib/state/ingestion.svelte.ts";
+  import { queryFromUrl } from "#lib/search.ts";
 
   const ingestion = getIngestion();
 
@@ -20,6 +23,9 @@
   const firstRun = $derived(
     documents.length === 0 && ingestion.failures.length === 0 && ingestion.queue.items.length === 0,
   );
+
+  const query = $derived(queryFromUrl(page.url));
+  const names = $derived(new Map(documents.map(({ id, name }) => [id, name])));
 
   // dragenter and dragleave fire for every child element crossed, so count them
   let dragDepth = $state(0);
@@ -59,5 +65,9 @@
     onfiles={(files) => ingestion.upload(files)}
     ondismiss={(id) => ingestion.dismiss(id)}
     ondelete={deleteDocuments}
+    results={query ? searchResults : undefined}
   />
+  {#snippet searchResults()}
+    <SearchResults {query} {names} />
+  {/snippet}
 {/if}
