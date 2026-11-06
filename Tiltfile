@@ -11,9 +11,6 @@ if k8s_context() != 'kind-squint':
 config.define_bool('preview')
 PREVIEW = config.parse().get('preview', False)
 
-# `task prune-images` removes old builds on demand
-docker_prune_settings(disable=True)
-
 NAMESPACE = 'squint'
 PYTHON_SRC = 'squint/python'
 JS_SRC = 'squint/javascript'
