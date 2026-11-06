@@ -316,7 +316,7 @@ releases:
     namespace: temporal
     createNamespace: true
     chart: temporal/temporal
-    version: "1.7.0"
+    version: "1.8.0"
     {{- if eq .Environment.Name "development" }}
     hooks:
       - events: ["presync"]
@@ -375,12 +375,12 @@ releases:
   - name: temporal-worker-controller-crds
     chart: oci://docker.io/temporalio/temporal-worker-controller-crds
     namespace: default
-    version: "0.32.0"
+    version: "0.33.0"
 
   - name: temporal-worker-controller
     chart: oci://docker.io/temporalio/temporal-worker-controller
     namespace: temporal
-    version: "0.32.0"
+    version: "0.33.0"
     needs:
       - temporal/temporal
       - default/temporal-worker-controller-crds

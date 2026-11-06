@@ -41,7 +41,6 @@ async def run() -> None:
         )
         await run_worker(
             TASK_QUEUE,
-            # `task temporal-load` starts hello-world workflows here to exercise autoscaling
             [activities.find_pages, activities.locate_text],
             workflows=[SearchWorkflow],
             max_concurrent_activities=MAX_CONCURRENT_ACTIVITIES,
