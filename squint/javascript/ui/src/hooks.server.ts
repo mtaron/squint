@@ -1,3 +1,4 @@
+import { redirect } from "@sveltejs/kit";
 import { sequence, type Handle } from "@sveltejs/kit/hooks";
 import { auth } from "#lib/server/auth.ts";
 
@@ -27,4 +28,13 @@ const populateSession: Handle = async ({ event, resolve }) => {
   return resolve(event);
 };
 
-export const handle: Handle = sequence(preloadFonts, populateSession);
+const PUBLIC_ROUTES = new Set(["/", "/login", "/health", "/api/auth/[...all]"]);
+
+const requireUser: Handle = ({ event, resolve }) => {
+  if (!event.locals.user && !event.isRemoteRequest && !PUBLIC_ROUTES.has(event.route.id ?? "")) {
+    redirect(303, "/login");
+  }
+  return resolve(event);
+};
+
+export const handle: Handle = sequence(preloadFonts, populateSession, requireUser);
