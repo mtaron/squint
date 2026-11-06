@@ -1,8 +1,10 @@
 import { fileURLToPath } from "node:url";
 import { loadClientConnectConfig } from "@temporalio/envconfig";
+import { OpenTelemetryPlugin } from "@temporalio/interceptors-opentelemetry";
 import { NativeConnection, Runtime, Worker } from "@temporalio/worker";
 import { createActivities } from "./activities.ts";
 import { requireEnv } from "./config.ts";
+import { tracing } from "./instrumentation.ts";
 import { createS3Client } from "./s3.ts";
 
 const TASK_QUEUE = "lifecycle";
@@ -41,6 +43,7 @@ try {
     workflowsPath: fileURLToPath(new URL("./workflows.ts", import.meta.url)),
     activities: createActivities(createS3Client()),
     shutdownGraceTime: GRACEFUL_SHUTDOWN_TIMEOUT,
+    plugins: tracing ? [new OpenTelemetryPlugin(tracing)] : [],
     workerDeploymentOptions: {
       version,
       useWorkerVersioning: true,
@@ -52,4 +55,5 @@ try {
   await worker.run();
 } finally {
   await connection.close();
+  await tracing?.shutdown();
 }

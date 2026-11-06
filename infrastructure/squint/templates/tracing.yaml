@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tracing
+  namespace: {{ .Release.Namespace }}
+data:
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ printf "http://%s:%v" .Values.tracing.host .Values.tracing.port | quote }}

@@ -40,6 +40,8 @@ spec:
             - configMapRef:
                 name: temporal
             - configMapRef:
+                name: tracing
+            - configMapRef:
                 name: dragonfly
             - configMapRef:
                 name: postgres

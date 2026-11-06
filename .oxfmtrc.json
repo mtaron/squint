@@ -1,0 +1,4 @@
+{
+  "$schema": "./squint/javascript/node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": ["infrastructure/*/templates/**", "**/*.yaml.gotmpl"]
+}

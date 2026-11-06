@@ -56,6 +56,8 @@ spec:
               # Short enough for the worker to report what it couldn't finish before the SIGKILL
               - name: WORKER_SHUTDOWN_TIMEOUT_SECONDS
                 value: {{ sub .Values.shutdownGracePeriodSeconds 5 | quote }}
+              - name: OTEL_SERVICE_NAME
+                value: squint-{{ .Release.Name }}
               {{- range $name, $value := .Values.env }}
               - name: {{ $name }}
                 value: {{ $value | quote }}
@@ -68,8 +70,9 @@ spec:
               - name: TEMPORAL_DEBUG
                 value: "true"
               {{- end }}
-            {{- if or .Values.s3.enabled .Values.dragonfly.enabled .Values.milvus.enabled .Values.postgres.enabled }}
             envFrom:
+              - configMapRef:
+                  name: tracing
               {{- if .Values.s3.enabled }}
               - configMapRef:
                   name: s3
@@ -90,7 +93,6 @@ spec:
               - secretRef:
                   name: postgres
               {{- end }}
-            {{- end }}
             {{- if gt (int .Values.gpu) 0 }}
             resources:
               limits:

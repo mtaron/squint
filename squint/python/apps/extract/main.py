@@ -2,8 +2,11 @@ import asyncio
 import logging
 
 from openai import AsyncOpenAI
+from opentelemetry.instrumentation.grpc import GrpcAioInstrumentorClient
+from opentelemetry.instrumentation.httpx import HTTPX2ClientInstrumentor
 from squint_core import s3
 from squint_core.config import require_env
+from squint_core.tracing import configure_tracing
 from squint_core.worker import run_worker
 from squint_vector import milvus
 
@@ -17,6 +20,8 @@ VLM_TIMEOUT_SECONDS = 90
 
 
 async def run() -> None:
+    # Milvus is a gRPC client, and the VLM client is built on httpx2
+    configure_tracing(GrpcAioInstrumentorClient(), HTTPX2ClientInstrumentor())
     # Activities log each search's scores, which is what the cutoffs are calibrated from
     logging.basicConfig()
     logging.getLogger("temporalio.activity").setLevel(logging.INFO)

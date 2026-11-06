@@ -1,9 +1,11 @@
 import asyncio
 
 import torch
+from opentelemetry.instrumentation.grpc import GrpcAioInstrumentorClient
 from squint_core import postgres, s3
 from squint_core.embedding import EMBED_BATCH_SIZE, EMBED_TASK_QUEUE
 from squint_core.processes import ProcessWorkers
+from squint_core.tracing import configure_tracing
 from squint_core.worker import run_worker
 from squint_vector import milvus, pages
 
@@ -15,6 +17,7 @@ MAX_CONCURRENT_ACTIVITIES = 1
 
 
 async def run() -> None:
+    configure_tracing(GrpcAioInstrumentorClient())
     processor, model = load_model()
     print(
         f"embed model loaded: {model.name_or_path} on {torch.cuda.get_device_name()}, "

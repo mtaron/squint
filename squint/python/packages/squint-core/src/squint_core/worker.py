@@ -9,6 +9,7 @@ from temporalio.worker import Worker, WorkerDeploymentConfig
 
 from squint_core.config import require_env
 from squint_core.temporal import create_client
+from squint_core.tracing import temporal_plugins
 
 METRICS_ADDRESS = "0.0.0.0:9090"
 
@@ -54,7 +55,7 @@ async def run_worker(
 ) -> None:
     """Run a versioned worker until SIGTERM or SIGINT, then drain in-flight tasks."""
     version = deployment_version()
-    client = await create_client(create_runtime(version))
+    client = await create_client(create_runtime(version), temporal_plugins())
     worker = Worker(
         client,
         task_queue=task_queue,

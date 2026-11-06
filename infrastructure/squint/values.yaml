@@ -8,6 +8,9 @@ s3:
 postgres:
   host: postgres-cluster-rw.postgres.svc.cluster.local
   port: 5432
+tracing:
+  host: tempo.monitoring.svc.cluster.local
+  port: 4318
 temporal:
   host: temporal-frontend.temporal.svc.cluster.local
   port: 7233

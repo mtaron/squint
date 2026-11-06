@@ -1,6 +1,7 @@
 import asyncio
 
 from squint_core import postgres, s3
+from squint_core.tracing import configure_tracing
 from squint_core.worker import run_worker
 
 from activities import DocumentActivities, PageWorkers
@@ -13,6 +14,7 @@ PARALLELISM = 8
 
 
 async def run() -> None:
+    configure_tracing()
     db = await postgres.create_client()
     try:
         with PageWorkers(PARALLELISM) as page_workers:

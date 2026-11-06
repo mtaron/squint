@@ -208,8 +208,6 @@ k8s_yaml(helm(
         'image=squint-ui',
         'route.enabled=true',
         'env.ORIGIN=' + UI_ORIGIN,
-        # Traces are viewed in Grafana's Explore view with the Tempo data source
-        'env.OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo.monitoring.svc:4318',
         # The dev admin account for `task create-admin` and `task remove-user`; the password Secret
         # comes from infrastructure/hooks/dev-squint-secrets.sh
         'env.ADMIN_EMAIL=admin@squint-docs.com',

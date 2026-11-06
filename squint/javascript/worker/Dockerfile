@@ -35,7 +35,7 @@ WORKDIR /app/worker
 
 EXPOSE 9090 9229
 
-CMD ["node", "--watch", "--inspect=0.0.0.0:9229", "src/main.ts"]
+CMD ["node", "--watch", "--inspect=0.0.0.0:9229", "--import", "./src/instrumentation.ts", "src/main.ts"]
 
 FROM manifests AS prod-deps
 
@@ -59,4 +59,4 @@ COPY --chown=node:node db/src /app/db/src
 
 EXPOSE 9090
 
-CMD ["node", "src/main.ts"]
+CMD ["node", "--import", "./src/instrumentation.ts", "src/main.ts"]

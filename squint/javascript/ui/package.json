@@ -30,6 +30,7 @@
     "@opentelemetry/instrumentation-undici": "^0.34.0",
     "@opentelemetry/sdk-node": "^0.300.0",
     "@temporalio/client": "^1.25.0",
+    "@temporalio/interceptors-opentelemetry": "^1.25.0",
     "@temporalio/workflow-streams": "^1.25.0",
     "import-in-the-middle": "^3.5.3",
     "nanoid": "^6.0.2",
