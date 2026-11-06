@@ -172,16 +172,6 @@ local_resource(
     labels=['ui'],
 )
 
-# The VLM is a helmfile release, so Tilt only forwards it, for tests that call it directly.
-# https://vlm.squint.loc routes to it too, once `task dev-hosts` has picked up its route.
-local_resource(
-    'vlm',
-    serve_cmd='task vllm',
-    links=[link('http://localhost:8000/docs', 'OpenAI API')],
-    readiness_probe=probe(http_get=http_get_action(port=8000, path='/health')),
-    labels=['workers'],
-)
-
 # Vite's dev server watches the synced source, including the db package's schema, and hot reloads
 # it. Other changes (dependencies, config) rebuild the image.
 # In preview mode the Dockerfile's final stage runs the production build, and every change rebuilds.
