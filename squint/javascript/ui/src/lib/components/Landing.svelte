@@ -1,94 +1,91 @@
 <script lang="ts">
   import { resolve } from "$app/paths";
-  import HeroDemo from "#lib/components/HeroDemo.svelte";
+  import SystemDiagram from "#lib/components/SystemDiagram.svelte";
 
-  const steps = [
+  const repository = "https://github.com/mtaron/squint";
+
+  const principles = [
     {
-      title: "Add your documents",
-      body: "Upload a single PDF or a whole folder. squint embeds each page as an image, with no OCR or PDF parsing.",
+      name: "Vision-first",
+      body: "A scanned PDF and a born-digital one take the same path. No PDF parsing, just pixels.",
     },
     {
-      title: "Define a schema",
-      body: "Name the fields you want, like vendor, invoice number, and total due. One schema covers every document, so you don't maintain a template for each layout.",
+      name: "Efficient",
+      body: "How low can cost per page go with small models while the results stay acceptable?",
     },
     {
-      title: "Get a table back",
-      body: "Each document becomes a row, and each value points to the spot on the page it came from, so you can check the results.",
+      name: "Lazy",
+      body: "Most per-page work is never looked at. Put it off until someone actually needs it.",
     },
+    {
+      name: "Self-hostable",
+      body: "Everything runs on one Kubernetes cluster, which keeps GPU bills down during development.",
+    },
+  ];
+
+  const parts = [
+    {
+      name: "NeoMME",
+      role: "page embeddings",
+      href: "https://huggingface.co/blog/Hcompany/neomme",
+    },
+    {
+      name: "Qwen3.5 4B",
+      role: "vision-language model",
+      href: "https://huggingface.co/Qwen/Qwen3.5-4B",
+    },
+    { name: "vLLM", role: "model serving", href: "https://docs.vllm.ai/" },
+    { name: "Temporal", role: "durable workers", href: "https://docs.temporal.io/" },
+    { name: "Milvus", role: "vector store", href: "https://milvus.io/docs" },
+    { name: "Dragonfly", role: "key-value store", href: "https://www.dragonflydb.io/docs" },
+    { name: "SvelteKit", role: "this UI", href: "https://svelte.dev/docs/kit/introduction" },
+    { name: "agentgateway", role: "networking", href: "https://agentgateway.dev/" },
   ];
 </script>
 
 <section class="hero">
   <div class="pitch">
-    <h1>Turn a thousand PDFs into one table.</h1>
+    <h1>A self-hosted playground for vision-first document understanding</h1>
     <p class="lede">
-      Tell squint which fields you need. It finds them across your documents, scanned or digital,
-      and shows you where on the page each value came from.
+      squint is a side project for exploring a new wave of AI models for document understanding.
+      Older approaches started with the text and tried to recover the meaning trapped in layout and
+      tables. Modern models like <a href="https://huggingface.co/blog/manu/colpali">ColPali</a> start
+      with the page images instead. squint is a self-hostable app that lets me explore some ideas without
+      breaking the bank.
     </p>
     <div class="actions">
-      <a class="button" href={resolve("/login")}>Get started</a>
-      <a class="button quiet" href="#self-host">Run it yourself</a>
+      <a class="button" href={repository}>Read the code</a>
+      <a class="button quiet" href={resolve("/login")}>Try the app</a>
     </div>
   </div>
-  <HeroDemo />
+  <SystemDiagram />
 </section>
 
-<section class="steps" aria-labelledby="steps-heading">
-  <h2 id="steps-heading">How it works</h2>
-  <ol>
-    {#each steps as step (step.title)}
-      <li>
-        <h3>{step.title}</h3>
-        <p>{step.body}</p>
-      </li>
-    {/each}
-  </ol>
-</section>
-
-<section class="vision" aria-labelledby="vision-heading">
+<section class="details">
   <div>
-    <h2 id="vision-heading">No parsing, just pixels</h2>
-    <p>
-      Most document pipelines start with OCR, page segmentation, and reading order reconstruction.
-      squint skips those steps. It embeds page images directly to find the right pages, then a
-      vision-language model reads them.
+    <h2 id="principles-heading">Principles</h2>
+    <dl aria-labelledby="principles-heading">
+      {#each principles as principle (principle.name)}
+        <div>
+          <dt>{principle.name}</dt>
+          <dd>{principle.body}</dd>
+        </div>
+      {/each}
+    </dl>
+  </div>
+
+  <div>
+    <h2 id="parts-heading">Parts</h2>
+    <ul class="parts" aria-labelledby="parts-heading">
+      {#each parts as part (part.name)}
+        <li><a href={part.href}>{part.name}</a> <span>{part.role}</span></li>
+      {/each}
+    </ul>
+    <p class="dev-loop">
+      The other half of the experiment is the dev loop: a local kind cluster with GPU access, Tilt
+      for live reload, and remote debugging into every container. Nothing runs outside the cluster.
     </p>
   </div>
-  <ul>
-    <li>
-      <span class="i-ph-layout-duotone" aria-hidden="true"></span>
-      <div>
-        <h3>Layout stays intact</h3>
-        <p>The model sees the whole page, so tables and forms keep their structure.</p>
-      </div>
-    </li>
-    <li>
-      <span class="i-ph-scan-duotone" aria-hidden="true"></span>
-      <div>
-        <h3>Scans work too</h3>
-        <p>A scanned PDF goes through the same pipeline as a born-digital one.</p>
-      </div>
-    </li>
-    <li>
-      <span class="i-ph-gauge-duotone" aria-hidden="true"></span>
-      <div>
-        <h3>Small models, only when needed</h3>
-        <p>
-          squint favors small models and saves per-page work until a schema calls for it, which
-          keeps cost per page low.
-        </p>
-      </div>
-    </li>
-  </ul>
-</section>
-
-<section id="self-host" class="self-host" aria-labelledby="self-host-heading">
-  <span class="i-ph-hard-drives-duotone" aria-hidden="true"></span>
-  <h2 id="self-host-heading">Your documents stay on your GPUs</h2>
-  <p>
-    squint runs on your own Kubernetes cluster, next to your data. The models run there too, so your
-    pages never leave your infrastructure.
-  </p>
 </section>
 
 <style>
@@ -98,13 +95,12 @@
 
   .hero {
     display: grid;
-    gap: var(--space-8);
+    gap: var(--space-7);
     align-items: center;
     padding-block-start: var(--space-7);
 
     @media (min-width: 60rem) {
       grid-template-columns: 1.1fr 1fr;
-      gap: var(--space-7);
       padding-block-start: var(--space-8);
     }
   }
@@ -112,10 +108,15 @@
   .pitch {
     display: grid;
     gap: var(--space-5);
+
+    h1 {
+      font-size: clamp(var(--step-4), 4.5vw, var(--step-5));
+      line-height: 1.05;
+    }
   }
 
   .lede {
-    max-width: 34em;
+    max-width: 32em;
     color: var(--ink-soft);
     font-size: var(--step-2);
     line-height: 1.45;
@@ -128,95 +129,63 @@
     margin-block-start: var(--space-2);
   }
 
-  .steps ol {
+  .details {
     display: grid;
-    gap: var(--space-6);
-    margin-block-start: var(--space-6);
-    padding: 0;
-    list-style: none;
-    counter-reset: step;
-
-    @media (min-width: 48rem) {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  .steps li {
-    display: grid;
-    align-content: start;
-    gap: var(--space-2);
-    padding-block-start: var(--space-4);
-    border-top: 1px solid var(--ink);
-    counter-increment: step;
-
-    &::before {
-      content: counter(step);
-      justify-self: start;
-      padding-inline: 0.15em;
-      padding-block-end: 0.12em;
-      margin-block-end: var(--space-2);
-      font-family: var(--font-display);
-      font-size: var(--step-4);
-      font-variation-settings:
-        "SOFT" 100,
-        "WONK" 1;
-      font-weight: 600;
-      line-height: 1;
-      background: linear-gradient(var(--marker-pink), var(--marker-pink)) no-repeat 0 100% / 100%
-        0.22em;
-    }
-
-    p {
-      color: var(--ink-soft);
-    }
-  }
-
-  .vision {
-    display: grid;
-    gap: var(--space-6);
+    gap: var(--space-8);
+    padding-block-start: var(--space-7);
+    border-top: 1px solid var(--rule);
 
     @media (min-width: 60rem) {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.2fr 1fr;
       gap: var(--space-8);
     }
 
     > div {
       display: grid;
       align-content: start;
-      gap: var(--space-4);
-    }
-
-    ul {
-      display: grid;
       gap: var(--space-5);
-      padding: 0;
-      list-style: none;
-    }
-
-    li {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: var(--space-4);
-      align-items: start;
-    }
-
-    li p {
-      color: var(--ink-soft);
-    }
-
-    [class^="i-ph"] {
-      font-size: var(--step-4);
     }
   }
 
-  .self-host {
+  dl {
     display: grid;
-    gap: var(--space-4);
-    padding-block-start: var(--space-7);
-    border-top: 1px solid var(--rule);
+    gap: var(--space-5);
 
-    [class^="i-ph"] {
-      font-size: var(--step-5);
+    @media (min-width: 40rem) {
+      grid-template-columns: 1fr 1fr;
     }
+  }
+
+  dt {
+    font-weight: 650;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .parts {
+    display: grid;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 0 var(--space-4);
+      padding-block-end: var(--space-2);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    span {
+      color: var(--ink-soft);
+    }
+  }
+
+  .dev-loop {
+    color: var(--ink-soft);
   }
 </style>

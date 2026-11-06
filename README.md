@@ -7,9 +7,9 @@
   <sub><sub><em>A self-hostable, vision-first document processing pipeline</em></sub></sub>
 </h1>
 
-[ColPali](https://huggingface.co/blog/manu/colpali) was a paradigm shift in document retrieval. Instead of using a complex retrieval pipeline with OCR, page segmentation, reading order reconstruction, etc., ColPali-style models just embed page images directly. This project is a personal side quest to see how far I can take a "vision-only" document processing pipeline by combining late-interaction page embeddings for search ([NeoMME](https://huggingface.co/blog/Hcompany/neomme) in this case) with a vision-language model ([Qwen3.5](https://huggingface.co/Qwen/Qwen3.5-4B)).
+[ColPali](https://huggingface.co/blog/manu/colpali) was a paradigm shift in document retrieval. Instead of using a complex retrieval pipeline, ColPali-style models just embed page images directly. This project is a personal side quest to see how far I can take a "vision-only" document processing pipeline by combining late-interaction page embeddings for search ([NeoMME](https://huggingface.co/blog/Hcompany/neomme) in this case) with a vision-language model. The late-interaction page embeddings allow efficient search and context selection over a large corpus.
 
-The fundamental job squint does is apply a schema across documents with grounding. The late-interaction page embeddings allow it to do so efficiently over a large corpus.
+It's very WIP and mostly a playground for me to try out various ideas and tools and I'm interested in. The goal as much as there is one is apply a schema across documents with grounding. There are lots of tools that already do this well like Datalab and LightOn, but this one is mine. :)
 
 ## Principles
 - **Efficiency**: Many document-specific problems can be solved with smaller models for a very reasonable accuracy trade-off. You can always throw a bigger model at a problem, but I'm curious how low you can drive cost per page and pages per second while still having acceptable results.

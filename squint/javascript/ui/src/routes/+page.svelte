@@ -3,10 +3,10 @@
 </script>
 
 <svelte:head>
-  <title>squint: structured data from your documents</title>
+  <title>squint: document processing from pixels alone</title>
   <meta
     name="description"
-    content="squint applies a schema across your documents and shows where on the page each value came from. Vision-first and self-hostable."
+    content="A self-hosted playground for vision-first document understanding."
   />
 </svelte:head>
 
