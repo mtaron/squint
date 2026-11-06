@@ -34,13 +34,15 @@ sunset:
   scaledownDelay: 5m
   deleteDelay: 1h
 
-# A HorizontalPodAutoscaler per worker version on activity slot utilization
+# A HorizontalPodAutoscaler per worker version on activity slot utilization and backlog
 autoscaling:
   enabled: false
   minReplicas: 1
   maxReplicas: 3
   # Fraction of the version's activity slots in use that the HPA scales to hold
   targetUtilization: 0.7
+  # Queued activity tasks per replica that the HPA scales to hold
+  targetBacklogPerReplica: 1
   scaleUpStabilizationSeconds: 0
   scaleDownStabilizationSeconds: 120
 

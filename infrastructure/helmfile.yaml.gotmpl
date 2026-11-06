@@ -170,6 +170,32 @@ releases:
                         ),
                         1
                       )
+              - name: temporal-worker-backlog
+                interval: 10s
+                rules:
+                  # Tasks queued for each worker version and not yet started, under the labels
+                  # temporal-worker-controller puts in HPA selectors. Matching reports a version's
+                  # own queue plus its share of the unversioned queue, once a minute
+                  # (matching.backlogMetricsEmitInterval). The self-hosted counterpart of
+                  # temporal_cloud_v1_approximate_backlog_count in the temporal-worker-controller demo:
+                  # https://github.com/temporalio/temporal-worker-controller/blob/v1.13.0/internal/demo/k8s/prometheus-adapter-values.yaml
+                  - record: temporal_approximate_backlog_count
+                    expr: |
+                      sum by (temporal_worker_deployment_name, temporal_worker_build_id, temporal_namespace, temporal_task_queue, task_type) (
+                        label_replace(
+                          label_replace(
+                            label_replace(
+                              label_replace(
+                                approximate_backlog_count{worker_deployment_name!=""},
+                                "temporal_worker_deployment_name", "$1", "worker_deployment_name", "(.*)"
+                              ),
+                              "temporal_worker_build_id", "$1", "worker_build_id", "(.*)"
+                            ),
+                            "temporal_namespace", "$1", "exported_namespace", "(.*)"
+                          ),
+                          "temporal_task_queue", "$1", "taskqueue", "(.*)"
+                        )
+                      )
       {{- with .Values | get "kube-prometheus-stack.values" nil }}
       {{- toYaml . | nindent 6 }}
       {{- end }}
@@ -205,6 +231,12 @@ releases:
               metricsQuery: 'avg(<<.Series>>{<<.LabelMatchers>>})'
               name:
                 as: temporal_slot_utilization
+              resources:
+                namespaced: false
+            - seriesQuery: 'temporal_approximate_backlog_count{}'
+              metricsQuery: 'sum(<<.Series>>{<<.LabelMatchers>>})'
+              name:
+                as: temporal_approximate_backlog_count
               resources:
                 namespaced: false
 
@@ -316,7 +348,7 @@ releases:
     namespace: temporal
     createNamespace: true
     chart: temporal/temporal
-    version: "1.7.0"
+    version: "1.8.0"
     {{- if eq .Environment.Name "development" }}
     hooks:
       - events: ["presync"]
@@ -338,6 +370,24 @@ releases:
               secretName: temporal-frontend-tls
               serverName: &temporalFrontendHost temporal-frontend.temporal.svc.cluster.local
           config:
+            metrics:
+              prometheus:
+                # https://github.com/temporalio/temporal-worker-controller/issues/693
+                # Keep "-" and "." in label values, which the default turns into "_", so that
+                # worker_build_id matches the build IDs temporal-worker-controller puts in HPA
+                # selectors
+                sanitizeOptions:
+                  nameChars: &alphanumericUnderscore
+                    ranges: &alphanumeric
+                      - { startRange: "a", endRange: "z" }
+                      - { startRange: "A", endRange: "Z" }
+                      - { startRange: "0", endRange: "9" }
+                    safeChars: "_"
+                  keyChars: *alphanumericUnderscore
+                  valueChars:
+                    ranges: *alphanumeric
+                    safeChars: "_-."
+                  replacementChar: "_"
             namespaces:
               create: true
               namespace:
@@ -375,12 +425,12 @@ releases:
   - name: temporal-worker-controller-crds
     chart: oci://docker.io/temporalio/temporal-worker-controller-crds
     namespace: default
-    version: "0.32.0"
+    version: "0.33.0"
 
   - name: temporal-worker-controller
     chart: oci://docker.io/temporalio/temporal-worker-controller
     namespace: temporal
-    version: "0.32.0"
+    version: "0.33.0"
     needs:
       - temporal/temporal
       - default/temporal-worker-controller-crds

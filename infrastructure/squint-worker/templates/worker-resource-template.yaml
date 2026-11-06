@@ -30,6 +30,19 @@ spec:
               # An aggregate ratio, so Value rather than AverageValue
               type: Value
               value: {{ .Values.autoscaling.targetUtilization | quote }}
+        # Activity tasks queued for the version and not yet started, from the
+        # temporal_approximate_backlog_count recording rule, which scales up on arriving work
+        # before slot utilization catches up. Summed over the version's task queues.
+        - type: External
+          external:
+            metric:
+              name: temporal_approximate_backlog_count
+              selector:
+                matchLabels:
+                  task_type: Activity
+            target:
+              type: AverageValue
+              averageValue: {{ .Values.autoscaling.targetBacklogPerReplica | quote }}
       behavior:
         scaleUp:
           stabilizationWindowSeconds: {{ .Values.autoscaling.scaleUpStabilizationSeconds }}
