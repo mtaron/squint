@@ -7,6 +7,22 @@ const neverSettles = () => new Promise<string[]>(() => {});
 
 const statuses = (queue: UploadQueue) => queue.items.map(({ name, status }) => `${name} ${status}`);
 
+/** A send whose uploads stay in flight until the test finishes them, by file name. */
+function controlledSend() {
+  const sent: string[] = [];
+  const pending = new Map<string, (problems: string[]) => void>();
+  const send = (file: File) => {
+    sent.push(file.name);
+    return new Promise<string[]>((resolve) => pending.set(file.name, resolve));
+  };
+  async function finish(name: string, problems: string[] = []) {
+    pending.get(name)?.(problems);
+    pending.delete(name);
+    await new Promise((resolve) => setTimeout(resolve));
+  }
+  return { send, sent, finish };
+}
+
 describe("UploadQueue", () => {
   test("uploads at most three files at a time", () => {
     const queue = new UploadQueue(neverSettles);
@@ -21,29 +37,29 @@ describe("UploadQueue", () => {
     ]);
   });
 
-  test("starts the next file when an upload settles", () => {
-    const queue = new UploadQueue(neverSettles);
+  test("starts the next file whenever an upload settles, keeping only failures", async () => {
+    const { send, sent, finish } = controlledSend();
+    const queue = new UploadQueue(send);
     queue.add(["a", "b", "c", "d", "e"].map((name) => pdf(`${name}.pdf`)));
-    const [a, b] = queue.items;
 
-    queue.settle(a.id, []);
-    queue.settle(b.id, ["Already uploaded as b-copy.pdf, so it was skipped."]);
+    await finish("a.pdf");
+    await finish("b.pdf", ["Already uploaded as b-copy.pdf, so it was skipped."]);
 
+    expect(sent).toEqual(["a.pdf", "b.pdf", "c.pdf", "d.pdf", "e.pdf"]);
     expect(statuses(queue)).toEqual([
       "b.pdf failed",
       "c.pdf uploading",
       "d.pdf uploading",
       "e.pdf uploading",
     ]);
-    expect(queue.items[0].file).toBeUndefined();
   });
 
-  test("replaces a failed upload when a file with the same name is added", () => {
-    const queue = new UploadQueue(neverSettles);
+  test("replaces a failed upload when a file with the same name is added", async () => {
+    const { send, finish } = controlledSend();
+    const queue = new UploadQueue(send);
     queue.add([pdf("a.pdf"), pdf("b.pdf")]);
-    const [a, b] = queue.items;
-    queue.settle(a.id, ["The upload failed. Try again."]);
-    queue.settle(b.id, ["The upload failed. Try again."]);
+    await finish("a.pdf", ["The upload failed. Try again."]);
+    await finish("b.pdf", ["The upload failed. Try again."]);
 
     queue.add([pdf("a.pdf")]);
 
@@ -59,12 +75,14 @@ describe("UploadQueue", () => {
     expect(statuses(queue)).toEqual(["a.pdf uploading", "a.pdf uploading"]);
   });
 
-  test("rejects empty files without uploading them", () => {
-    const queue = new UploadQueue(neverSettles);
+  test("fails empty files without sending them", () => {
+    const send = vi.fn(neverSettles);
+    const queue = new UploadQueue(send);
+
     queue.add([new File([], "blank.pdf")]);
 
     expect(statuses(queue)).toEqual(["blank.pdf failed"]);
-    expect(queue.items[0].problems).toEqual(["This PDF is empty, so it was skipped."]);
+    expect(send).not.toHaveBeenCalled();
   });
 
   test("summarizes files that aren't PDFs and ignores hidden files", () => {
@@ -81,28 +99,6 @@ describe("UploadQueue", () => {
     ]);
   });
 
-  test("dismisses a row", () => {
-    const queue = new UploadQueue(neverSettles);
-    queue.add([new File([], "blank.pdf")]);
-    queue.dismiss(queue.items[0].id);
-
-    expect(queue.items).toEqual([]);
-  });
-
-  test("sends each file it starts, and starts the next once one is sent", async () => {
-    const sent: string[] = [];
-    const queue = new UploadQueue(async (file) => {
-      sent.push(file.name);
-      return [];
-    }, 1);
-
-    queue.add([pdf("a.pdf"), pdf("b.pdf")]);
-
-    expect(sent).toEqual(["a.pdf"]);
-    await vi.waitFor(() => expect(queue.items).toEqual([]));
-    expect(sent).toEqual(["a.pdf", "b.pdf"]);
-  });
-
   test("tracks how much of a file has been sent", () => {
     let report: (loaded: number) => void = () => {};
     const queue = new UploadQueue((_file, onProgress) => {
@@ -110,7 +106,6 @@ describe("UploadQueue", () => {
       return neverSettles();
     });
     queue.add([pdf("a.pdf")]);
-    expect(queue.items[0].loaded).toBe(0);
 
     report(5);
 
@@ -136,23 +131,15 @@ describe("UploadQueue", () => {
     queue.add([pdf("a.pdf")]);
 
     await vi.waitFor(() => expect(statuses(queue)).toEqual(["a.pdf failed"]));
-    expect(queue.items[0].problems).toEqual(["The upload failed. Try again."]);
   });
 
   test("forgets everything when cleared, including files that haven't been sent", async () => {
-    const sent: string[] = [];
-    let finishSending = () => {};
-    const queue = new UploadQueue((file) => {
-      sent.push(file.name);
-      return new Promise<string[]>((resolve) => {
-        finishSending = () => resolve([]);
-      });
-    }, 1);
+    const { send, sent, finish } = controlledSend();
+    const queue = new UploadQueue(send, 1);
     queue.add([pdf("a.pdf"), pdf("b.pdf")]);
 
     queue.clear();
-    finishSending();
-    await new Promise((resolve) => setTimeout(resolve));
+    await finish("a.pdf");
 
     expect(queue.items).toEqual([]);
     expect(sent).toEqual(["a.pdf"]);

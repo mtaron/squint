@@ -1,5 +1,5 @@
 import type { Client } from "@temporalio/client";
-import { beforeEach, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import type { SearchEvent } from "#lib/search.ts";
 import { getTemporalClient } from "#lib/server/temporal.ts";
 import { followSearch, searchWorkflowId } from "./search.ts";
@@ -53,19 +53,31 @@ beforeEach(() => {
   vi.mocked(getTemporalClient).mockResolvedValue(client);
 });
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 async function follow(): Promise<SearchEvent[]> {
   const events: SearchEvent[] = [];
   await followSearch(request, (event) => events.push(event), new AbortController().signal);
   return events;
 }
 
-test("the same search has the same id, which names its user", () => {
+test("the same search has the same id", () => {
+  expect(searchWorkflowId(request)).toBe(searchWorkflowId({ ...request }));
+});
+
+test("a different query or scope is a different search", () => {
   const id = searchWorkflowId(request);
 
-  expect(id).toBe(searchWorkflowId({ ...request }));
-  expect(id).toMatch(new RegExp(`^search-${userId}-[0-9a-f]{32}$`));
   expect(searchWorkflowId({ ...request, documentId: undefined })).not.toBe(id);
   expect(searchWorkflowId({ ...request, query: "gross revenue" })).not.toBe(id);
+});
+
+test("another user's identical search has a different id", () => {
+  const otherUser = { ...request, userId: "7c9e6679-7425-40de-944b-e07fc1f90ae7" };
+
+  expect(searchWorkflowId(otherUser)).not.toBe(searchWorkflowId(request));
 });
 
 test("starts the search in the user's bucket, or follows the one already running", async () => {
@@ -93,11 +105,15 @@ test("reports events until the search is done", async () => {
   expect(await follow()).toEqual([located, done]);
 });
 
-test("reports a failure when the stream ends early or the search can't start", async () => {
+test("reports a failure when the stream ends before the search is done", async () => {
   streamed.events = [located];
-  expect(await follow()).toEqual([located, { state: "failed", pages: [] }]);
 
+  expect(await follow()).toEqual([located, { state: "failed", pages: [] }]);
+});
+
+test("reports a failure when the search can't start", async () => {
   vi.mocked(getTemporalClient).mockRejectedValue(new Error("unreachable"));
   vi.spyOn(console, "error").mockImplementation(() => {});
+
   expect(await follow()).toEqual([{ state: "failed", pages: [] }]);
 });

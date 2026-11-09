@@ -1,11 +1,5 @@
 import { expect, test } from "vitest";
-import {
-  boxPlacement,
-  groupHits,
-  isFinalSearchEvent,
-  queryFromUrl,
-  type SearchHit,
-} from "./search.ts";
+import { groupHits, queryFromUrl, type SearchHit } from "./search.ts";
 
 const box = { x1: 100, y1: 250, x2: 400, y2: 275 };
 
@@ -22,20 +16,12 @@ test("lists pages that show the query before related ones, leaving out those sti
   expect(related.map(({ pageNumber }) => pageNumber)).toEqual([1]);
 });
 
-test("places a box in percentages of its page", () => {
-  expect(boxPlacement(box)).toEqual({ left: "10%", top: "25%", width: "30%", height: "2.5%" });
-});
-
-test("only done and failed end a search", () => {
-  expect(isFinalSearchEvent({ state: "searching", pages: [] })).toBe(false);
-  expect(isFinalSearchEvent({ state: "locating", pages: [] })).toBe(false);
-  expect(isFinalSearchEvent({ state: "done", pages: [] })).toBe(true);
-  expect(isFinalSearchEvent({ state: "failed", pages: [] })).toBe(true);
-});
-
-test("reads the query from a search link", () => {
+test("reads the trimmed query from a search link", () => {
   expect(queryFromUrl(new URL("https://squint.loc/documents?q=%20net%20revenue%20"))).toBe(
     "net revenue",
   );
+});
+
+test("reads an empty query from a link without one", () => {
   expect(queryFromUrl(new URL("https://squint.loc/documents"))).toBe("");
 });

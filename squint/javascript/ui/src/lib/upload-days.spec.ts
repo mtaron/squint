@@ -66,16 +66,7 @@ test("yesterday survives a daylight saving change", () => {
   expect(groups.map(({ label }) => label)).toEqual(["Yesterday"]);
 });
 
-test("days have stable keys for use as ids", () => {
-  const [day] = groupByUploadDay(uploaded("2026-10-28T09:00:00Z"), {
-    timeZone: "UTC",
-    now,
-    locale: "en",
-  });
-  expect(day?.key).toBe("2026-10-28");
-});
-
-test("days keep their keys in any locale", () => {
+test("keys days as YYYY-MM-DD in any locale", () => {
   const [day] = groupByUploadDay(uploaded("2026-10-28T09:00:00Z"), {
     timeZone: "UTC",
     now,
