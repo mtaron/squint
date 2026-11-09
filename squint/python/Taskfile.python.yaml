@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+# Included once per project, with `dir` set to the project
+version: "3"
+
+tasks:
+  test:
+    desc: Run every pytest test; extra args after `--` go to pytest
+    cmd: uv run pytest {{.CLI_ARGS}}
+
+  test-changed:
+    desc: Run the pytest tests whose dependencies changed or that failed since their last run
+    vars:
+      # testmon only tracks code under the project's rootdir, so a squint-core edit starts a new
+      # testmon environment, which reruns every test
+      SQUINT_CORE_HASH:
+        sh: find {{.ROOT_DIR}}/squint/python/packages/squint-core/src -name '*.py' -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -c1-12
+    cmd: uv run pytest --testmon --testmon-env=squint-core-{{.SQUINT_CORE_HASH}} {{.CLI_ARGS}}

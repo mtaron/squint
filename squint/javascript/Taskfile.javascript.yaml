@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+# Included once per package, with `dir` set to the package
+version: "3"
+
+tasks:
+  test:
+    desc: Run every vitest test; extra args after `--` go to vitest
+    cmd: pnpm exec vitest run {{.CLI_ARGS}}
+
+  test-changed:
+    desc: Run the vitest tests whose dependencies changed or that failed since their last run
+    cmd: pnpm exec vitest run --since-last-run {{.CLI_ARGS}}

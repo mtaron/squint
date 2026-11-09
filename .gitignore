@@ -10,3 +10,4 @@ models/*/
 /.certs
 .playwright-mcp
 /experiments
+.testmondata*

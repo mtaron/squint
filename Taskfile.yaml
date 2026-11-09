@@ -7,6 +7,24 @@ includes:
     taskfile: ./infrastructure/Taskfile.yaml
     dir: ./infrastructure
     flatten: true
+  ui:
+    taskfile: ./squint/javascript/Taskfile.javascript.yaml
+    dir: ./squint/javascript/ui
+  worker:
+    taskfile: ./squint/javascript/Taskfile.javascript.yaml
+    dir: ./squint/javascript/worker
+  squint-core:
+    taskfile: ./squint/python/Taskfile.python.yaml
+    dir: ./squint/python/packages/squint-core
+  embed:
+    taskfile: ./squint/python/Taskfile.python.yaml
+    dir: ./squint/python/apps/embed
+  ingest:
+    taskfile: ./squint/python/Taskfile.python.yaml
+    dir: ./squint/python/apps/ingest
+  extract:
+    taskfile: ./squint/python/Taskfile.python.yaml
+    dir: ./squint/python/apps/extract
 
 tasks:
   dev:
@@ -76,6 +94,26 @@ tasks:
     requires:
       vars: [EMAIL]
     cmd: kubectl exec --namespace squint deploy/ui -- node scripts/remove-user.ts {{shellQuote .EMAIL}}
+
+  test:
+    desc: Run every JS and Python test suite
+    cmds:
+      - task: ui:test
+      - task: worker:test
+      - task: squint-core:test
+      - task: embed:test
+      - task: ingest:test
+      - task: extract:test
+
+  test-changed:
+    desc: Run only the JS and Python tests affected by changes since their last run
+    cmds:
+      - task: ui:test-changed
+      - task: worker:test-changed
+      - task: squint-core:test-changed
+      - task: embed:test-changed
+      - task: ingest:test-changed
+      - task: extract:test-changed
 
   update-python-dependencies:
     desc: Upgrade every Python project's uv.lock and sync its .venv

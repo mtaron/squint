@@ -6,6 +6,8 @@ Do not start long running background tasks like `tilt up` inside the agent shell
 
 All squint services in the dev cluster run with a debugger port open. `.vscode/launch.json` contains the source mappings and debug ports. Use the `debug-live` skill and `debugmcp` MCP server instead of resorting to print-line debugging.
 
+After a change, run `task <project>:test-changed` (e.g. `task ui:test-changed`) or `task test-changed` to run only the tests the change affects.
+
 Use `task remove-user EMAIL=<email>` to clean up test accounts unless leaving them is required for further debugging.
 
 Pass `--interactive=false` to `kubectl delete`. Otherwise it prompts for confirmation, which cancels the delete in an agent shell.

@@ -50,6 +50,7 @@ explicit = true
 dev = [
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.1",
+    "pytest-testmon>=2.3.0",
 ]
 
 [tool.pytest.ini_options]

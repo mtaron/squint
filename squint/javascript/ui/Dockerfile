@@ -6,6 +6,7 @@ ARG BASE_IMAGE=node:24-trixie-slim
 FROM ${BASE_IMAGE} AS base
 
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
+    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
     npm_config_store_dir=/pnpm/store
 
 RUN corepack enable && mkdir /app && chown node:node /app
