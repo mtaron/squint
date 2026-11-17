@@ -6,6 +6,7 @@ package_manager = "pnpm"
 
 [tools]
 # Python should track the version in ubuntu:26.04 image
+# Use `task ubuntu-python-version` to check for a newer version
 python = { version = "3.14.4", postinstall = "mise sync python --uv" }
 node = "lts"
 
