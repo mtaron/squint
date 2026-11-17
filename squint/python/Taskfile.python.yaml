@@ -16,3 +16,9 @@ tasks:
       SQUINT_CORE_HASH:
         sh: find {{.ROOT_DIR}}/squint/python/packages/squint-core/src -name '*.py' -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -c1-12
     cmd: uv run pytest --testmon --testmon-env=squint-core-{{.SQUINT_CORE_HASH}} {{.CLI_ARGS}}
+
+  lint:
+    desc: Run ruff and ty over the project
+    cmds:
+      - ruff check
+      - uv run ty check

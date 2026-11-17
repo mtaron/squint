@@ -115,6 +115,16 @@ tasks:
       - task: ingest:test-changed
       - task: extract:test-changed
 
+  lint:
+    desc: Run every JS and Python linter and type checker
+    cmds:
+      - task: ui:lint
+      - task: worker:lint
+      - task: squint-core:lint
+      - task: embed:lint
+      - task: ingest:lint
+      - task: extract:lint
+
   update-python-dependencies:
     desc: Upgrade every Python project's uv.lock and sync its .venv
     vars:
@@ -123,6 +133,10 @@ tasks:
     cmds:
       - for: { var: PROJECTS }
         cmd: uv sync --upgrade --directory {{.ITEM}}
+
+  update-js-dependencies:
+    desc: Upgrade every JavaScript workspace package's dependencies
+    cmd: pnpm update --recursive --dir squint/javascript
 
   gpu-usage:
     desc: Show where local GPU memory is allocated

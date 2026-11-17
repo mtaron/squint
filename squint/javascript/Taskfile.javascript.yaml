@@ -11,3 +11,9 @@ tasks:
   test-changed:
     desc: Run the vitest tests whose dependencies changed or that failed since their last run
     cmd: pnpm exec vitest run --since-last-run {{.CLI_ARGS}}
+
+  lint:
+    desc: Run oxlint and the package's type check
+    cmds:
+      - pnpm exec oxlint --config {{.TASKFILE_DIR}}/.oxlintrc.json
+      - pnpm run check

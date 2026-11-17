@@ -19,6 +19,9 @@
 			"path": "squint/javascript/db"
 		},
 		{
+			"path": "squint/javascript/worker"
+		},
+		{
 			"path": "squint/python/packages/squint-core"
 		},
 		{
