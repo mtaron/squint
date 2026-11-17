@@ -28,6 +28,7 @@ mkcert = "latest"
 "github:tomlsmith/tomlsmith" = "latest"
 tilt = "latest"
 hostctl = "latest"
+lstk = "latest"
 # The Git hook prek generates hardcodes the installed version's path
 prek = {
     version = "latest",

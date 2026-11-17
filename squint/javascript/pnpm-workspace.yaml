@@ -7,9 +7,6 @@ allowBuilds:
   esbuild: true
   protobufjs: true
   sharp: true
-# OpenTelemetry JS 3.0 (2026-10-20) is newer than pnpm's minimum release age
-minimumReleaseAgeExclude:
-  - "@opentelemetry/*"
 overrides:
   # The OTel JS 1.x SDK that the Temporal plugin needs is for API 1.9 or older. An API copy only
   # accepts a global tracer provider registered by the same or a newer minor version, so the
