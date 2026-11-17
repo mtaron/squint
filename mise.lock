@@ -2,6 +2,15 @@
 
 lockfile_version = 3
 
+[[tools.aws]]
+version = "2.40.3"
+backend = "aqua:aws/aws-cli"
+specifiers = ["latest"]
+
+[tools.aws."platforms.linux-x64"]
+checksum = "sha256:4770c06c4ecfc8ba94b60d89e6c7018ab7ea2cf5341b1ef05f6f93c5d6e8b705"
+url = "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.40.3.zip"
+
 [[tools."github:temporalio/cli"]]
 version = "1.10.1"
 backend = "github:temporalio/cli"
@@ -105,6 +114,16 @@ specifiers = ["latest"]
 [tools.kubectl."platforms.linux-x64"]
 checksum = "sha256:c04487523e7aa7d1493f7808174c899db93d7a9cf57531420cd76b9bd415f8f4"
 url = "https://dl.k8s.io/v1.37.2/bin/linux/amd64/kubectl"
+
+[[tools.kustomize]]
+version = "5.8.3"
+backend = "aqua:kubernetes-sigs/kustomize"
+specifiers = ["latest"]
+
+[tools.kustomize."platforms.linux-x64"]
+checksum = "sha256:cb9e31198d3f63b44848bd0afc4c8efc56e6cfef9c93a4a39a211940e6decd61"
+url = "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.8.3/kustomize_v5.8.3_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/kubernetes-sigs/kustomize/releases/assets/621661332"
 
 [[tools.lstk]]
 version = "1.4.5"

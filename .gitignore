@@ -1,5 +1,6 @@
 node_modules
 .mise
+mise.local.toml
 .venv
 __pycache__
 .ruff_cache

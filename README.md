@@ -62,6 +62,10 @@ sudo systemctl restart docker
 mise install --locked
 ```
 
+#### LocalStack
+
+Get an auth token from [LocalStack](https://app.localstack.cloud/) and run `mise set --env local --prompt LOCALSTACK_AUTH_TOKEN`
+
 ### Dev cluster
 
 ```sh
