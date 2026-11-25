@@ -58,3 +58,9 @@ terragrunt = "latest"
 PROJECT_ROOT = "{{config_root}}"
 # Keep in sync with tools.python; uv otherwise picks the newest managed Python
 UV_PYTHON = "3.14.4"
+# Repo-scoped AWS profiles; squint-dev targets Floci in the dev cluster
+AWS_CONFIG_FILE = "{{config_root}}/.aws/config"
+AWS_PROFILE = "squint-dev"
+# The system store holds the public roots and, after `mkcert -install`, the gateway's CA.
+# The AWS CLI otherwise trusts only its bundled roots.
+AWS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt"

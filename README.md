@@ -65,6 +65,15 @@ mise install --locked
 ### Dev cluster
 
 ```sh
+# One-time setup
 task install-local-certs
 task create-dev-cluster
+
+# Start the live-reloading dev loop
+task dev
+
+# In another shell after first running `task dev`
+# or whenever the the cloud load balancer gets a new IP.
+# This will make `https://squint.loc` resolve to the cloud load balancer on your machine.
+task dev-hosts
 ```

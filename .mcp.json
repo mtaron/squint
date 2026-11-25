@@ -15,6 +15,14 @@
     "debugmcp": {
       "type": "http",
       "url": "http://localhost:3001/mcp"
+    },
+    "terragrunt-docs": {
+      "type": "http",
+      "url": "https://mcp.docs.terragrunt.com/mcp"
+    },
+    "opentofu": {
+      "type": "http",
+      "url": "https://mcp.opentofu.org/mcp"
     }
   }
 }

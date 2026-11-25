@@ -597,6 +597,52 @@ releases:
             kind: ClusterIssuer
             name: squint-ca
 
+  # Floci
+  # Local AWS emulator, served with a squint-ca certificate and routed through the gateway
+  # https://github.com/floci-io/floci
+  - name: floci-extras
+    namespace: floci
+    installed: {{ eq .Environment.Name "development" | toYaml }}
+    createNamespace: true
+    chart: ./floci-extras
+    needs:
+      - cert-manager/cluster-issuer
+      - agentgateway-system/agentgateway
+    values:
+      - route:
+          hostnames:
+            - floci.squint.loc
+
+  - name: floci
+    namespace: floci
+    installed: {{ eq .Environment.Name "development" | toYaml }}
+    # Not published to a chart repository yet
+    chart: git::https://github.com/floci-io/floci.git@charts/floci?ref=2.5.0
+    needs:
+      - floci/floci-extras
+    values:
+      - image:
+          tag: "2.5.0"
+      - floci:
+          defaultRegion: {{ .Values.s3.region }}
+          tls:
+            enabled: true
+          env:
+            FLOCI_TLS_CERT_PATH: /etc/floci/tls/tls.crt
+            FLOCI_TLS_KEY_PATH: /etc/floci/tls/tls.key
+      - persistence:
+          enabled: true
+      - extraVolumes:
+          - name: tls
+            secret:
+              secretName: floci-tls
+              # Group-readable through the chart's fsGroup
+              defaultMode: 0440
+        extraVolumeMounts:
+          - name: tls
+            mountPath: /etc/floci/tls
+            readOnly: true
+
   # Cluster configuration and secrets for squint services
   - name: squint
     namespace: squint
