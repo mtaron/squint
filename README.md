@@ -56,15 +56,13 @@ sudo systemctl restart docker
 
 ### Tools
 
-[mise](https://mise.jdx.dev/) installs everything else needed for development.
+[mise](https://mise.jdx.dev/) installs almost everything else needed for development.
 
 ```sh
 mise install --locked
 ```
 
-#### LocalStack
-
-Get an auth token from [LocalStack](https://app.localstack.cloud/) and run `mise set --env local --prompt LOCALSTACK_AUTH_TOKEN`
+[encore](https://encore.dev/docs/quick-start#1-install-encore-and-create-your-app) sadly does not provide a package that mise can install, so it needs to be installed manually.
 
 ### Dev cluster
 

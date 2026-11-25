@@ -21,6 +21,7 @@ helm = "latest"
 helmfile = "latest"
 helm-diff = {
     version = "latest",
+    filter_bins = "helm-diff",
     depends = ["helm"],
     postinstall = "helm plugin uninstall diff >/dev/null 2>&1 || true; helm plugin install $MISE_TOOL_INSTALL_PATH/diff"
 }
@@ -31,7 +32,7 @@ mkcert = "latest"
 "github:tomlsmith/tomlsmith" = "latest"
 tilt = "latest"
 hostctl = "latest"
-lstk = "latest"
+
 # The Git hook prek generates hardcodes the installed version's path
 prek = {
     version = "latest",
@@ -52,5 +53,3 @@ kind = "latest"
 PROJECT_ROOT = "{{config_root}}"
 # Keep in sync with tools.python; uv otherwise picks the newest managed Python
 UV_PYTHON = "3.14.4"
-
-LOCALSTACK_AUTH_TOKEN = { required = true, redact = true, description = "LocalStack auth token from https://app.localstack.cloud/" }
