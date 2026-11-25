@@ -15,10 +15,6 @@
     "debugmcp": {
       "type": "http",
       "url": "http://localhost:3001/mcp"
-    },
-    "encore-cloud": {
-      "type": "http",
-      "url": "https://api.encore.dev/mcp"
     }
   }
 }

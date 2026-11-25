@@ -10,8 +10,7 @@ package_manager = "pnpm"
 python = { version = "3.14.4", postinstall = "mise sync python --uv" }
 node = "lts"
 
-# tools
-aws = "latest"
+# dev tools
 uv = "latest"
 pnpm = "latest"
 task = "latest"
@@ -48,6 +47,12 @@ ruff = "latest"
 kind = "latest"
 "go:sigs.k8s.io/cloud-provider-kind" = "latest"
 "go:github.com/NVIDIA/nvkind/cmd/nvkind" = "latest"
+
+# cloud tools
+aws = "latest"
+opentofu = "latest"
+terragrunt = "latest"
+"github:floci-io/floci-cli" = "latest"
 
 [env]
 PROJECT_ROOT = "{{config_root}}"

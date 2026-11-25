@@ -1,209 +1,41 @@
 {
-  "version": 2,
+  "version": 1,
   "skills": {
     "better-auth-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",
       "skillPath": "better-auth/best-practices/SKILL.md",
-      "computedHash": ""
+      "computedHash": "0c30be0e118c2b7a0c4c57bd9e63bf110c7e420a79ec6ce7997153f3b1e066ee"
     },
     "better-auth-security-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",
       "skillPath": "security/SKILL.md",
-      "computedHash": ""
+      "computedHash": "7a230edf3a24ce18162cb4379f59b6a19b8d24ca04db530609d0f15cede556dc"
     },
     "create-auth": {
       "source": "better-auth/skills",
       "sourceType": "github",
       "skillPath": "better-auth/create-auth/SKILL.md",
-      "computedHash": ""
+      "computedHash": "9a9b498bc144367b8e237233f89def63fb2bd69e8cafe173eaa58fe3a863cdc4"
     },
     "email-and-password-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",
       "skillPath": "better-auth/emailAndPassword/SKILL.md",
-      "computedHash": ""
-    },
-    "encore-api": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/api/SKILL.md",
-      "computedHash": "3eaf633dafcb55015c72e31ec2208f0bc0ec0ab7e0d628fe780970ed5177a6ca"
-    },
-    "encore-architecture": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/architecture/SKILL.md",
-      "computedHash": "0f2fa1bb1dbc7b5d47380145a0b123371aa02d54ae224524a6e2316d04ee2bf7"
-    },
-    "encore-auth": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/auth/SKILL.md",
-      "computedHash": "be395bd5609eb2410470c5222844b9557e19189d3ae29d5cf87b607ad459af01"
-    },
-    "encore-bucket": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/bucket/SKILL.md",
-      "computedHash": "a6043582abc16312c4577d86e7a96fc9ca31f8f467658cefb7bff1fa5842b071"
-    },
-    "encore-cache": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/cache/SKILL.md",
-      "computedHash": "c6956d8d99f5a4c07964fe7be59cff577a3f88afc81ba43a8e4af4fd223e1480"
-    },
-    "encore-code-review": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/code-review/SKILL.md",
-      "computedHash": "af9b46ece4c304c0ec30bb33c8aa28fc517c76a28e5bcf6df8f7a270e727dae7"
-    },
-    "encore-create-app": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/create-app/SKILL.md",
-      "computedHash": "76ef19e28b5e8ab8014acf6e5945825e8d3122c4e4aee5b692e84477b1250cbf"
-    },
-    "encore-cron": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/cron/SKILL.md",
-      "computedHash": "43e0561e179a6ef21102843cce92226cdbc34fbc24aacaa3bd95c7767d5108d5"
-    },
-    "encore-database": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/database/SKILL.md",
-      "computedHash": "b18e111e0fce081b831feb367856d554182f19240ae3a590b5b8ff3aaf9ca46f"
-    },
-    "encore-deploy": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/deploy/SKILL.md",
-      "computedHash": "d1b7e5715b5a0b03d8ce3f3575500a33fb13208312fb15fdb441fed909dae61f"
-    },
-    "encore-frontend": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/frontend/SKILL.md",
-      "computedHash": "c94afef111291f33cf08d22795e9023ba386e60bdafe6aeed332847e5e9e7c46"
-    },
-    "encore-getting-started": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/getting-started/SKILL.md",
-      "computedHash": "b43f7d13bcdb2d1d5a06804afaf89e8f53b5a2871dcfd4ebe866dc3226cab73b"
-    },
-    "encore-install": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/install/SKILL.md",
-      "computedHash": "fdb8317d269c4cc0e9b7dde5c2fe9e0a16e670ad361b1e38d2875569e7e10f62"
-    },
-    "encore-link-app": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/link-app/SKILL.md",
-      "computedHash": "48ea87f708e9a53102ebc20d0230a0ed99158433b79d5ae0d4a07e571b05d303"
-    },
-    "encore-logging": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/logging/SKILL.md",
-      "computedHash": "477cc6324a0a8fce15c4c8a8927d507334f110743c027e528f1c81d39593e59a"
-    },
-    "encore-login": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/login/SKILL.md",
-      "computedHash": "02fdb70276afcb383480659bd5704fbfc36f79623670b01d9a16dd359c1221cb"
-    },
-    "encore-mcp": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/mcp/SKILL.md",
-      "computedHash": "d9139a9fd9015f89191a4ca2e67a00cfe25fcc11b179e2e194e861176bb59b3e"
-    },
-    "encore-migrate": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/migrate/SKILL.md",
-      "computedHash": "c01ec55f0b0985306a6b977c8126dda32f0c6282ed7c3c5d403cb710cd6dd3d0"
-    },
-    "encore-pubsub": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/pubsub/SKILL.md",
-      "computedHash": "5f42ad3f81d156c24abe5045266073c6f786d0332bdaf276eac005a8fdca77ad"
-    },
-    "encore-run": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/run/SKILL.md",
-      "computedHash": "07318e12cdab0f8fe7bd58f88e05d7bf5c91a0bcfa7b11246258dcba25fda364"
-    },
-    "encore-secret": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/secret/SKILL.md",
-      "computedHash": "b62298e50810c40134551cddddf3f97f3c72bf2b9578d7c15c47076bd42148f0"
-    },
-    "encore-service": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/service/SKILL.md",
-      "computedHash": "734f502a95d75c02637592d3670f04263ab51db3340f0bd5ee9457f521225949"
-    },
-    "encore-testing": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/testing/SKILL.md",
-      "computedHash": "3c119748cf8294580da0a9e9b4f2643eaa4407acc3168ebfbc0644c7a13b7d00"
-    },
-    "encore-webhook": {
-      "source": "encoredev/skills",
-      "commit": "52c320a2aa984ebb80530190827e0bb445945649",
-      "sourceType": "github",
-      "skillPath": "encore/webhook/SKILL.md",
-      "computedHash": "92cba3714bfe9cfea9d28d105a9fb9113fb7bdd96f9502f13d68eb160c2c2418"
+      "computedHash": "863886759f729081e265941f4f72c503835d55a1f34f6d63cebe6571159fff4a"
     },
     "organization-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",
       "skillPath": "better-auth/organization/SKILL.md",
-      "computedHash": ""
+      "computedHash": "8c85e683dabef4532f1e8b67bbed5c453d39e0e3d5aeedd69d16b568f6e6d44f"
     },
     "two-factor-authentication-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",
       "skillPath": "better-auth/twoFactor/SKILL.md",
-      "computedHash": ""
+      "computedHash": "5bc3051aef5060db013f0b3cbe812c40dbae5c22d6ba3ddde4b941158362a197"
     }
   }
 }

@@ -56,13 +56,11 @@ sudo systemctl restart docker
 
 ### Tools
 
-[mise](https://mise.jdx.dev/) installs almost everything else needed for development.
+[mise](https://mise.jdx.dev/) installs everything else needed for development.
 
 ```sh
 mise install --locked
 ```
-
-[encore](https://encore.dev/docs/quick-start#1-install-encore-and-create-your-app) sadly does not provide a package that mise can install, so it needs to be installed manually.
 
 ### Dev cluster
 
